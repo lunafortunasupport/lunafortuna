@@ -1,9 +1,9 @@
 {
   "name": "lunafortuna",
   "version": "1.0.0",
-  "private": true,
+  "main": "api/bot.js",
   "scripts": {
-    "dev": "node api/bot.js"
+    "start": "node api/bot.js"
   },
   "dependencies": {
     "node-telegram-bot-api": "^0.66.0"
