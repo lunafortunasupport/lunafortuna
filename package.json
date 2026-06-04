@@ -1,6 +1,6 @@
 {
-  "name": "lunafortuna",
-  "version": "1.0.0",
+  "name": "lunafortuna-bot",
+  "version": "2.0.0",
   "main": "api/bot.js",
   "scripts": {
     "start": "node api/bot.js"
