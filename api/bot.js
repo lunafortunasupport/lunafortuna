@@ -2,161 +2,178 @@ const TelegramBot = require('node-telegram-bot-api');
 const db = require('../lib/db');
 
 const TOKEN = process.env.BOT_TOKEN;
-const ADMIN_ID = process.env.ADMIN_CHAT_ID; // آیدی تلگرام ادمین
+const ADMIN_ID = process.env.ADMIN_CHAT_ID;
+const CARD_NUMBER = process.env.CARD_NUMBER || '5894-6311-5805-9998';
+const CARD_OWNER = process.env.CARD_OWNER || 'عسل ملکی‌راد';
+const CARD_BANK = process.env.CARD_BANK || 'بانک رفاه';
 
 const bot = new TelegramBot(TOKEN, { polling: true });
-
-// ─── وضعیت مکالمه هر کاربر ───
 const sessions = new Map();
 
-function session(chatId) {
-  if (!sessions.has(chatId)) sessions.set(chatId, {});
-  return sessions.get(chatId);
+function s(id) {
+  if (!sessions.has(id)) sessions.set(id, {});
+  return sessions.get(id);
 }
+function isAdmin(id) { return ADMIN_ID && id.toString() === ADMIN_ID.toString(); }
 
-// ─── محاسبه قیمت ───
-function calcPrice(lirPrice) {
-  const rate = db.getRate();
-  const base = lirPrice * rate;
-  const fee = base * 0.15;
-  const total = base + fee;
-  return { base, fee, total, rate };
-}
-
-function formatPrice(n) {
-  return Math.round(n).toLocaleString('fa-IR') + ' تومان';
-}
-
-// ─── منوی اصلی مشتری ───
-const customerMenu = {
-  reply_markup: {
-    keyboard: [
-      ['🛍 ثبت سفارش با لینک', '🔍 پیدا کردن محصول'],
-      ['📦 وضعیت سفارشم', '💰 محاسبه قیمت'],
-      ['🔥 حراج‌های امروز', '📞 پشتیبانی'],
-    ],
-    resize_keyboard: true,
-    one_time_keyboard: false,
-  }
-};
+// ─── منوی مشتری ───
+const cMenu = { reply_markup: { keyboard: [
+  ['🛍 ثبت سفارش با لینک', '🔍 پیدا کردن محصول'],
+  ['🔥 تخفیف‌ها و حراج‌ها', '💰 محاسبه قیمت'],
+  ['📦 پیگیری سفارش',       '👤 سطح و تخفیف من'],
+  ['📖 راهنمای خرید',        '📞 پشتیبانی'],
+], resize_keyboard: true }};
 
 // ─── منوی ادمین ───
-const adminMenu = {
-  reply_markup: {
-    keyboard: [
-      ['📋 سفارش‌های جدید', '✅ تأیید پرداخت'],
-      ['🔄 آپدیت وضعیت', '💱 تنظیم نرخ لیر'],
-      ['📊 آمار امروز', '📢 پیام همگانی'],
-    ],
-    resize_keyboard: true,
-    one_time_keyboard: false,
-  }
-};
-
-function isAdmin(chatId) {
-  return ADMIN_ID && chatId.toString() === ADMIN_ID.toString();
-}
+const aMenu = { reply_markup: { keyboard: [
+  ['📋 سفارش‌های جدید', '🔄 آپدیت وضعیت'],
+  ['💱 نرخ لیر',         '📊 آمار'],
+  ['📢 پیام همگانی',     '➕ ثبت سفارش دستی'],
+], resize_keyboard: true }};
 
 // ─── استارت ───
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const name = msg.chat.first_name || 'عزیز';
-  db.saveUser(chatId, { name, username: msg.chat.username });
+  const ref = msg.text.split(' ')[1];
+
+  const existing = db.getUser(chatId);
+  db.saveUser(chatId, {
+    name, username: msg.chat.username,
+    joinedAt: existing?.joinedAt || new Date().toISOString(),
+    referredBy: existing?.referredBy || ref || null,
+    birthday: existing?.birthday || null,
+  });
 
   if (isAdmin(chatId)) {
-    bot.sendMessage(chatId,
-      `👑 خوش اومدی ${name}!\n\nپنل مدیریت Luna Fortuna`,
-      adminMenu
-    );
-    return;
+    return bot.sendMessage(chatId, `👑 خوش آمدی ${name}!\nپنل مدیریت Luna Fortuna 🌙`, aMenu);
   }
 
+  const myOrders = db.getUserOrders(chatId);
+  const level = db.getUserLevel(myOrders.filter(o => o.status === 'delivered').length);
+
   bot.sendMessage(chatId,
-    `🌙 سلام ${name}!\n\nبه Luna Fortuna خوش اومدی\n\n` +
-    `🇹🇷 ما محصولات ترکیه رو برات میخریم و به ایران میفرستیم\n\n` +
-    `از منو یه گزینه انتخاب کن:`,
-    customerMenu
+    `🌙 سلام ${name}!\n\nبه Luna Fortuna خوش آمدید\n\n` +
+    `🇹🇷 بهترین برندهای ترکیه · ارسال مستقیم به ایران\n` +
+    `✅ بررسی کیفیت و اصالت · قیمت مناسب\n\n` +
+    `سطح شما: ${level.name}\n\nاز منو گزینه موردنظر را انتخاب کنید:`,
+    cMenu
+  );
+});
+
+// ─── ثبت تاریخ تولد ───
+bot.onText(/\/birthday/, (msg) => {
+  const chatId = msg.chat.id;
+  s(chatId).step = 'birthday';
+  bot.sendMessage(chatId,
+    `🎂 تاریخ تولد شما (اختیاری)\n\nفرمت: روز/ماه — مثلاً: 15/3\n\nاگر نمی‌خواهید ثبت کنید /skip بنویسید`,
+    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
   );
 });
 
 // ─── ثبت سفارش با لینک ───
 bot.onText(/🛍 ثبت سفارش با لینک/, (msg) => {
   const chatId = msg.chat.id;
-  session(chatId).step = 'waiting_link';
+  s(chatId).step = 'link';
   bot.sendMessage(chatId,
-    `🔗 لینک محصول رو از سایت ترکیه بفرست\n\n` +
-    `مثلاً:\nhttps://www.trendyol.com/...\nhttps://www.hepsiburada.com/...\n\n` +
-    `💡 محصول رو توی سایت پیدا کن، لینک صفحه‌اش رو کپی کن و اینجا بفرست`,
-    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true } }
-  );
-});
-
-// ─── محاسبه قیمت ───
-bot.onText(/💰 محاسبه قیمت/, (msg) => {
-  const chatId = msg.chat.id;
-  session(chatId).step = 'calc_price';
-  bot.sendMessage(chatId,
-    `💱 قیمت محصول رو به لیر بفرست\n\nمثلاً: 1200`,
-    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true } }
+    `🔗 لینک محصول مورد نظر را بفرستید\n\nمثلاً:\nhttps://www.trendyol.com/...\nhttps://www.zara.com/tr/...\n\nهر سایت ترکیه‌ای قابل قبول است 👇`,
+    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
   );
 });
 
 // ─── پیدا کردن محصول ───
 bot.onText(/🔍 پیدا کردن محصول/, (msg) => {
   const chatId = msg.chat.id;
-  session(chatId).step = 'find_product';
+  s(chatId).step = 'find';
   bot.sendMessage(chatId,
-    `🔍 توضیح بده چی میخوای:\n\n` +
-    `مثلاً:\n• کاپشن زنانه رنگ کرم، سبک مینیمال، تا ۲۰ میلیون\n• کتونی Nike سایز ۴۲، تا ۱۵ میلیون\n• ست آرایشی MAC، بودجه ۱۰ میلیون\n\n` +
-    `هر چی بیشتر توضیح بدی بهتر پیدا میکنیم 👇`,
-    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true } }
+    `🔍 محصول مورد نظر خود را توصیف کنید:\n\nمثلاً:\n• کاپشن زنانه رنگ کرم، سبک مینیمال، تا ۲۰ میلیون\n• کتونی Nike سایز ۴۲، تا ۱۵ میلیون\n• ست آرایشی MAC، بودجه ۱۰ میلیون\n\nهر چه بیشتر توضیح دهید، بهتر پیدا می‌کنیم 👇`,
+    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
   );
 });
 
-// ─── وضعیت سفارش ───
-bot.onText(/📦 وضعیت سفارشم/, (msg) => {
+// ─── محاسبه قیمت ───
+bot.onText(/💰 محاسبه قیمت/, (msg) => {
   const chatId = msg.chat.id;
-  const userOrders = db.getAllOrders().filter(o => o.chatId === chatId.toString());
+  s(chatId).step = 'calc';
+  bot.sendMessage(chatId,
+    `💰 قیمت محصول را به لیر وارد کنید:\n\nمثلاً: 1200`,
+    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
+  );
+});
 
-  if (!userOrders.length) {
-    bot.sendMessage(chatId, `📭 هنوز سفارشی ثبت نکردی\n\nبرای ثبت سفارش از منو استفاده کن`, customerMenu);
-    return;
+// ─── سطح و تخفیف ───
+bot.onText(/👤 سطح و تخفیف من/, (msg) => {
+  const chatId = msg.chat.id;
+  const myOrders = db.getUserOrders(chatId);
+  const doneOrders = myOrders.filter(o => o.status === 'delivered').length;
+  const level = db.getUserLevel(doneOrders);
+  const refCode = db.generateReferralCode(chatId);
+  const user = db.getUser(chatId);
+
+  let nextLevel = '';
+  if (doneOrders < 5) nextLevel = `\n🥈 تا سطح نقره: ${5 - doneOrders} خرید دیگر`;
+  else if (doneOrders < 10) nextLevel = `\n🥇 تا سطح طلایی: ${10 - doneOrders} خرید دیگر`;
+  else nextLevel = `\n🏆 شما در بالاترین سطح هستید!`;
+
+  bot.sendMessage(chatId,
+    `👤 پروفایل شما:\n\n` +
+    `سطح: ${level.name}${nextLevel}\n\n` +
+    `🎁 کد معرف شما:\n${refCode}\n` +
+    `با معرفی دوستان تخفیف ویژه دریافت کنید!\n\n` +
+    `📊 تعداد خریدهای تکمیل‌شده: ${doneOrders}\n` +
+    (user?.birthday ? `🎂 تاریخ تولد: ${user.birthday}` : `🎂 تاریخ تولد ثبت نشده — /birthday`),
+    cMenu
+  );
+});
+
+// ─── تخفیف‌ها ───
+bot.onText(/🔥 تخفیف‌ها و حراج‌ها/, (msg) => {
+  bot.sendMessage(msg.chat.id, `🔥 کدام دسته‌بندی؟`, {
+    reply_markup: { inline_keyboard: [
+      [{ text: '👗 پوشاک',       callback_data: 'sale_clothing' }, { text: '👟 ورزشی',     callback_data: 'sale_sports' }],
+      [{ text: '💄 آرایشی',      callback_data: 'sale_beauty'  }, { text: '👜 کیف و کفش', callback_data: 'sale_shoes'  }],
+      [{ text: '🏠 لوازم خانه',  callback_data: 'sale_home'    }, { text: '🏪 مولتی‌برند', callback_data: 'sale_multi'  }],
+    ]}
+  });
+});
+
+// ─── پیگیری سفارش ───
+bot.onText(/📦 پیگیری سفارش/, (msg) => {
+  const chatId = msg.chat.id;
+  const myOrders = db.getUserOrders(chatId).slice(-5);
+
+  if (!myOrders.length) {
+    return bot.sendMessage(chatId, `📭 هنوز سفارشی ثبت نکرده‌اید\n\nبرای ثبت سفارش گزینه «ثبت سفارش» را انتخاب کنید`, cMenu);
   }
 
-  let text = `📦 سفارش‌های شما:\n\n`;
-  userOrders.slice(-5).forEach((o, i) => {
-    text += `${i+1}. ${o.productName || 'محصول'}\n`;
-    text += `   وضعیت: ${db.statusLabels[o.status] || o.status}\n`;
-    text += `   مبلغ: ${formatPrice(o.totalPrice)}\n\n`;
+  let text = `📦 سفارش‌های اخیر شما:\n\n`;
+  myOrders.reverse().forEach((o, i) => {
+    text += `${i+1}. #${o.shortId} — ${db.statusLabels[o.status]}\n`;
+    if (o.description) text += `   📝 ${o.description.substring(0, 50)}\n`;
+    if (o.totalPrice) text += `   💰 ${db.formatPrice(o.totalPrice)}\n`;
+    text += '\n';
   });
 
-  bot.sendMessage(chatId, text, customerMenu);
+  bot.sendMessage(chatId, text, cMenu);
 });
 
-// ─── حراج‌های امروز ───
-bot.onText(/🔥 حراج‌های امروز/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId,
-    `🔥 حراج‌های فعال این هفته:\n\n` +
-    `🏷 Trendyol — تا ۷۰٪ تخفیف\n` +
-    `🏷 Koton — تا ۵۰٪ تخفیف\n` +
-    `🏷 Decathlon — تا ۴۰٪ تخفیف\n` +
-    `🏷 Gratis — تا ۳۵٪ تخفیف\n` +
-    `🏷 LC Waikiki — تا ۴۵٪ تخفیف\n\n` +
-    `برای سفارش لینک محصول رو بفرست 👇`,
-    customerMenu
-  );
+// ─── راهنمای خرید ───
+bot.onText(/📖 راهنمای خرید/, (msg) => {
+  bot.sendMessage(msg.chat.id, `📖 راهنمای خرید از ترکیه`, {
+    reply_markup: { inline_keyboard: [
+      [{ text: '🔤 کلمات ترکی',          callback_data: 'guide_turkish'  }],
+      [{ text: '📏 راهنمای سایز پوشاک',  callback_data: 'guide_clothing' }],
+      [{ text: '👟 راهنمای سایز کفش',    callback_data: 'guide_shoes'    }],
+      [{ text: '🔍 فیلترهای مهم سایت‌ها', callback_data: 'guide_filters'  }],
+    ]}
+  });
 });
 
 // ─── پشتیبانی ───
 bot.onText(/📞 پشتیبانی/, (msg) => {
   bot.sendMessage(msg.chat.id,
-    `📞 پشتیبانی Luna Fortuna:\n\n` +
-    `📱 تلگرام: @LunaFortunaSupport\n` +
-    `📸 اینستاگرام: lunafortuna.shop\n` +
-    `☎️ تلفن: 0090-5318662989\n\n` +
-    `⏰ ساعت پاسخگویی: ۹ صبح تا ۱۱ شب`,
-    customerMenu
+    `📞 پشتیبانی Luna Fortuna:\n\n📱 تلگرام: @LunaFortunaSupport\n📸 اینستاگرام: lunafortuna.shop\n☎️ تلفن: 0090-5318662989\n\n⏰ پاسخگویی: ۹ صبح تا ۱۱ شب`,
+    cMenu
   );
 });
 
@@ -164,349 +181,444 @@ bot.onText(/📞 پشتیبانی/, (msg) => {
 bot.onText(/🔙 بازگشت/, (msg) => {
   const chatId = msg.chat.id;
   sessions.delete(chatId);
-  bot.sendMessage(chatId, `به منو اصلی برگشتی`, isAdmin(chatId) ? adminMenu : customerMenu);
+  bot.sendMessage(chatId, `به منوی اصلی بازگشتید 🌙`, isAdmin(chatId) ? aMenu : cMenu);
 });
 
-// ═══════ پنل ادمین ═══════
+// ═══════ ادمین ═══════
 
-// سفارش‌های جدید
 bot.onText(/📋 سفارش‌های جدید/, (msg) => {
   if (!isAdmin(msg.chat.id)) return;
   const pending = db.getAllOrders().filter(o => o.status === 'pending');
+  if (!pending.length) return bot.sendMessage(msg.chat.id, `✅ سفارش جدیدی وجود ندارد`, aMenu);
 
-  if (!pending.length) {
-    bot.sendMessage(msg.chat.id, `✅ سفارش جدیدی نیست`, adminMenu);
-    return;
-  }
-
-  pending.forEach(o => {
-    const keyboard = {
-      inline_keyboard: [[
-        { text: '✅ تأیید پرداخت', callback_data: `confirm_${o.id}` },
-        { text: '❌ لغو', callback_data: `cancel_${o.id}` },
-      ]]
-    };
+  pending.slice(0, 10).forEach(o => {
     bot.sendMessage(msg.chat.id,
-      `📋 سفارش جدید #${o.id.slice(-4)}\n\n` +
-      `👤 مشتری: ${o.userName || 'نامشخص'}\n` +
-      `🔗 لینک: ${o.link || '—'}\n` +
-      `📝 توضیحات: ${o.description || '—'}\n` +
-      `💰 مبلغ: ${formatPrice(o.totalPrice)}\n` +
-      `📅 تاریخ: ${new Date(o.createdAt).toLocaleString('fa-IR')}`,
-      { reply_markup: keyboard }
+      `📋 سفارش #${o.shortId}\n\n👤 ${o.userName||'—'} (@${o.userUsername||'—'})\n🔗 ${o.link||'—'}\n📝 ${o.description||'—'}\n💰 ${o.totalPrice ? db.formatPrice(o.totalPrice) : '—'}\n📅 ${new Date(o.createdAt).toLocaleString('fa-IR')}`,
+      { reply_markup: { inline_keyboard: [[
+        { text: '✅ تأیید پرداخت', callback_data: `confirm_${o.id}` },
+        { text: '🛒 خریداری شد',   callback_data: `buying_${o.id}`  },
+        { text: '❌ لغو',           callback_data: `cancel_${o.id}`  },
+      ]]}}
     );
   });
 });
 
-// تنظیم نرخ لیر
-bot.onText(/💱 تنظیم نرخ لیر/, (msg) => {
+bot.onText(/🔄 آپدیت وضعیت/, (msg) => {
   if (!isAdmin(msg.chat.id)) return;
-  session(msg.chat.id).step = 'set_rate';
-  bot.sendMessage(msg.chat.id,
-    `💱 نرخ فعلی: ${db.getRate().toLocaleString('fa-IR')} تومان/لیر\n\nنرخ جدید رو بفرست:`,
-    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true } }
+  s(msg.chat.id).step = 'update_status';
+  bot.sendMessage(msg.chat.id, `شماره سفارش را وارد کنید (مثلاً: 4157):`,
+    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
   );
 });
 
-// آمار
-bot.onText(/📊 آمار امروز/, (msg) => {
+bot.onText(/💱 نرخ لیر/, (msg) => {
+  if (!isAdmin(msg.chat.id)) return;
+  s(msg.chat.id).step = 'set_rate';
+  bot.sendMessage(msg.chat.id, `💱 نرخ فعلی: ${db.getRate().toLocaleString('fa-IR')} تومان/لیر\n\nنرخ جدید را وارد کنید:`,
+    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
+  );
+});
+
+bot.onText(/📊 آمار/, (msg) => {
   if (!isAdmin(msg.chat.id)) return;
   const all = db.getAllOrders();
+  const users = db.getAllUsers();
   const today = all.filter(o => o.createdAt?.startsWith(new Date().toISOString().split('T')[0]));
-  const totalAmount = all.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.totalPrice || 0), 0);
+  const total = all.filter(o => o.status !== 'cancelled').reduce((sum, o) => sum + (o.totalPrice||0), 0);
 
   bot.sendMessage(msg.chat.id,
-    `📊 آمار کلی:\n\n` +
-    `📦 کل سفارش‌ها: ${all.length}\n` +
-    `🆕 سفارش امروز: ${today.length}\n` +
-    `⏳ در انتظار پرداخت: ${all.filter(o=>o.status==='pending').length}\n` +
-    `🚚 در راه: ${all.filter(o=>o.status==='shipped').length}\n` +
-    `💰 مجموع فروش: ${formatPrice(totalAmount)}\n` +
-    `👥 کل کاربران: ${db.getAllUsers().length}`,
-    adminMenu
+    `📊 آمار Luna Fortuna:\n\n👥 کل کاربران: ${users.length}\n📦 کل سفارش‌ها: ${all.length}\n🆕 امروز: ${today.length}\n⏳ در انتظار: ${all.filter(o=>o.status==='pending').length}\n🛒 در حال خرید: ${all.filter(o=>o.status==='buying').length}\n🚚 ارسال شده: ${all.filter(o=>o.status==='shipped').length}\n✅ تحویل داده شده: ${all.filter(o=>o.status==='delivered').length}\n💰 مجموع فروش: ${db.formatPrice(total)}`,
+    aMenu
   );
 });
 
-// پیام همگانی
 bot.onText(/📢 پیام همگانی/, (msg) => {
   if (!isAdmin(msg.chat.id)) return;
-  session(msg.chat.id).step = 'broadcast';
-  bot.sendMessage(msg.chat.id,
-    `📢 متن پیامی که میخوای به همه بفرستی رو بنویس:`,
-    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true } }
+  s(msg.chat.id).step = 'broadcast';
+  bot.sendMessage(msg.chat.id, `📢 متن پیام همگانی را بنویسید:`,
+    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
   );
 });
 
-// ─── پردازش پیام‌های متنی ───
+bot.onText(/➕ ثبت سفارش دستی/, (msg) => {
+  if (!isAdmin(msg.chat.id)) return;
+  s(msg.chat.id).step = 'manual_chatid';
+  bot.sendMessage(msg.chat.id, `آیدی تلگرام مشتری را وارد کنید:`,
+    { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
+  );
+});
+
+// ─── پردازش پیام‌ها ───
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
-  const s = session(chatId);
+  const sess = s(chatId);
 
-  if (!text || text.startsWith('/') || text.startsWith('🛍') || text.startsWith('🔍') ||
-      text.startsWith('📦') || text.startsWith('💰') || text.startsWith('🔥') ||
-      text.startsWith('📞') || text.startsWith('🔙') || text.startsWith('📋') ||
-      text.startsWith('✅') || text.startsWith('🔄') || text.startsWith('💱') ||
-      text.startsWith('📊') || text.startsWith('📢')) return;
+  if (!text || text.startsWith('/')) return;
 
-  // ─── مرحله دریافت لینک ───
-  if (s.step === 'waiting_link') {
-    if (!text.startsWith('http')) {
-      bot.sendMessage(chatId, `❌ لینک معتبر نیست\nلطفاً لینک کامل محصول رو بفرست (باید با http شروع بشه)`);
-      return;
+  const menuTexts = ['🛍','🔍','🔥','💰','📦','👤','📖','📞','🔙','📋','🔄','💱','📊','📢','➕'];
+  if (menuTexts.some(t => text.startsWith(t))) return;
+
+  // عکس رسید
+  if (msg.photo && sess.waitingReceipt) {
+    const orderId = sess.waitingReceiptOrder;
+    const order = db.getOrder(orderId);
+    bot.sendMessage(chatId, `✅ رسید دریافت شد!\nدر حال بررسی...\nمعمولاً تا ۳۰ دقیقه تأیید می‌شود 🕐`, cMenu);
+    if (ADMIN_ID && order) {
+      bot.forwardMessage(ADMIN_ID, chatId, msg.message_id);
+      bot.sendMessage(ADMIN_ID,
+        `💳 رسید پرداخت جدید!\n\n👤 ${order.userName} (@${order.userUsername||'—'})\n🆔 سفارش: #${order.shortId}\n💰 ${db.formatPrice(order.totalPrice)}`,
+        { reply_markup: { inline_keyboard: [[
+          { text: '✅ تأیید پرداخت', callback_data: `confirm_${orderId}` },
+          { text: '❌ رد',            callback_data: `reject_${orderId}`  },
+        ]]}}
+      );
     }
-    s.link = text;
-    s.step = 'waiting_link_price';
-    bot.sendMessage(chatId,
-      `✅ لینک دریافت شد!\n\n` +
-      `💰 قیمت محصول رو به لیر بفرست\n(عدد روی صفحه محصول)`,
-    );
+    delete sess.waitingReceipt;
+    delete sess.waitingReceiptOrder;
     return;
   }
 
-  // ─── قیمت لیر برای سفارش ───
-  if (s.step === 'waiting_link_price') {
-    const lir = parseFloat(text.replace(/[^0-9.]/g, ''));
-    if (!lir || lir <= 0) {
-      bot.sendMessage(chatId, `❌ عدد معتبر نیست\nمثلاً: 1200`);
-      return;
-    }
-    const { base, fee, total } = calcPrice(lir);
-    s.lirPrice = lir;
-    s.totalPrice = total;
-    s.step = 'waiting_link_details';
+  // ─── لینک ───
+  if (sess.step === 'link') {
+    if (!text.startsWith('http')) return bot.sendMessage(chatId, `❌ لینک معتبر نیست\nلطفاً لینک کامل محصول را ارسال کنید`);
+    sess.link = text;
+    sess.step = 'link_price';
+    return bot.sendMessage(chatId, `✅ لینک دریافت شد!\n\n💰 قیمت محصول را به لیر وارد کنید:\nمثلاً: 1200`);
+  }
 
-    bot.sendMessage(chatId,
-      `💰 محاسبه قیمت:\n\n` +
-      `قیمت لیر: ${lir.toLocaleString()} ₺\n` +
-      `نرخ امروز: ${db.getRate().toLocaleString()} تومان/لیر\n` +
-      `قیمت پایه: ${formatPrice(base)}\n` +
-      `کارمزد خدمات (۱۵٪): ${formatPrice(fee)}\n` +
-      `━━━━━━━━━━━━\n` +
-      `💎 مبلغ نهایی: ${formatPrice(total)}\n\n` +
-      `📝 سایز، رنگ و توضیحات رو بنویس:`,
-    );
-    return;
+  // ─── قیمت لیر ───
+  if (sess.step === 'link_price') {
+    const lir = parseFloat(text.replace(/[^0-9.]/g, ''));
+    if (!lir || lir <= 0) return bot.sendMessage(chatId, `❌ عدد معتبر نیست\nمثلاً: 1200`);
+
+    const myOrders = db.getUserOrders(chatId);
+    const doneCount = myOrders.filter(o => o.status === 'delivered').length;
+    const user = db.getUser(chatId);
+    const level = db.getUserLevel(doneCount);
+
+    // تعیین کارمزد
+    let fee = level.fee;
+    let discountType = level.name;
+
+    // بررسی تولد
+    if (user?.birthday) {
+      const today = new Date();
+      const [day, month] = user.birthday.split('/').map(Number);
+      if (today.getDate() === day && (today.getMonth()+1) === month) {
+        fee = 0.12;
+        discountType = '🎂 تولد مبارک';
+      }
+    }
+
+    const normalPrice = db.calcPrice(lir, 0.15);
+    const finalPrice = db.calcPrice(lir, fee);
+    sess.lirPrice = lir;
+    sess.totalPrice = finalPrice;
+    sess.feeUsed = fee;
+    sess.step = 'link_details';
+
+    let priceMsg = `💎 قیمت نهایی: ${db.formatPrice(finalPrice)}`;
+    if (fee < 0.15) {
+      priceMsg = `💰 قیمت عادی: ${db.formatPrice(normalPrice)}\n🎁 قیمت با تخفیف ${discountType}: ${db.formatPrice(finalPrice)}`;
+    }
+
+    return bot.sendMessage(chatId, `${priceMsg}\n\n📝 سایز، رنگ و توضیحات را وارد کنید:`);
   }
 
   // ─── جزئیات سفارش ───
-  if (s.step === 'waiting_link_details') {
-    s.description = text;
-    s.step = 'confirm_order';
-    const user = db.getUser(chatId);
-
-    bot.sendMessage(chatId,
-      `📋 خلاصه سفارش:\n\n` +
-      `🔗 لینک: ${s.link}\n` +
-      `📝 جزئیات: ${s.description}\n` +
-      `💰 مبلغ قابل پرداخت: ${formatPrice(s.totalPrice)}\n\n` +
-      `تأیید میکنی؟`,
-      {
-        reply_markup: {
-          inline_keyboard: [[
-            { text: '✅ تأیید و ادامه', callback_data: 'confirm_order' },
-            { text: '❌ انصراف', callback_data: 'cancel_order' },
-          ]]
-        }
-      }
+  if (sess.step === 'link_details') {
+    sess.description = text;
+    return bot.sendMessage(chatId,
+      `📋 خلاصه سفارش:\n\n🔗 لینک: ${sess.link}\n📝 ${sess.description}\n💎 مبلغ قابل پرداخت: ${db.formatPrice(sess.totalPrice)}\n\nتأیید می‌کنید؟`,
+      { reply_markup: { inline_keyboard: [[
+        { text: '✅ تأیید و ادامه', callback_data: 'order_confirm' },
+        { text: '❌ انصراف',        callback_data: 'order_cancel'  },
+      ]]}}
     );
-    return;
   }
 
-  // ─── محاسبه قیمت ساده ───
-  if (s.step === 'calc_price') {
+  // ─── محاسبه قیمت ───
+  if (sess.step === 'calc') {
     const lir = parseFloat(text.replace(/[^0-9.]/g, ''));
-    if (!lir || lir <= 0) {
-      bot.sendMessage(chatId, `❌ عدد معتبر نیست\nمثلاً: 1200`);
-      return;
-    }
-    const { base, fee, total } = calcPrice(lir);
+    if (!lir) return bot.sendMessage(chatId, `❌ عدد معتبر نیست`);
+
+    const myOrders = db.getUserOrders(chatId);
+    const doneCount = myOrders.filter(o => o.status === 'delivered').length;
+    const level = db.getUserLevel(doneCount);
+    const normalPrice = db.calcPrice(lir, 0.15);
+    const finalPrice = db.calcPrice(lir, level.fee);
     sessions.delete(chatId);
-    bot.sendMessage(chatId,
-      `💰 محاسبه قیمت:\n\n` +
-      `قیمت لیر: ${lir.toLocaleString()} ₺\n` +
-      `نرخ امروز: ${db.getRate().toLocaleString()} تومان/لیر\n` +
-      `قیمت پایه: ${formatPrice(base)}\n` +
-      `کارمزد خدمات (۱۵٪): ${formatPrice(fee)}\n` +
-      `━━━━━━━━━━━━\n` +
-      `💎 مبلغ نهایی: ${formatPrice(total)}\n\n` +
-      `+ هزینه باربری بعد از رسیدن محصول`,
-      customerMenu
-    );
-    return;
+
+    let msg = `💎 قیمت نهایی: ${db.formatPrice(finalPrice)}`;
+    if (level.fee < 0.15) {
+      msg = `💰 قیمت عادی: ${db.formatPrice(normalPrice)}\n🎁 قیمت شما (${level.name}): ${db.formatPrice(finalPrice)}`;
+    }
+    return bot.sendMessage(chatId, `${msg}\n\nبرای سفارش لینک محصول را ارسال کنید 👇`, cMenu);
   }
 
   // ─── پیدا کردن محصول ───
-  if (s.step === 'find_product') {
-    const orderId = db.addOrder({
+  if (sess.step === 'find') {
+    const { id, shortId } = db.addOrder({
       chatId: chatId.toString(),
       userName: msg.chat.first_name,
+      userUsername: msg.chat.username,
       type: 'find',
       description: text,
-      status: 'pending',
-      totalPrice: 0,
     });
     sessions.delete(chatId);
 
     bot.sendMessage(chatId,
-      `✅ درخواستت ثبت شد!\n\n` +
-      `📝 توضیحات: ${text}\n\n` +
-      `⏰ ظرف ۲۴ ساعت گزینه‌های پیشنهادی برات میفرستیم\n` +
-      `شماره پیگیری: #${orderId.slice(-4)}`,
-      customerMenu
+      `✅ درخواست شما ثبت شد!\n\n📝 ${text}\n\n⏰ ظرف ۲۴ ساعت گزینه‌های پیشنهادی برایتان ارسال می‌کنیم\n🆔 شماره پیگیری: #${shortId}`,
+      cMenu
     );
 
-    // اطلاع به ادمین
     if (ADMIN_ID) {
       bot.sendMessage(ADMIN_ID,
-        `🔍 درخواست پیدا کردن محصول جدید!\n\n` +
-        `👤 مشتری: ${msg.chat.first_name} (@${msg.chat.username || '—'})\n` +
-        `📝 توضیحات: ${text}\n` +
-        `🆔 شماره: #${orderId.slice(-4)}`
+        `🔍 درخواست پیدا کردن محصول!\n\n👤 ${msg.chat.first_name} (@${msg.chat.username||'—'})\n📝 ${text}\n🆔 #${shortId}`,
+        { reply_markup: { inline_keyboard: [[
+          { text: '✅ پیدا کردم — ارسال به مشتری', callback_data: `found_${id}` },
+        ]]}}
       );
     }
     return;
   }
 
-  // ─── تنظیم نرخ (ادمین) ───
-  if (s.step === 'set_rate' && isAdmin(chatId)) {
-    const rate = parseFloat(text.replace(/[^0-9.]/g, ''));
-    if (!rate || rate <= 0) {
-      bot.sendMessage(chatId, `❌ عدد معتبر نیست`);
-      return;
-    }
-    db.setRate(rate);
+  // ─── تولد ───
+  if (sess.step === 'birthday') {
+    if (!/^\d{1,2}\/\d{1,2}$/.test(text)) return bot.sendMessage(chatId, `❌ فرمت اشتباه\nمثلاً: 15/3`);
+    db.saveUser(chatId, { birthday: text });
     sessions.delete(chatId);
-    bot.sendMessage(chatId,
-      `✅ نرخ لیر آپدیت شد!\n💱 نرخ جدید: ${rate.toLocaleString()} تومان/لیر`,
-      adminMenu
-    );
-    return;
+    return bot.sendMessage(chatId, `🎂 تاریخ تولد شما ثبت شد!\nروز تولدتان سورپریزی برایتان داریم 🌙`, cMenu);
   }
 
-  // ─── پیام همگانی (ادمین) ───
-  if (s.step === 'broadcast' && isAdmin(chatId)) {
-    const users = db.getAllUsers();
+  // ─── نرخ لیر ───
+  if (sess.step === 'set_rate' && isAdmin(chatId)) {
+    const rate = parseFloat(text.replace(/[^0-9.]/g, ''));
+    if (!rate) return bot.sendMessage(chatId, `❌ عدد معتبر نیست`);
+    db.setRate(rate);
+    sessions.delete(chatId);
+    return bot.sendMessage(chatId, `✅ نرخ لیر به‌روز شد: ${rate.toLocaleString('fa-IR')} تومان/لیر`, aMenu);
+  }
+
+  // ─── پیام همگانی ───
+  if (sess.step === 'broadcast' && isAdmin(chatId)) {
+    const users = db.getAllUsers().filter(u => u.chatId.toString() !== ADMIN_ID);
     let sent = 0;
-    for (const user of users) {
-      try {
-        await bot.sendMessage(user.chatId, `📢 پیام از Luna Fortuna:\n\n${text}`);
-        sent++;
-      } catch(e) {}
+    for (const u of users) {
+      try { await bot.sendMessage(u.chatId, `📢 Luna Fortuna:\n\n${text}`); sent++; } catch(e) {}
     }
     sessions.delete(chatId);
-    bot.sendMessage(chatId, `✅ پیام به ${sent} نفر فرستاده شد`, adminMenu);
-    return;
+    return bot.sendMessage(chatId, `✅ پیام به ${sent} نفر ارسال شد`, aMenu);
+  }
+
+  // ─── آپدیت وضعیت ───
+  if (sess.step === 'update_status' && isAdmin(chatId)) {
+    const order = db.getAllOrders().find(o => o.shortId === text.trim());
+    if (!order) return bot.sendMessage(chatId, `❌ سفارش با این شماره پیدا نشد`);
+    sess.step = 'update_status2';
+    sess.updateOrderId = order.id;
+    return bot.sendMessage(chatId,
+      `سفارش #${order.shortId} پیدا شد\nوضعیت جدید را انتخاب کنید:`,
+      { reply_markup: { inline_keyboard: [
+        [{ text: '✅ پرداخت تأیید شد', callback_data: `setstatus_paid_${order.id}`      }],
+        [{ text: '🛒 در حال خرید',      callback_data: `setstatus_buying_${order.id}`    }],
+        [{ text: '🚚 ارسال شد',          callback_data: `setstatus_shipped_${order.id}`   }],
+        [{ text: '📦 تحویل داده شد',    callback_data: `setstatus_delivered_${order.id}` }],
+        [{ text: '❌ لغو شد',            callback_data: `setstatus_cancelled_${order.id}` }],
+      ]}}
+    );
   }
 });
 
-// ─── Callback ها ───
-bot.on('callback_query', async (query) => {
-  const chatId = query.message.chat.id;
-  const data = query.data;
-  const s = session(chatId);
+// ─── Callbacks ───
+bot.on('callback_query', async (q) => {
+  const chatId = q.message.chat.id;
+  const data = q.data;
+  bot.answerCallbackQuery(q.id);
 
-  bot.answerCallbackQuery(query.id);
+  // ─── تخفیف‌ها ───
+  if (data === 'sale_multi') {
+    const btns = db.brands.multi.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `🏪 مولتی‌برند:`, { reply_markup: { inline_keyboard: btns }});
+  }
+  if (data === 'sale_clothing') {
+    return bot.sendMessage(chatId, `👗 پوشاک — کدام گروه؟`, { reply_markup: { inline_keyboard: [
+      [{ text: '👩 زنانه',          callback_data: 'sale_women' }, { text: '👨 مردانه',  callback_data: 'sale_men'  }],
+      [{ text: '👶 کودک',           callback_data: 'sale_kids'  }, { text: '🧒 نوجوان', callback_data: 'sale_teen' }],
+    ]}});
+  }
+  if (data === 'sale_women') {
+    const btns = db.brands.clothing.women.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `👗 پوشاک زنانه:`, { reply_markup: { inline_keyboard: btns }});
+  }
+  if (data === 'sale_men') {
+    const btns = db.brands.clothing.men.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `👔 پوشاک مردانه:`, { reply_markup: { inline_keyboard: btns }});
+  }
+  if (data === 'sale_kids') {
+    const btns = db.brands.clothing.kids.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `👶 کودک:`, { reply_markup: { inline_keyboard: btns }});
+  }
+  if (data === 'sale_teen') {
+    const btns = db.brands.clothing.teen.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `🧒 نوجوان و تینیجر:`, { reply_markup: { inline_keyboard: btns }});
+  }
+  if (data === 'sale_sports') {
+    const btns = db.brands.sports.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `👟 ورزشی:`, { reply_markup: { inline_keyboard: btns }});
+  }
+  if (data === 'sale_shoes') {
+    const btns = db.brands.shoes.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `👜 کیف و کفش:`, { reply_markup: { inline_keyboard: btns }});
+  }
+  if (data === 'sale_beauty') {
+    const btns = db.brands.beauty.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `💄 آرایشی و بهداشتی:`, { reply_markup: { inline_keyboard: btns }});
+  }
+  if (data === 'sale_home') {
+    const btns = db.brands.home.map(b => [{ text: b.name, url: b.url }]);
+    return bot.sendMessage(chatId, `🏠 لوازم خانه و آشپزخانه:`, { reply_markup: { inline_keyboard: btns }});
+  }
 
-  // تأیید سفارش توسط مشتری
-  if (data === 'confirm_order') {
-    const orderId = db.addOrder({
+  // ─── راهنما ───
+  if (data === 'guide_turkish') {
+    let text = `🔤 کلمات پرکاربرد ترکی:\n\n`;
+    Object.entries(db.turkishGuide).forEach(([fa, tr]) => { text += `🔹 ${fa} = ${tr}\n`; });
+    text += `\n💡 İndirim = تخفیف\n💡 Kampanya = حراج\n💡 Sepet = سبد خرید\n💡 Ücretsiz Kargo = ارسال رایگان\n💡 Yeni = جدید\n💡 En Çok Satan = پرفروش`;
+    return bot.sendMessage(chatId, text, cMenu);
+  }
+  if (data === 'guide_clothing') return bot.sendMessage(chatId, db.sizeGuide.clothing, cMenu);
+  if (data === 'guide_shoes')    return bot.sendMessage(chatId, db.sizeGuide.shoes, cMenu);
+  if (data === 'guide_filters') {
+    return bot.sendMessage(chatId,
+      `🔍 فیلترهای مهم در سایت‌های ترکیه:\n\nFiyat = قیمت\nBeden = سایز\nRenk = رنگ\nİndirim = تخفیف\nKampanya = حراج\nÜcretsiz Kargo = ارسال رایگان\nYeni = جدید\nEn Çok Satan = پرفروش\nMarka = برند\nKadın = زن\nErkek = مرد\nÇocuk = کودک`,
+      cMenu
+    );
+  }
+
+  // ─── تأیید سفارش ───
+  if (data === 'order_confirm') {
+    const sess = s(chatId);
+    const { id, shortId } = db.addOrder({
       chatId: chatId.toString(),
-      userName: query.from.first_name,
-      link: s.link,
-      description: s.description,
-      lirPrice: s.lirPrice,
-      totalPrice: s.totalPrice,
+      userName: q.from.first_name,
+      userUsername: q.from.username,
+      link: sess.link,
+      description: sess.description,
+      lirPrice: sess.lirPrice,
+      totalPrice: sess.totalPrice,
+      feeUsed: sess.feeUsed,
       type: 'link',
     });
     sessions.delete(chatId);
 
+    // منتظر رسید
+    s(chatId).waitingReceipt = true;
+    s(chatId).waitingReceiptOrder = id;
+
     bot.sendMessage(chatId,
-      `✅ سفارشت ثبت شد!\n\n` +
-      `شماره پیگیری: #${orderId.slice(-4)}\n\n` +
-      `💳 برای پرداخت:\n` +
-      `شماره کارت: 6037-XXXX-XXXX-XXXX\n` +
-      `به نام: لونا فورتونا\n\n` +
-      `مبلغ: ${formatPrice(s.totalPrice)}\n\n` +
-      `بعد از واریز، رسید رو همینجا بفرست 👇`,
-      customerMenu
+      `✅ سفارش شما ثبت شد!\n🆔 شماره پیگیری: #${shortId}\n\n` +
+      `💳 اطلاعات واریز:\n\n` +
+      `🏦 ${CARD_BANK}\n` +
+      `💳 شماره کارت:\n${CARD_NUMBER}\n\n` +
+      `👤 به نام: ${CARD_OWNER}\n\n` +
+      `💎 مبلغ قابل پرداخت:\n${db.formatPrice(sess.totalPrice)}\n\n` +
+      `━━━━━━━━━━━━━━\n` +
+      `⚠️ پس از واریز، تصویر رسید را\nهمینجا ارسال کنید`,
+      cMenu
     );
 
-    // اطلاع به ادمین
     if (ADMIN_ID) {
       bot.sendMessage(ADMIN_ID,
-        `🆕 سفارش جدید!\n\n` +
-        `👤 ${query.from.first_name} (@${query.from.username || '—'})\n` +
-        `🔗 ${s.link}\n` +
-        `📝 ${s.description}\n` +
-        `💰 ${formatPrice(s.totalPrice)}\n` +
-        `🆔 #${orderId.slice(-4)}`,
-        {
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '✅ تأیید پرداخت', callback_data: `confirm_${orderId}` },
-              { text: '❌ لغو', callback_data: `cancel_${orderId}` },
-            ]]
-          }
-        }
+        `🆕 سفارش جدید!\n\n👤 ${q.from.first_name} (@${q.from.username||'—'})\n🔗 ${sess.link}\n📝 ${sess.description}\n💎 ${db.formatPrice(sess.totalPrice)}\n🆔 #${shortId}`,
+        { reply_markup: { inline_keyboard: [[
+          { text: '✅ تأیید پرداخت', callback_data: `confirm_${id}` },
+          { text: '🛒 خریداری شد',   callback_data: `buying_${id}`  },
+          { text: '❌ لغو',           callback_data: `cancel_${id}`  },
+        ]]}}
       );
     }
     return;
   }
 
-  if (data === 'cancel_order') {
-    sessions.delete(chatId);
-    bot.sendMessage(chatId, `سفارش لغو شد`, customerMenu);
-    return;
-  }
+  if (data === 'order_cancel') { sessions.delete(chatId); return bot.sendMessage(chatId, `سفارش لغو شد`, cMenu); }
 
-  // تأیید پرداخت توسط ادمین
-  if (data.startsWith('confirm_') && isAdmin(chatId)) {
-    const orderId = data.replace('confirm_', '');
-    const order = db.getOrder(orderId);
-    if (!order) return;
-
-    db.updateOrderStatus(orderId, 'paid');
-    bot.sendMessage(chatId, `✅ پرداخت تأیید شد — شروع به خرید میکنیم`, adminMenu);
-
-    // اطلاع به مشتری
-    bot.sendMessage(order.chatId,
-      `✅ پرداختت تأیید شد!\n\n` +
-      `🛒 داریم محصولت رو میخریم\n` +
-      `به محض ارسال خبرت میدیم 📦`
-    );
-    return;
-  }
-
-  if (data.startsWith('cancel_') && isAdmin(chatId)) {
-    const orderId = data.replace('cancel_', '');
-    const order = db.getOrder(orderId);
-    if (!order) return;
-
-    db.updateOrderStatus(orderId, 'cancelled');
-    bot.sendMessage(chatId, `❌ سفارش لغو شد`, adminMenu);
-
-    if (order.chatId) {
-      bot.sendMessage(order.chatId, `❌ متأسفانه سفارش شما لغو شد\nبرای اطلاعات بیشتر با پشتیبانی تماس بگیرید`);
+  // ─── ادمین callbacks ───
+  if (isAdmin(chatId)) {
+    if (data.startsWith('confirm_')) {
+      const oid = data.replace('confirm_', '');
+      const order = db.getOrder(oid);
+      if (!order) return;
+      db.updateOrder(oid, { status: 'paid' });
+      bot.sendMessage(chatId, `✅ پرداخت تأیید شد`, aMenu);
+      bot.sendMessage(order.chatId, `✅ پرداخت شما با موفقیت تأیید شد\n🌙 ممنون از اعتماد شما به Luna Fortuna\n🛒 محصول شما در حال خریداری است\nپس از ارسال، اطلاع‌رسانی خواهیم کرد 📦`);
+      return;
     }
-    return;
-  }
 
-  // آپدیت وضعیت
-  if (data.startsWith('status_') && isAdmin(chatId)) {
-    const [, orderId, newStatus] = data.split('_');
-    const order = db.getOrder(orderId);
-    if (!order) return;
+    if (data.startsWith('reject_')) {
+      const oid = data.replace('reject_', '');
+      const order = db.getOrder(oid);
+      if (!order) return;
+      bot.sendMessage(chatId, `❌ رسید رد شد`, aMenu);
+      bot.sendMessage(order.chatId, `❌ رسید پرداخت شما تأیید نشد\nلطفاً با پشتیبانی تماس بگیرید`);
+      return;
+    }
 
-    db.updateOrderStatus(orderId, newStatus);
-    bot.sendMessage(chatId, `✅ وضعیت آپدیت شد: ${db.statusLabels[newStatus]}`);
+    if (data.startsWith('buying_')) {
+      const oid = data.replace('buying_', '');
+      const order = db.getOrder(oid);
+      if (!order) return;
+      db.updateOrder(oid, { status: 'buying' });
+      bot.sendMessage(chatId, `🛒 وضعیت به «در حال خرید» تغییر کرد`, aMenu);
+      bot.sendMessage(order.chatId, `🛒 محصول شما در حال خریداری است\nپس از ارسال، اطلاع‌رسانی خواهیم کرد 📦`);
+      return;
+    }
 
-    if (order.chatId) {
-      bot.sendMessage(order.chatId,
-        `📦 وضعیت سفارشت آپدیت شد!\n\n${db.statusLabels[newStatus]}`
+    if (data.startsWith('cancel_')) {
+      const oid = data.replace('cancel_', '');
+      const order = db.getOrder(oid);
+      if (!order) return;
+      db.updateOrder(oid, { status: 'cancelled' });
+      bot.sendMessage(chatId, `❌ سفارش لغو شد`, aMenu);
+      if (order.chatId) bot.sendMessage(order.chatId, `❌ سفارش شما لغو شد\nبرای اطلاعات بیشتر با پشتیبانی تماس بگیرید`);
+      return;
+    }
+
+    if (data.startsWith('setstatus_')) {
+      const parts = data.replace('setstatus_', '').split('_');
+      const newStatus = parts[0];
+      const oid = parts.slice(1).join('_');
+      const order = db.getOrder(oid);
+      if (!order) return;
+      db.updateOrder(oid, { status: newStatus });
+      sessions.delete(chatId);
+      bot.sendMessage(chatId, `✅ وضعیت سفارش #${order.shortId} به «${db.statusLabels[newStatus]}» تغییر کرد`, aMenu);
+
+      const statusMessages = {
+        paid:      `✅ پرداخت شما با موفقیت تأیید شد\n🌙 ممنون از اعتماد شما به Luna Fortuna\n🛒 محصول شما در حال خریداری است\nپس از ارسال، اطلاع‌رسانی خواهیم کرد 📦`,
+        buying:    `🛒 محصول شما در حال خریداری است\nبه زودی ارسال خواهد شد 📦`,
+        shipped:   `📦 محصول شما ارسال شد!\n🌙 از صبر و اعتماد شما سپاسگزاریم\nامیدواریم از خریدتان لذت ببرید 🎁`,
+        delivered: `✅ محصول شما تحویل داده شد\n🌙 خوشحال می‌شویم نظرتان را بشنویم\nمنتظر خریدهای بعدی شما هستیم 🛍`,
+        cancelled: `❌ سفارش شما لغو شد\nبرای اطلاعات بیشتر با پشتیبانی تماس بگیرید`,
+      };
+
+      if (order.chatId && statusMessages[newStatus]) {
+        bot.sendMessage(order.chatId, statusMessages[newStatus]);
+      }
+      return;
+    }
+
+    if (data.startsWith('found_')) {
+      const oid = data.replace('found_', '');
+      s(chatId).step = 'send_found';
+      s(chatId).foundOrderId = oid;
+      return bot.sendMessage(chatId,
+        `لینک و توضیحات محصول پیدا شده را بفرستید:`,
+        { reply_markup: { keyboard: [['🔙 بازگشت']], resize_keyboard: true }}
       );
     }
   }
 });
 
-console.log('🌙 Luna Fortuna Bot is running...');
+console.log('🌙 Luna Fortuna Bot v3.0 is running...');
