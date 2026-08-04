@@ -1,0 +1,158 @@
+// LunaFortuna — Prisma schema
+// توسعهٔ محلی: SQLite. برای پروداکشن Vercel، provider را به "postgresql" تغییر دهید
+// (کوئری‌ها یکسان می‌مانند؛ فیلدهای JSON به‌صورت String ذخیره می‌شوند تا قابل‌حمل باشند).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── کتگوری بر اساس برند (بخش ۲) ──
+model Brand {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  logoUrl       String?
+  domain        String?
+  siteUrl       String
+  group         String   @default("clothing") // multi | clothing | sports | shoes | beauty | home | kids
+  // لینک‌های عمیق تفکیک‌شده بر اساس جنسیت/زیردسته — JSON به‌صورت رشته
+  categoryLinks String   @default("{}")
+  tags          String   @default("[]") // JSON array of strings
+  isFeatured    Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ── بنرهای صفحهٔ اصلی (قابل‌مدیریت توسط ادمین) ──
+model Banner {
+  id        String   @id @default(cuid())
+  title     String   @default("")
+  subtitle  String   @default("")
+  imageUrl  String   @default("") // در نبود عکس، از گرادیان برند استفاده می‌شود
+  link      String   @default("")
+  ctaText   String   @default("")
+  placement String   @default("promo") // hero | promo
+  theme     String   @default("navy") // navy | gold | cream
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// ── کتگوری‌ها (موجودی و مرور برند) ──
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String
+  scope     String    @default("warehouse") // warehouse | brand
+  icon      String?
+  parentId  String?
+  parent    Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  sortOrder Int       @default(0)
+  products  Product[]
+
+  @@unique([slug, scope])
+}
+
+// ── محصولات موجودی انبار تهران (بخش ۱) ──
+model Product {
+  id          String    @id @default(cuid())
+  title       String
+  description String    @default("")
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  brandName   String?
+  images      String    @default("[]") // JSON array of image URLs
+  sizes       String    @default("[]") // JSON array of size labels
+  priceToman  Int
+  stock       Int       @default(1)
+  isActive    Boolean   @default(true)
+  isFeatured  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ── کاربران (فاز ۲) ──
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  phone         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("customer") // customer | admin
+  birthday      String? // "day/month" مثل 15/3
+  referralCode  String    @unique
+  referredBy    String? // کد معرفِ دعوت‌کننده
+  referralUsed  Boolean   @default(false) // آیا تخفیف خرید اولِ خودش (به‌عنوان دعوت‌شده) مصرف شده؟
+  referralRewardPending Boolean @default(false) // آیا پاداش معرف (برای خرید بعدی) در انتظار استفاده است؟
+  createdAt     DateTime  @default(now())
+  orders        Order[]
+}
+
+// کد فعال‌سازی یک‌بارمصرف (ایمیل/موبایل)
+model VerificationCode {
+  id         String   @id @default(cuid())
+  identifier String // ایمیل یا شماره موبایل
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([identifier])
+}
+
+// ── سفارش‌ها ──
+model Order {
+  id           String   @id @default(cuid())
+  shortId      String   @unique
+  type         String   @default("link") // link | warehouse | find
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id])
+  // اطلاعات تماس مهمان (فاز ۱ بدون حساب)
+  customerName String?
+  contact      String?  // موبایل یا آیدی تلگرام
+  // سفارش واسطه‌ای
+  link         String?
+  description  String?
+  lirPrice     Float?
+  feeType      String   @default("normal")
+  referralKind String?  // new = خرید اولِ دعوت‌شده | reward = پاداشِ دعوت‌کننده
+  referralRewarded Boolean @default(false) // آیا این سفارش، پاداش دعوت‌کننده را آزاد کرده؟
+  // محصول انبار
+  productId    String?
+  priceToman   Int?
+  status       String   @default("pending") // pending|paid|received|shipped|delivered|cancelled
+  receiptUrl   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ── تنظیمات (تک‌ردیفه، id ثابت = "singleton") ──
+model Settings {
+  id             String   @id @default("singleton")
+  exchangeRate   Int      @default(4800) // نرخ صرافی لیر (تومان)
+  rateUpdatedAt  DateTime @default(now())
+  rateSource     String   @default("manual") // manual | telegram
+  feeNormal      Float    @default(0.15)
+  feeSilver      Float    @default(0.12)
+  feeGold        Float    @default(0.10)
+  feeBirthday    Float    @default(0.12)
+  feeReferral    Float    @default(0.12)
+  cardNumber     String   @default("")
+  cardOwner      String   @default("")
+  cardBank       String   @default("")
+  telegramBot    String   @default("LunaFortunaSupport_bot")
+  telegramSupport String  @default("LunaFortunaSupport")
+  instagram      String   @default("lunafortuna.shop")
+  phone          String   @default("00905318662989")
+  aboutContent   String   @default("{}") // JSON: متن و اعضای تیم
+  updatedAt      DateTime @updatedAt
+}
