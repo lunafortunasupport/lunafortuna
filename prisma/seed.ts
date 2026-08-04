@@ -173,6 +173,21 @@ async function main() {
     console.log("• محصولات از قبل وجود دارند — رد شد");
   }
 
+  // ── بنرهای پیش‌فرض (idempotent) ──
+  const bannerCount = await prisma.banner.count();
+  if (bannerCount === 0) {
+    await prisma.banner.createMany({
+      data: [
+        { title: "برندهای معتبر ترکیه", subtitle: "از Zara و Mango تا Mavi و Koton — همه یکجا", ctaText: "مشاهدهٔ برندها", link: "/brands", placement: "promo", theme: "navy", sortOrder: 0 },
+        { title: "موجودی انبار تهران", subtitle: "کالاهای آمادهٔ ارسال فوری، بدون انتظار", ctaText: "دیدن موجودی", link: "/shop", placement: "promo", theme: "gold", sortOrder: 1 },
+        { title: "دوستت را دعوت کن", subtitle: "با کد معرف، هم تو هم دوستت تخفیف می‌گیرید", ctaText: "حساب من", link: "/account", placement: "promo", theme: "cream", sortOrder: 2 },
+      ],
+    });
+    console.log("✓ ۳ بنر پیش‌فرض");
+  } else {
+    console.log("• بنرها از قبل وجود دارند — رد شد");
+  }
+
   console.log("✅ Seed کامل شد.");
 }
 
