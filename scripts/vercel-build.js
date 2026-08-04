@@ -10,6 +10,16 @@ function run(cmd) {
   execSync(cmd, { stdio: "inherit" });
 }
 
+// نرمال‌سازی نام متغیر دیتابیس (Vercel Postgres ممکن است نام دیگری بگذارد).
+// برای db push/seed نسخهٔ non-pooling بهتر است (عملیات DDL).
+if (!process.env.DATABASE_URL) {
+  const url =
+    process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL;
+  if (url) process.env.DATABASE_URL = url;
+}
+
 // ۱) سوییچ provider به postgresql
 const schemaPath = "prisma/schema.prisma";
 let schema = fs.readFileSync(schemaPath, "utf8");
