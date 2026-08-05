@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getUserLevel } from "@/lib/pricing";
 import { updateProfile } from "./actions";
 import ReferralBox from "@/components/ReferralBox";
+import BirthdayPicker from "@/components/BirthdayPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -49,10 +50,9 @@ export default async function AccountPage() {
             <span className="mb-1.5 block text-xs font-medium text-navy/70">نام</span>
             <input name="name" defaultValue={user.name || ""} className="inp" />
           </label>
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-navy/70">تاریخ تولد (روز/ماه)</span>
-            <input name="birthday" defaultValue={user.birthday || ""} placeholder="۱۵/۳" dir="ltr" className="inp" />
-          </label>
+          <div className="block">
+            <BirthdayPicker defaultValue={user.birthday} />
+          </div>
           <div className="sm:col-span-2">
             <button className="btn-gold">ذخیره</button>
           </div>
