@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 // @ts-ignore — ماژول دادهٔ بدون تایپ
 import { BRANDS, BRAND_NAMES, BRAND_DOMAINS } from "../src/lib/brandData";
 
@@ -6,6 +8,37 @@ const prisma = new PrismaClient();
 
 const NAMES = BRAND_NAMES as Record<string, string>;
 const DOMAINS = BRAND_DOMAINS as Record<string, string>;
+
+// نتیجهٔ حسابرسی لینک‌ها (اجرای scripts/audit-brand-links.mjs --emit).
+// deadUrls = لینک‌های قطعاً مرده (۴۰۴/۴۱۰/ریدایرکت به صفحهٔ اصلی) که حذف می‌شوند؛
+// homepage = صفحهٔ اصلیِ تأییدشدهٔ هر برند برای دکمهٔ «ورود به سایت».
+// اگر فایل نبود، seed بدون هرس اجرا می‌شود (رفتار قدیمی).
+let DEAD_URLS = new Set<string>();
+let HOMEPAGE: Record<string, string> = {};
+try {
+  const audit = JSON.parse(readFileSync(join(__dirname, "..", "scripts", "link-audit.json"), "utf8"));
+  DEAD_URLS = new Set<string>(audit.deadUrls || []);
+  HOMEPAGE = audit.homepage || {};
+  console.log(`✓ حسابرسی لینک بارگذاری شد: ${DEAD_URLS.size} لینک مرده حذف می‌شود`);
+} catch {
+  console.warn("⚠ scripts/link-audit.json یافت نشد — هرس لینک انجام نمی‌شود.");
+}
+
+/** لینک‌های مرده را از ساختار تودرتوی categoryLinks حذف می‌کند. */
+function pruneDeadLinks(links: any): any {
+  const out: any = {};
+  for (const [k, v] of Object.entries(links)) {
+    if (typeof v === "string") {
+      if (!v.startsWith("http") || !DEAD_URLS.has(v)) out[k] = v;
+    } else if (v && typeof v === "object") {
+      const cleaned = pruneDeadLinks(v);
+      if (Object.keys(cleaned).length > 0) out[k] = cleaned; // گروه‌های خالی حذف شوند
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
 
 const FEATURED = new Set([
   "zara", "mango", "hm", "mavi", "adidas", "koton", "lcwaikiki",
@@ -22,15 +55,14 @@ function normalizeBrand(group: string, b: any) {
   const name: string = NAMES[id] || b.name || id;
   const domain: string = b.domain || DOMAINS[id] || "";
 
-  // categoryLinks = همهٔ فیلدها به‌جز متادیتا
-  const { id: _i, name: _n, url: _u, domain: _d, ...links } = b;
+  // categoryLinks = همهٔ فیلدها به‌جز متادیتا، پس از حذف لینک‌های مرده
+  const { id: _i, name: _n, url: _u, domain: _d, ...rawLinks } = b;
+  const links = pruneDeadLinks(rawLinks);
 
-  // یافتن اولین URL برای siteUrl
-  let siteUrl: string = b.url || "";
-  if (!siteUrl) {
-    const firstUrl = findFirstUrl(links);
-    siteUrl = firstUrl || (domain ? `https://www.${domain}` : "");
-  }
+  // siteUrl = صفحهٔ اصلیِ تأییدشدهٔ حسابرسی (ترجیح اول)، سپس b.url،
+  // سپس اولین لینکِ سالمِ باقی‌مانده، در نهایت www.domain.
+  let siteUrl: string =
+    HOMEPAGE[id] || b.url || findFirstUrl(links) || (domain ? `https://www.${domain}/` : "");
 
   return {
     name,
@@ -104,28 +136,14 @@ async function main() {
   }
   console.log(`✓ ${WAREHOUSE_CATEGORIES.length} کتگوری موجودی`);
 
-  // برندهای Inditex: آدرس دسته‌هایشان ناپایدار است و به صفحهٔ اصلی ریدایرکت می‌شود؛
-  // فقط دکمهٔ «ورود به سایت» با صفحهٔ اصلی تمیز نمایش داده می‌شود.
-  const INDITEX_HOME: Record<string, string> = {
-    zara: "https://www.zara.com/tr/",
-    bershka: "https://www.bershka.com/tr/",
-    pullandbear: "https://www.pullandbear.com/tr/",
-    stradivarius: "https://www.stradivarius.com/tr/",
-    massimodutti: "https://www.massimodutti.com/tr/",
-    oysho: "https://www.oysho.com/tr/",
-    lefties: "https://www.lefties.com/tr/en/",
-  };
-
   // ── برندها ──
+  // نکته: لینک‌های مردهٔ هر برند (Inditex و بقیه) به‌صورت خودکار در normalizeBrand
+  // بر اساس scripts/link-audit.json هرس می‌شوند و siteUrl به صفحهٔ اصلیِ تأییدشده ست می‌شود.
   let count = 0;
   let order = 0;
   for (const [group, list] of Object.entries(BRANDS)) {
     for (const b of list as any[]) {
       const data = normalizeBrand(group, b);
-      if (INDITEX_HOME[data.slug]) {
-        data.siteUrl = INDITEX_HOME[data.slug];
-        data.categoryLinks = "{}";
-      }
       await prisma.brand.upsert({
         where: { slug: data.slug },
         update: { ...data, sortOrder: order },
