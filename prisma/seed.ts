@@ -137,23 +137,43 @@ async function main() {
   console.log(`✓ ${WAREHOUSE_CATEGORIES.length} کتگوری موجودی`);
 
   // ── برندها ──
-  // نکته: لینک‌های مردهٔ هر برند (Inditex و بقیه) به‌صورت خودکار در normalizeBrand
-  // بر اساس scripts/link-audit.json هرس می‌شوند و siteUrl به صفحهٔ اصلیِ تأییدشده ست می‌شود.
+  // مهم: ویرایش‌های ادمین (نام، لوگو، لینک‌ها، siteUrl) نباید با هر deploy پاک شوند.
+  //  - برند جدید (create): با دادهٔ کامل و هرس‌شدهٔ حسابرسی ساخته می‌شود.
+  //  - برند موجود (update): فقط لینک‌های مرده از دادهٔ *فعلیِ دیتابیس* هرس می‌شوند
+  //    و siteUrl صرفاً وقتی خالی یا مرده است اصلاح می‌شود؛ بقیهٔ فیلدها دست‌نخورده می‌مانند.
   let count = 0;
   let order = 0;
   for (const [group, list] of Object.entries(BRANDS)) {
     for (const b of list as any[]) {
       const data = normalizeBrand(group, b);
-      await prisma.brand.upsert({
-        where: { slug: data.slug },
-        update: { ...data, sortOrder: order },
-        create: { ...data, sortOrder: order },
-      });
+      const existing = await prisma.brand.findUnique({ where: { slug: data.slug } });
+      if (!existing) {
+        await prisma.brand.create({ data: { ...data, sortOrder: order } });
+      } else {
+        // هرس لینک‌های مرده از مقدار فعلیِ دیتابیس (نه از brandData) تا ویرایش ادمین حفظ شود
+        const currentLinks = (() => {
+          try {
+            return JSON.parse(existing.categoryLinks || "{}");
+          } catch {
+            return {};
+          }
+        })();
+        const prunedLinks = JSON.stringify(pruneDeadLinks(currentLinks));
+        // siteUrl را فقط اگر خالی یا خودش مرده است اصلاح کن
+        const siteUrlDead = !existing.siteUrl || DEAD_URLS.has(existing.siteUrl);
+        await prisma.brand.update({
+          where: { id: existing.id },
+          data: {
+            categoryLinks: prunedLinks,
+            ...(siteUrlDead && data.siteUrl ? { siteUrl: data.siteUrl } : {}),
+          },
+        });
+      }
       count++;
       order++;
     }
   }
-  console.log(`✓ ${count} برند`);
+  console.log(`✓ ${count} برند (ویرایش‌های ادمین حفظ شد؛ فقط لینک‌های مرده هرس شدند)`);
 
   // ── چند محصول نمونهٔ موجودی ──
   const women = await prisma.category.findFirst({ where: { slug: "women-clothing", scope: "warehouse" } });
