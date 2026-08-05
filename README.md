@@ -36,6 +36,22 @@ npm run dev               # http://localhost:3000
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | ورود پنل ادمین |
 | `AUTH_SECRET` | سکرت نشست کاربران |
 | `RESEND_API_KEY` | سرویس ایمیل برای کد فعال‌سازی (اختیاری) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | ورود با گوگل (اختیاری) |
+
+### ورود با گوگل (اختیاری)
+
+کاربر می‌تواند یا با «حساب گوگل» وارد شود یا با ایمیل + کد یک‌بارمصرف. برای فعال‌کردن
+دکمهٔ گوگل:
+
+1. در [Google Cloud Console](https://console.cloud.google.com/apis/credentials) یک
+   **OAuth 2.0 Client ID** از نوع **Web application** بساز.
+2. در **Authorized redirect URIs** این دو را اضافه کن:
+   - `http://localhost:3000/api/auth/google/callback`
+   - `https://www.lunafortuna.store/api/auth/google/callback`
+3. `GOOGLE_CLIENT_ID` و `GOOGLE_CLIENT_SECRET` را در `.env` (و در Vercel) قرار بده.
+
+اگر این دو متغیر خالی باشند، ورود ایمیلی مثل قبل کار می‌کند و دکمهٔ گوگل پیام «فعال
+نشده» می‌دهد.
 
 ## استقرار روی Vercel
 
