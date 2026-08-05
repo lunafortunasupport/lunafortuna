@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Vazirmatn, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
+import MobileTabBar from "@/components/MobileTabBar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import { prisma } from "@/lib/prisma";
@@ -51,6 +52,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Nav categories={cats} brandGroups={brandGroups} />
         <main>{children}</main>
         <Footer />
+        <MobileTabBar />
+        {/* فاصلهٔ پایین برای نوار موبایل تا محتوا زیرش پنهان نشود */}
+        <div className="h-20 lg:hidden" aria-hidden />
       </body>
     </html>
   );
