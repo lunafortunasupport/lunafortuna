@@ -94,9 +94,31 @@ export default async function BrandPage({ params }: { params: { slug: string } }
         </div>
 
         {groups.length === 0 ? (
-          <div className="py-10 text-center">
-            <p className="text-navy/60">برای این برند، از دکمهٔ بالا وارد سایت اصلی شو.</p>
-            <a href={brand.siteUrl} target="_blank" rel="noopener" className="btn-navy mt-5">
+          <div className="relative overflow-hidden rounded-3xl bg-navy px-6 py-14 text-center text-cream">
+            {/* المان‌های گرافیکی متحرک */}
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,169,106,0.18),transparent_62%)]" />
+            </div>
+            <div className="relative mx-auto mb-6 flex h-40 w-40 items-center justify-center">
+              <div className="absolute inset-0 animate-spinSlow rounded-full border border-gold/30">
+                <span className="absolute -top-1.5 left-1/2 h-3.5 w-3.5 -translate-x-1/2 rounded-full bg-gold shadow-[0_0_14px_rgba(154,122,67,0.8)]" />
+              </div>
+              <div className="absolute inset-5 animate-spinRev rounded-full border border-gold/15" />
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-cream shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+                {brand.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={brand.logoUrl} alt={brand.name} className="h-12 w-12 object-contain" />
+                ) : (
+                  <span className="font-display text-3xl text-gold">{brand.name.charAt(0)}</span>
+                )}
+              </div>
+            </div>
+            <h3 className="relative font-display text-2xl font-semibold">{brand.name} در ترکیه</h3>
+            <p className="relative mx-auto mt-2 max-w-md text-[13px] leading-7 text-cream/70">
+              وارد سایت اصلی {brand.name} شو، محصول موردنظرت را انتخاب کن و لینکش را برای ما بفرست تا با
+              قیمت شفاف برایت بخریم.
+            </p>
+            <a href={brand.siteUrl} target="_blank" rel="noopener" className="btn-gold relative mt-6">
               ورود به سایت {brand.name} ↗
             </a>
           </div>
@@ -117,7 +139,7 @@ export default async function BrandPage({ params }: { params: { slug: string } }
                       href={it.url}
                       target="_blank"
                       rel="noopener"
-                      className="rounded-full border border-navy/12 bg-cream/50 px-3.5 py-1.5 text-[12.5px] text-navy/75 transition hover:border-gold hover:bg-gold/5 hover:text-gold"
+                      className="rounded-full border border-navy/12 bg-cream/50 px-3.5 py-1.5 text-[12.5px] text-navy/75 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold hover:bg-gold/5 hover:text-gold hover:shadow-sm"
                     >
                       {it.label} ↗
                     </a>

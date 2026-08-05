@@ -104,12 +104,28 @@ async function main() {
   }
   console.log(`✓ ${WAREHOUSE_CATEGORIES.length} کتگوری موجودی`);
 
+  // برندهای Inditex: آدرس دسته‌هایشان ناپایدار است و به صفحهٔ اصلی ریدایرکت می‌شود؛
+  // فقط دکمهٔ «ورود به سایت» با صفحهٔ اصلی تمیز نمایش داده می‌شود.
+  const INDITEX_HOME: Record<string, string> = {
+    zara: "https://www.zara.com/tr/",
+    bershka: "https://www.bershka.com/tr/",
+    pullandbear: "https://www.pullandbear.com/tr/",
+    stradivarius: "https://www.stradivarius.com/tr/",
+    massimodutti: "https://www.massimodutti.com/tr/",
+    oysho: "https://www.oysho.com/tr/",
+    lefties: "https://www.lefties.com/tr/en/",
+  };
+
   // ── برندها ──
   let count = 0;
   let order = 0;
   for (const [group, list] of Object.entries(BRANDS)) {
     for (const b of list as any[]) {
       const data = normalizeBrand(group, b);
+      if (INDITEX_HOME[data.slug]) {
+        data.siteUrl = INDITEX_HOME[data.slug];
+        data.categoryLinks = "{}";
+      }
       await prisma.brand.upsert({
         where: { slug: data.slug },
         update: { ...data, sortOrder: order },
