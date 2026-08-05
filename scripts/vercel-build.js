@@ -10,14 +10,16 @@ function run(cmd) {
   execSync(cmd, { stdio: "inherit" });
 }
 
-// نرمال‌سازی نام متغیر دیتابیس (Vercel Postgres ممکن است نام دیگری بگذارد).
-// برای db push/seed نسخهٔ non-pooling بهتر است (عملیات DDL).
-if (!process.env.DATABASE_URL) {
-  const url =
+// برای db push/seed در زمان build، اتصال non-pooling (unpooled) بهتر است (عملیات DDL).
+// این فقط روی پروسه‌های build اثر دارد؛ زمان اجرا از DATABASE_URلِ محیط استفاده می‌شود.
+{
+  const buildUrl =
+    process.env.DATABASE_URL_UNPOOLED ||
     process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL;
-  if (url) process.env.DATABASE_URL = url;
+  if (buildUrl) process.env.DATABASE_URL = buildUrl;
 }
 
 // ۱) سوییچ provider به postgresql
