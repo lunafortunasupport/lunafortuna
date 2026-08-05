@@ -1,0 +1,45 @@
+# استقرار خودکار روی Vercel (production) با هر push به شاخهٔ main.
+# چرا این فایل؟ اتصال مستقیم Git ↔ Vercel این پروژه خراب است و push خودکار
+# دیپلوی نمی‌سازد. این workflow جای آن را می‌گیرد و همان کاری را می‌کند که
+# دستور دستی `vercel deploy --prod --token …` انجام می‌داد.
+#
+# تنها تنظیمِ لازم از سمت کاربر (یک‌بار):
+#   در GitHub → Settings → Secrets and variables → Actions → New repository secret
+#   نام: VERCEL_TOKEN
+#   مقدار: یک توکن از Vercel (Account Settings → Tokens → Create).
+# شناسه‌های سازمان/پروژه محرمانه نیستند و این‌جا مستقیم آمده‌اند.
+
+name: Deploy to Vercel (Production)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {} # امکان اجرای دستی از تب Actions
+
+# اگر چند push پشت‌سرهم شد، فقط آخری دیپلوی شود.
+concurrency:
+  group: vercel-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_nAtuXbhvrGGmworR83tXxvZZ
+      VERCEL_PROJECT_ID: prj_hXIRm7VOPCh9otgfbuaJuZpIpgTr
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Deploy to production
+        run: vercel deploy --prod --yes --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
