@@ -32,6 +32,31 @@ export default async function EditBrand({ params }: { params: { id: string } }) 
           <span className="mb-1.5 block text-xs font-medium text-navy/70">لینک لوگو</span>
           <input name="logoUrl" defaultValue={brand.logoUrl || ""} className="inp" dir="ltr" />
         </label>
+        {/* ── حراج ── */}
+        <div className="rounded-xl border border-gold/25 bg-gold/5 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-semibold text-navy">🔥 حراج برند</span>
+            <label className="flex items-center gap-2 text-xs text-navy/70">
+              <input type="checkbox" name="saleActive" defaultChecked={brand.saleActive} className="h-4 w-4" />
+              حراج فعال است (روی صفحهٔ اصلی نمایش بده)
+            </label>
+          </div>
+          <label className="mb-3 block">
+            <span className="mb-1.5 block text-[11px] font-medium text-navy/60">لینک صفحهٔ حراج</span>
+            <input
+              name="saleUrl"
+              defaultValue={brand.saleUrl || ""}
+              placeholder="https://www.brand.com/indirim"
+              className="inp"
+              dir="ltr"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-medium text-navy/60">برچسب بنر</span>
+            <input name="saleLabel" defaultValue={brand.saleLabel || ""} placeholder="مثلاً حراج زمستانه" className="inp" />
+          </label>
+        </div>
+
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-navy/70">
             لینک‌های دسته‌بندی (JSON) — برای اصلاح آدرس هر دسته

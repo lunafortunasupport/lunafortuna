@@ -141,6 +141,10 @@ export async function saveBrand(formData: FormData) {
     name: String(formData.get("name") || "").trim(),
     siteUrl: String(formData.get("siteUrl") || "").trim(),
     logoUrl: String(formData.get("logoUrl") || "").trim() || null,
+    // حراج
+    saleUrl: String(formData.get("saleUrl") || "").trim() || null,
+    saleLabel: String(formData.get("saleLabel") || "").trim() || null,
+    saleActive: formData.get("saleActive") === "on",
   };
   // لینک‌های دسته‌بندی (JSON) — فقط اگر معتبر بود ذخیره می‌شود
   const rawLinks = String(formData.get("categoryLinks") || "").trim();
@@ -155,6 +159,7 @@ export async function saveBrand(formData: FormData) {
   await prisma.brand.update({ where: { id }, data });
   revalidatePath("/admin/brands");
   revalidatePath("/brands");
+  revalidatePath("/");
   redirect("/admin/brands");
 }
 

@@ -5,6 +5,7 @@ import ProductCard from "@/components/ProductCard";
 import BrandCard from "@/components/BrandCard";
 import Calculator from "@/components/Calculator";
 import BannerStrip from "@/components/BannerStrip";
+import SaleStrip from "@/components/SaleStrip";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export default async function HomePage() {
   const s = await getSettings();
   const perLir = Math.round(s.exchangeRate * (1 + s.feeNormal));
 
-  const [featuredProducts, featuredBrands, brandCount, banners, categories] = await Promise.all([
+  const [featuredProducts, featuredBrands, brandCount, banners, categories, sales] = await Promise.all([
     prisma.product.findMany({
       where: { isActive: true, isFeatured: true },
       take: 4,
@@ -30,6 +31,12 @@ export default async function HomePage() {
       take: 3,
     }),
     prisma.category.findMany({ where: { scope: "warehouse" }, orderBy: { sortOrder: "asc" } }),
+    prisma.brand.findMany({
+      where: { isActive: true, saleActive: true, saleUrl: { not: null } },
+      orderBy: { sortOrder: "asc" },
+      take: 12,
+      select: { slug: true, name: true, logoUrl: true, saleUrl: true, saleLabel: true },
+    }),
   ]);
 
   return (
@@ -100,6 +107,9 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ── حراج‌های فعال برندها ── */}
+      <SaleStrip sales={sales.map((b) => ({ ...b, saleUrl: b.saleUrl as string }))} />
 
       {/* ── بنرهای قابل‌مدیریت ── */}
       <BannerStrip banners={banners} />

@@ -26,6 +26,11 @@ model Brand {
   isFeatured    Boolean  @default(false)
   isActive      Boolean  @default(true)
   sortOrder     Int      @default(0)
+  // ── حراج (بخش ۲) ──
+  saleUrl       String?  // صفحهٔ حراج/indirim برند
+  saleActive    Boolean  @default(false) // آیا الان حراج فعال است؟ (دستی یا توسط ربات)
+  saleLabel     String?  // متن بنر، مثل «حراج زمستانه»
+  saleCheckedAt DateTime? // آخرین باری که ربات چک کرد
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

@@ -45,6 +45,19 @@ const FEATURED = new Set([
   "defacto", "lefties", "sephora", "karaca", "trendyol", "puma", "bershka",
 ]);
 
+// صفحهٔ حراج/indirim برندهای برتر — با scripts/verify-sale-urls.mjs (مرورگر واقعی) تأیید شده‌اند.
+// فقط مقدار اولیهٔ create/فعال‌سازیِ نخست است؛ بعد از آن ادمین/ربات کنترل می‌کنند.
+const SALE_URLS: Record<string, string> = {
+  hm: "https://www2.hm.com/tr_tr/sale.html",
+  adidas: "https://www.adidas.com.tr/indirim",
+  boyner: "https://www.boyner.com.tr/indirim",
+  flo: "https://www.flo.com.tr/indirim",
+  ipekyol: "https://www.ipekyol.com.tr/indirim-70",
+  karaca: "https://www.karaca.com/indirimli-urunler",
+  englishhome: "https://www.englishhome.com/c-indirim",
+  superstep: "https://www.superstep.com.tr/indirim/",
+};
+
 function favicon(domain: string) {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 }
@@ -75,6 +88,9 @@ function normalizeBrand(group: string, b: any) {
     tags: JSON.stringify([group]),
     isFeatured: FEATURED.has(id),
     isActive: true,
+    saleUrl: SALE_URLS[id] || null,
+    saleActive: !!SALE_URLS[id],
+    saleLabel: SALE_URLS[id] ? "حراج ویژه" : null,
   };
 }
 
@@ -166,6 +182,10 @@ async function main() {
           data: {
             categoryLinks: prunedLinks,
             ...(siteUrlDead && data.siteUrl ? { siteUrl: data.siteUrl } : {}),
+            // saleUrl را فقط اگر هنوز ست نشده مقداردهی و فعال کن (بعد از آن ادمین/ربات کنترل می‌کنند)
+            ...(!existing.saleUrl && data.saleUrl
+              ? { saleUrl: data.saleUrl, saleActive: true, saleLabel: "حراج ویژه" }
+              : {}),
           },
         });
       }
