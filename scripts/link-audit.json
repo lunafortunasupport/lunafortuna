@@ -3,7 +3,9 @@
   "stats": {
     "total": 650,
     "dead": 278,
-    "blocked": 66
+    "blocked": 66,
+    "browserAuditAt": "2026-08-06T00:02:28.064Z",
+    "newlyDead": 19
   },
   "deadUrls": [
     "https://shop.mango.com/tr/tr/c/kadin/elbise-ve-tulum_5f4ab0b9",
@@ -283,7 +285,23 @@
     "https://www.chicco.com.tr/bebek-giyim",
     "https://www.chicco.com.tr/besleme",
     "https://www.chicco.com.tr/oyuncak",
-    "https://www.chicco.com.tr/bebek-bakimi"
+    "https://www.chicco.com.tr/bebek-bakimi",
+    "https://www.koton.com/erkek-ayakkabi",
+    "https://www.guess.com/tr-TR/content/guess/tr_TR/women-apparel.html",
+    "https://www.guess.com/tr-TR/content/guess/tr_TR/women-bags.html",
+    "https://www.guess.com/tr-TR/content/guess/tr_TR/women-shoes.html",
+    "https://www.guess.com/tr-TR/content/guess/tr_TR/women-accessories.html",
+    "https://www.vakko.com/erkek/ayakkabi",
+    "https://www.yatas.com.tr/yatak-ve-baza",
+    "https://www.yatas.com.tr/nevresim",
+    "https://www.yatas.com.tr/yastik",
+    "https://www.yatas.com.tr/koltuk",
+    "https://www.ebebek.com/kiz-cocuk-giyim",
+    "https://www.ebebek.com/erkek-cocuk-giyim",
+    "https://www.ebebek.com/bebek-giyim",
+    "https://www.ebebek.com/cocuk-ayakkabi",
+    "https://www.ebebek.com/bebek-arabasi",
+    "https://www.ebebek.com/bebek-bakimi"
   ],
   "homepage": {
     "n11": "https://www.n11.com/",
