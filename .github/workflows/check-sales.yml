@@ -1,0 +1,48 @@
+# ربات روزانهٔ تشخیص حراج برندها.
+# صفحهٔ حراجِ هر برندِ دارای saleUrl را با مرورگر واقعی (Playwright) چک می‌کند و
+# saleActive/saleLabel را در دیتابیس Neon به‌روز می‌کند. نتیجه بلافاصله روی صفحهٔ
+# اصلی سایت دیده می‌شود (SaleStrip).
+#
+# تنظیم لازم (یک‌بار): در GitHub → Settings → Secrets and variables → Actions یک
+# secret به نام DATABASE_URL بساز و رشتهٔ اتصال Neon (همان که در Vercel است) را بگذار.
+
+name: Check brand sales
+
+on:
+  schedule:
+    - cron: "0 7 * * *" # هر روز ۰۷:۰۰ UTC (~۱۰:۰۰ ترکیه)
+  workflow_dispatch: {} # اجرای دستی از تب Actions
+
+concurrency:
+  group: check-sales
+  cancel-in-progress: true
+
+jobs:
+  check-sales:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      # provider را به postgresql سوییچ کن (مثل build) تا کلاینت به Neon وصل شود.
+      - name: Switch Prisma provider to postgresql
+        run: node -e "const fs=require('fs');const p='prisma/schema.prisma';let s=fs.readFileSync(p,'utf8');fs.writeFileSync(p,s.replace('provider = \"sqlite\"','provider = \"postgresql\"'));console.log('provider → postgresql')"
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run sale detection
+        run: npx tsx scripts/check-sales.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
