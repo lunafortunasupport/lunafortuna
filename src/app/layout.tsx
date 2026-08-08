@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Vazirmatn, Playfair_Display } from "next/font/google";
+import { Vazirmatn } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import MobileTabBar from "@/components/MobileTabBar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import CustomCursor from "@/components/CustomCursor";
 import { prisma } from "@/lib/prisma";
 import { GROUP_LABELS } from "@/lib/util";
 
@@ -15,10 +17,14 @@ const vazir = Vazirmatn({
   display: "swap",
 });
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-playfair",
+// فونتِ نمایشیِ فارسیِ اختصاصی (Estedad) — جایگزینِ Playfair که فارسی را رندر نمی‌کرد.
+const estedad = localFont({
+  src: [
+    { path: "../../public/fonts/Estedad-Medium.woff2", weight: "500" },
+    { path: "../../public/fonts/Estedad-Bold.woff2", weight: "700" },
+    { path: "../../public/fonts/Estedad-Black.woff2", weight: "900" },
+  ],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -46,9 +52,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     .map((g) => ({ key: g.group, label: GROUP_LABELS[g.group], count: g._count }));
 
   return (
-    <html lang="fa" dir="rtl" className={`${vazir.variable} ${playfair.variable}`}>
+    <html lang="fa" dir="rtl" className={`${vazir.variable} ${estedad.variable}`}>
       <body className="font-sans">
         <Reveal />
+        <CustomCursor />
         <Nav categories={cats} brandGroups={brandGroups} />
         <main>{children}</main>
         <Footer />

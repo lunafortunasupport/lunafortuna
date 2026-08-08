@@ -1,36 +1,34 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
-import ProductCard from "@/components/ProductCard";
-import BrandCard from "@/components/BrandCard";
-import Calculator from "@/components/Calculator";
-import BannerStrip from "@/components/BannerStrip";
 import SaleStrip from "@/components/SaleStrip";
 
 export const dynamic = "force-dynamic";
+
+// برچسبِ فهرست‌مانندِ ادیتوریال (۰۱ — دربارهٔ ما)
+function Index({ n, label }: { n: string; label: string }) {
+  return (
+    <div className="flex items-center gap-3 text-[12px] tracking-[0.28em] text-gold">
+      <span className="font-display font-bold">{n}</span>
+      <span className="h-px w-8 bg-gold/50" />
+      <span className="text-navy/50">{label}</span>
+    </div>
+  );
+}
 
 export default async function HomePage() {
   const s = await getSettings();
   const perLir = Math.round(s.exchangeRate * (1 + s.feeNormal));
 
-  const [featuredProducts, featuredBrands, brandCount, banners, categories, sales] = await Promise.all([
-    prisma.product.findMany({
-      where: { isActive: true, isFeatured: true },
-      take: 4,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.brand.findMany({
-      where: { isActive: true, isFeatured: true },
-      take: 12,
-      orderBy: { sortOrder: "asc" },
-    }),
+  const [brandCount, directory, sales] = await Promise.all([
     prisma.brand.count({ where: { isActive: true } }),
-    prisma.banner.findMany({
-      where: { isActive: true, placement: "promo" },
-      orderBy: { sortOrder: "asc" },
-      take: 3,
+    prisma.brand.findMany({
+      where: { isActive: true },
+      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
+      take: 48,
+      select: { name: true, slug: true },
     }),
-    prisma.category.findMany({ where: { scope: "warehouse" }, orderBy: { sortOrder: "asc" } }),
     prisma.brand.findMany({
       where: { isActive: true, saleActive: true, saleUrl: { not: null } },
       orderBy: { sortOrder: "asc" },
@@ -39,261 +37,216 @@ export default async function HomePage() {
     }),
   ]);
 
+  const tiles = [
+    { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", group: "clothing" },
+    { img: "/images/menswear.jpg", fa: "پوشاک مردانه", en: "Men", group: "clothing" },
+    { img: "/images/quiet-luxury.jpg", fa: "کیف و کفش", en: "Bags & Shoes", group: "shoes" },
+    { img: "/images/window-warm.jpg", fa: "خانه و لوازم", en: "Home", group: "home" },
+  ];
+
   return (
     <>
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden bg-navy text-cream">
-        {/* پس‌زمینهٔ متحرک */}
-        <div className="absolute inset-0">
-          <div className="absolute left-[58%] top-1/2 h-[760px] w-[760px] -translate-x-1/2 -translate-y-1/2 animate-pulseSoft rounded-full bg-[radial-gradient(circle,rgba(154,122,67,0.20),transparent_62%)]" />
-          <div className="absolute bottom-0 left-0 h-64 w-64 animate-pulseSoft rounded-full bg-[radial-gradient(circle,rgba(201,169,106,0.10),transparent_65%)]" />
-        </div>
-        <Stars />
+      {/* ═══════════ HERO ═══════════ */}
+      <section className="relative min-h-[92vh] w-full overflow-hidden bg-navy-ink text-cream">
+        <Image
+          src="/images/hero-shopping.jpg"
+          alt="خرید از برندهای ترکیه"
+          fill
+          priority
+          sizes="100vw"
+          className="kenburns object-cover object-center opacity-90"
+        />
+        {/* پرده‌ی گرادیانی — سمت راست تیره‌تر برای خوانایی متن (RTL) */}
+        <div className="absolute inset-0 bg-gradient-to-l from-navy-ink/95 via-navy-ink/70 to-navy-ink/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/80 via-transparent to-navy-ink/40" />
 
-        <div className="container-luna relative grid items-center gap-10 py-16 md:grid-cols-2 md:py-24">
-          {/* لوگوی متحرک — سمت چپ (در RTL: ستون دوم = order-2) */}
-          <div className="order-2 hidden justify-center md:order-2 md:flex">
-            <AnimatedLogo />
-          </div>
-
-          <div className="order-1 md:order-1">
-            <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-[11px] tracking-[0.2em] text-champagne">
-              ✦ خرید مطمئن از ترکیه
-            </span>
-            <h1 className="mt-6 font-display text-5xl font-semibold leading-tight md:text-6xl">
+        <div className="container-luna relative flex min-h-[92vh] flex-col justify-center py-28">
+          <div className="max-w-2xl reveal">
+            <div className="rise-up flex items-center gap-3 text-[12px] tracking-[0.32em] text-champagne">
+              <span className="h-px w-10 bg-champagne/60" />
+              آتلیهٔ خرید از ترکیه
+            </div>
+            <h1 className="rise-up mt-7 font-display text-[clamp(44px,8vw,96px)] font-black leading-[1.05]" style={{ transitionDelay: "80ms" }}>
               خیالت راحت،
-              <span className="mt-2 block text-champagne">بقیه‌اش با ما</span>
+              <span className="mt-1 block text-champagne">بقیه‌اش با ما</span>
             </h1>
-            <p className="mt-6 max-w-md text-[15px] leading-8 text-cream/75">
-              هر چیزی از ترکیه که در ایران گیرت نمی‌آید — از پوشاک و کیف و کفش تا لوازم خانه. صادقانه
-              می‌خریم، سایز و کیفیتش را چک می‌کنیم و تا دستت می‌رسانیم.
+            <p className="rise-up mt-8 max-w-lg text-[15px] leading-9 text-cream/75" style={{ transitionDelay: "160ms" }}>
+              هر چه از ترکیه در ایران به‌دستت نمی‌رسد — از پوشاک و کیف و کفش تا لوازم خانه. صادقانه
+              می‌خریم، سایز و کیفیتش را می‌بینیم، و مثل یک امانت به دستت می‌رسانیم.
             </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/order" className="btn-gold">
+            <div className="rise-up mt-10 flex flex-wrap items-center gap-6" style={{ transitionDelay: "240ms" }}>
+              <Link href="/order" className="btn bg-champagne px-8 py-3.5 text-navy-ink hover:bg-cream">
                 ثبت سفارش
               </Link>
-              <Link href="/shop" className="btn-outline !border-cream/25 !text-cream hover:!bg-cream/10">
-                مشاهدهٔ موجودی انبار
+              <Link href="/brands" className="group inline-flex items-center gap-2 text-sm text-cream/80 hover:text-champagne">
+                گشتن میان برندها
+                <span className="transition-transform group-hover:-translate-x-1">←</span>
               </Link>
             </div>
-            <div className="mt-12 flex gap-8">
-              <Stat n={`+${brandCount.toLocaleString("fa-IR")}`} label="برند معتبر ترکیه" />
-              <Stat n="۱۰۰٪" label="بررسی پیش از ارسال" />
-              <Stat n="۲۴/۷" label="پشتیبانی و پیگیری" />
-            </div>
           </div>
         </div>
 
-        {/* موج پایین هیرو */}
-        <div className="h-8 bg-gradient-to-b from-transparent to-cream/0" />
-      </section>
-
-      {/* ── TRUST BAR ── */}
-      <section className="border-b border-navy/10 bg-white">
-        <div className="container-luna grid grid-cols-2 gap-px md:grid-cols-4">
-          {[
-            ["🔍", "بررسی کیفیت و سایز", "پیش از ارسال چک می‌کنیم"],
-            ["💎", "قیمت شفاف", "بدون هزینهٔ پنهان"],
-            ["🤝", "همراهی تا تحویل", "در تمام مسیر کنارت هستیم"],
-            ["📸", "عکس واقعی محصول", "قبل از ارسال می‌فرستیم"],
-          ].map(([ico, t, d]) => (
-            <div key={t} className="flex items-center gap-3 px-4 py-6">
-              <span className="text-2xl">{ico}</span>
-              <div>
-                <div className="text-[13px] font-semibold text-navy">{t}</div>
-                <div className="text-[11px] text-navy/50">{d}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── حراج‌های فعال برندها ── */}
-      <SaleStrip sales={sales.map((b) => ({ ...b, saleUrl: b.saleUrl as string }))} />
-
-      {/* ── بنرهای قابل‌مدیریت ── */}
-      <BannerStrip banners={banners} />
-
-      {/* ── کاشی‌های دسته‌بندی ── */}
-      {categories.length > 0 && (
-        <section className="container-luna py-10 reveal">
-          <SectionHead label="دسته‌بندی‌ها" title="از کجا شروع کنیم؟" desc="" />
-          <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-7">
-            {categories.map((c) => (
-              <Link
-                key={c.id}
-                href={`/shop?cat=${c.slug}`}
-                className="group flex flex-col items-center gap-2 rounded-2xl border border-navy/5 bg-white p-4 text-center transition-all hover:-translate-y-1 hover:border-gold/30 hover:shadow-card"
-              >
-                <span className="text-3xl transition-transform group-hover:scale-110">{c.icon}</span>
-                <span className="text-[12px] font-medium text-navy/80">{c.name}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── موجودی منتخب ── */}
-      {featuredProducts.length > 0 && (
-        <section className="container-luna py-14 reveal">
-          <SectionHead
-            label="موجودی انبار تهران"
-            title="آمادهٔ ارسال فوری"
-            desc="کالاهایی که همین حالا در انبار تهران موجودند و سریع به دستت می‌رسند."
-            href="/shop"
-          />
-          <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
-            {featuredProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── برندهای شاخص ── */}
-      <section className="bg-white py-16 reveal">
-        <div className="container-luna">
-          <SectionHead
-            label="کتگوری بر اساس برند"
-            title="برندهای معتبر ترکیه"
-            desc="روی هر برند بزن تا وارد سایت اصلی آن در ترکیه شوی و محصول موردنظرت را پیدا کنی."
-            href="/brands"
-          />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
-            {featuredBrands.map((b) => (
-              <BrandCard key={b.slug} brand={b} />
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Link href="/brands" className="btn-outline">
-              مشاهدهٔ همهٔ {brandCount.toLocaleString("fa-IR")} برند
-            </Link>
+        {/* نوار پایینِ ظریف */}
+        <div className="absolute bottom-0 left-0 right-0 border-t border-cream/10 bg-navy-ink/40 backdrop-blur-sm">
+          <div className="container-luna flex flex-wrap items-center justify-between gap-4 py-4 text-[12.5px] text-cream/60">
+            <span><b className="font-display text-champagne">{brandCount.toLocaleString("fa-IR")}</b> برندِ معتبر ترکیه</span>
+            <span className="hidden sm:inline">بررسی کیفیت و سایز پیش از ارسال</span>
+            <span className="hidden md:inline">قیمت شفاف با نرخ لیرِ روز</span>
+            <span>هر لیر ≈ {perLir.toLocaleString("fa-IR")} تومان</span>
           </div>
         </div>
       </section>
 
-      {/* ── چطور کار می‌کنیم ── */}
-      <section className="container-luna py-16 reveal">
-        <SectionHead label="فرایند خرید" title="در چهار قدم ساده" desc="" />
-        <div className="grid gap-6 md:grid-cols-4">
-          {[
-            ["۱", "محصول را پیدا کن", "از برندهای ترکیه یا موجودی انبار، محصولت را انتخاب کن."],
-            ["۲", "لینک را برایمان بفرست", "لینک محصول را در فرم سفارش یا تلگرام بده."],
-            ["۳", "قیمت شفاف بگیر", "قیمت تومان نهایی را می‌بینی و پرداخت می‌کنی."],
-            ["۴", "با خیال راحت تحویل بگیر", "بررسی می‌کنیم، عکس می‌فرستیم و ارسال می‌کنیم."],
-          ].map(([n, t, d]) => (
-            <div key={n} className="card-soft p-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/12 font-display text-lg font-bold text-gold">
-                {n}
-              </div>
-              <h3 className="mt-4 text-[15px] font-semibold text-navy">{t}</h3>
-              <p className="mt-2 text-[13px] leading-6 text-navy/55">{d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── ماشین‌حساب ── */}
-      <section className="bg-white py-16 reveal">
-        <div className="container-luna grid items-center gap-10 md:grid-cols-2">
-          <div>
-            <SectionHead label="ماشین‌حساب" title="همین حالا قیمتت را بدان" desc="" />
-            <p className="max-w-md text-[14px] leading-8 text-navy/60">
-              کافی است قیمت لیرِ محصول موردنظرت را وارد کنی تا قیمت تومان نهایی را ببینی — شفاف و بدون
-              هزینهٔ پنهان. برای ثبت سفارش هم می‌توانی از فرم سایت یا ربات تلگرام استفاده کنی.
+      {/* ═══════════ مانیفست ═══════════ */}
+      <section className="bg-cream">
+        <div className="container-luna grid items-center gap-14 py-24 md:grid-cols-2 md:py-32">
+          <div className="reveal order-2 md:order-1">
+            <div className="rise-up"><Index n="۰۱" label="چرا لونافورتونا" /></div>
+            <h2 className="rise-up mt-7 font-display text-[clamp(30px,4.4vw,52px)] font-black leading-[1.2] text-navy" style={{ transitionDelay: "80ms" }}>
+              هر چیزی از ترکیه،
+              <br />
+              بی‌واسطهٔ دردسر.
+            </h2>
+            <p className="rise-up mt-7 max-w-md text-[15px] leading-9 text-navy/65" style={{ transitionDelay: "160ms" }}>
+              نه حساب ارزی می‌خواهد، نه ریسکِ فروشندهٔ ناشناس. تو فقط لینکِ محصول را می‌فرستی؛ ما در
+              استانبول می‌خریم، دانه‌به‌دانه بررسی می‌کنیم، عکس واقعی می‌فرستیم و تا دستت می‌رسانیم.
             </p>
-            <Link href="/order" className="btn-navy mt-6">
-              رفتن به صفحهٔ سفارش
+            <div className="rise-up mt-9 flex gap-10 border-t border-navy/10 pt-7" style={{ transitionDelay: "220ms" }}>
+              {[["بررسی پیش از ارسال", "۱۰۰٪"], ["هزینهٔ پنهان", "۰"], ["همراهی تا تحویل", "۲۴/۷"]].map(([l, n]) => (
+                <div key={l}>
+                  <div className="font-display text-3xl font-black text-navy">{n}</div>
+                  <div className="mt-1 text-[11.5px] text-navy/45">{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="order-1 md:order-2">
+            <div className="img-wipe relative aspect-[4/5] overflow-hidden rounded-sm">
+              <Image src="/images/portrait.jpg" alt="سبکِ شخصی" fill sizes="(max-width:768px) 100vw, 44vw" className="object-cover" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ روالِ سفارش ═══════════ */}
+      <section className="bg-navy text-cream">
+        <div className="container-luna py-24 md:py-28">
+          <div className="reveal mx-auto max-w-2xl text-center">
+            <div className="rise-up flex justify-center"><Index n="۰۲" label="روالِ سفارش" /></div>
+            <h2 className="rise-up mt-6 font-display text-[clamp(28px,4vw,46px)] font-black" style={{ transitionDelay: "80ms" }}>
+              از یک پیام تا دمِ در
+            </h2>
+          </div>
+          <div className="mt-16 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["۱", "لینک را بفرست", "لینکِ محصول از هر سایت ترکیه‌ای را برایمان می‌فرستی."],
+              ["۲", "قیمت شفاف", "با نرخ لیرِ روز و بی‌هزینهٔ پنهان، قیمت نهایی را می‌گوییم."],
+              ["۳", "می‌خریم و می‌بینیم", "می‌خریم، سایز و کیفیت را چک و عکس واقعی می‌فرستیم."],
+              ["۴", "به دستت می‌رسد", "تا لحظهٔ تحویل، در تمام مسیر کنارت هستیم."],
+            ].map(([n, t, d], i) => (
+              <div key={n} className="reveal group border-t border-champagne/25 pt-6">
+                <div className="rise-up font-display text-6xl font-black text-champagne/85" style={{ transitionDelay: `${i * 60}ms` }}>{n}</div>
+                <h3 className="rise-up mt-5 text-lg font-bold" style={{ transitionDelay: `${i * 60 + 40}ms` }}>{t}</h3>
+                <p className="rise-up mt-3 text-[13px] leading-8 text-cream/55" style={{ transitionDelay: `${i * 60 + 80}ms` }}>{d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ دسته‌ها (تصویرمحور) ═══════════ */}
+      <section className="bg-cream">
+        <div className="container-luna py-24 md:py-28">
+          <div className="reveal mb-12 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
+            <div>
+              <div className="rise-up"><Index n="۰۳" label="دسته‌ها" /></div>
+              <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
+                از کجا شروع کنیم؟
+              </h2>
+            </div>
+            <Link href="/brands" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">همهٔ برندها ←</Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {tiles.map((t) => (
+              <Link key={t.fa} href={`/brands?group=${t.group}`} className="img-wipe group relative block aspect-[3/4] overflow-hidden rounded-sm bg-navy">
+                <Image src={t.img} alt={t.fa} fill sizes="(max-width:640px) 100vw, 25vw" className="object-cover opacity-85 transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/85 via-navy-ink/10 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-5">
+                  <div className="text-[11px] tracking-[0.25em] text-champagne/80">{t.en}</div>
+                  <div className="mt-1 font-display text-xl font-bold text-cream">{t.fa}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ لحظهٔ ادیتوریال (تمام‌عرض) ═══════════ */}
+      <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-navy-ink text-cream">
+        <Image src="/images/editorial-duomo.jpg" alt="سبکِ خیابانی اروپا" fill sizes="100vw" className="object-cover object-top opacity-70" />
+        <div className="absolute inset-0 bg-gradient-to-l from-navy-ink/90 via-navy-ink/45 to-transparent" />
+        <div className="container-luna relative py-24">
+          <div className="reveal max-w-xl">
+            <div className="rise-up"><span className="text-[12px] tracking-[0.32em] text-champagne">دست‌چینِ برندهای معتبر</span></div>
+            <h2 className="rise-up mt-6 font-display text-[clamp(30px,5vw,60px)] font-black leading-[1.15]" style={{ transitionDelay: "80ms" }}>
+              از ویترین‌های استانبول
+              <br />
+              تا خانهٔ تو
+            </h2>
+            <p className="rise-up mt-7 max-w-md text-[15px] leading-9 text-cream/70" style={{ transitionDelay: "160ms" }}>
+              همان برندهایی که در پاساژها و سایت‌های ترکیه می‌بینی — حالا بدونِ دردسرِ خرید و ارسال،
+              با یک واسطهٔ مطمئن.
+            </p>
+            <Link href="/order" className="rise-up mt-9 inline-flex btn border border-champagne/50 px-8 py-3.5 text-cream hover:bg-champagne hover:text-navy-ink" style={{ transitionDelay: "220ms" }}>
+              همین حالا سفارش بده
             </Link>
           </div>
-          <Calculator perLirToman={perLir} />
+        </div>
+      </section>
+
+      {/* ═══════════ حراج ═══════════ */}
+      {sales.length > 0 && <SaleStrip sales={sales.map((b) => ({ ...b, saleUrl: b.saleUrl as string }))} />}
+
+      {/* ═══════════ فهرستِ خانه‌ها ═══════════ */}
+      <section className="bg-cream">
+        <div className="container-luna py-24 md:py-28">
+          <div className="reveal mb-10 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
+            <div>
+              <div className="rise-up"><Index n="۰۴" label="خانه‌های ترکیه" /></div>
+              <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
+                {brandCount.toLocaleString("fa-IR")} برند، دست‌چین‌شده
+              </h2>
+            </div>
+          </div>
+          <div className="reveal columns-2 gap-x-8 sm:columns-3 lg:columns-4">
+            {directory.map((b) => (
+              <Link
+                key={b.slug}
+                href={`/brands/${b.slug}`}
+                className="block break-inside-avoid border-b border-navy/8 py-2.5 text-[14.5px] text-navy/70 transition-all hover:pr-2 hover:text-gold"
+              >
+                {b.name}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Link href="/brands" className="btn border border-navy/20 px-8 py-3 text-navy hover:border-gold hover:text-gold">دیدنِ همهٔ برندها</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ CTA پایانی ═══════════ */}
+      <section className="bg-navy text-cream">
+        <div className="container-luna reveal py-24 text-center md:py-28">
+          <h2 className="rise-up mx-auto max-w-2xl font-display text-[clamp(30px,5vw,58px)] font-black leading-[1.15]">
+            آماده‌ای؟ لینکت را بفرست،
+            <span className="block text-champagne">بقیه‌اش با ما.</span>
+          </h2>
+          <div className="rise-up mt-10" style={{ transitionDelay: "120ms" }}>
+            <Link href="/order" className="btn bg-champagne px-10 py-4 text-navy-ink hover:bg-cream">ثبت سفارش</Link>
+          </div>
         </div>
       </section>
     </>
-  );
-}
-
-function Stat({ n, label }: { n: string; label: string }) {
-  return (
-    <div>
-      <div className="font-display text-3xl font-bold text-champagne">{n}</div>
-      <div className="mt-1 text-[11px] text-cream/50">{label}</div>
-    </div>
-  );
-}
-
-function SectionHead({ label, title, desc, href }: { label: string; title: string; desc: string; href?: string }) {
-  return (
-    <div className="mb-8 flex items-end justify-between gap-4">
-      <div>
-        <span className="sec-label">{label}</span>
-        <h2 className="mt-3 font-display text-3xl font-semibold text-navy md:text-4xl">{title}</h2>
-        {desc && <p className="mt-3 max-w-xl text-[14px] leading-7 text-navy/55">{desc}</p>}
-      </div>
-      {href && (
-        <Link href={href} className="hidden shrink-0 text-sm text-gold hover:text-champagne sm:block">
-          مشاهدهٔ همه ←
-        </Link>
-      )}
-    </div>
-  );
-}
-
-function Stars() {
-  const stars = Array.from({ length: 46 }, (_, i) => ({
-    top: `${(i * 37) % 100}%`,
-    left: `${(i * 53) % 100}%`,
-    size: `${(i % 3) + 1}px`,
-    delay: `${(i % 6) * 0.5}s`,
-  }));
-  return (
-    <div className="pointer-events-none absolute inset-0">
-      {stars.map((st, i) => (
-        <span
-          key={i}
-          className="absolute rounded-full bg-cream/40"
-          style={{
-            top: st.top,
-            left: st.left,
-            width: st.size,
-            height: st.size,
-            animation: `fadeIn 2s ease-in-out ${st.delay} infinite alternate`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/** لوگوی متحرک: حلقه‌های چرخان + نقطهٔ مداری + لوگوی واقعی شناور */
-function AnimatedLogo() {
-  return (
-    <div className="relative h-[360px] w-[360px] animate-float">
-      {/* حلقه‌های چرخان */}
-      <div className="absolute inset-0 animate-spinSlow rounded-full border border-gold/25">
-        <span className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full bg-gold shadow-[0_0_16px_rgba(154,122,67,0.8)]" />
-      </div>
-      <div className="absolute inset-8 animate-spinRev rounded-full border border-gold/15" />
-      <div className="absolute inset-16 rounded-full border border-gold/10" />
-      {/* هالهٔ نور نرم */}
-      <div className="absolute inset-10 rounded-full bg-[radial-gradient(circle,rgba(201,169,106,0.22),transparent_62%)]" />
-      {/* لوگو به‌صورت ماسک با گرادیان کرم→طلایی (بدون پس‌زمینه) */}
-      <div
-        className="absolute left-1/2 top-1/2 h-52 w-52 -translate-x-1/2 -translate-y-1/2"
-        style={{
-          WebkitMaskImage: "url(/logo.png)",
-          maskImage: "url(/logo.png)",
-          WebkitMaskRepeat: "no-repeat",
-          maskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskPosition: "center",
-          WebkitMaskSize: "contain",
-          maskSize: "contain",
-          background: "linear-gradient(135deg, #F5F1E8 0%, #C9A96A 55%, #9A7A43 100%)",
-          filter: "drop-shadow(0 0 22px rgba(201,169,106,0.5))",
-        }}
-        aria-label="LunaFortuna"
-      />
-    </div>
   );
 }

@@ -18,7 +18,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-vazir)", "system-ui", "sans-serif"],
-        display: ["var(--font-playfair)", "serif"],
+        display: ["var(--font-display)", "var(--font-vazir)", "sans-serif"],
       },
       boxShadow: {
         gold: "0 8px 24px rgba(154,122,67,0.25)",

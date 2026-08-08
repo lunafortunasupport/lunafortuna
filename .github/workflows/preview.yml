@@ -1,0 +1,46 @@
+# استقرارِ Preview برای شاخه‌های غیر از main (برای دیدنِ بازطراحی به‌صورت زنده).
+# سایتِ اصلی دست‌نخورده می‌ماند؛ این فقط یک نسخهٔ آزمایشی روی زیردامنهٔ Vercel می‌سازد.
+# از همان secretِ VERCEL_TOKEN استفاده می‌کند که قبلاً برای deploy ساختی.
+
+name: Preview deploy
+
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_nAtuXbhvrGGmworR83tXxvZZ
+      VERCEL_PROJECT_ID: prj_hXIRm7VOPCh9otgfbuaJuZpIpgTr
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Deploy preview
+        run: |
+          set -e
+          url=$(vercel deploy --yes --token="$VERCEL_TOKEN")
+          echo "preview url: $url"
+          echo "## 🌙 پیش‌نمایشِ بازطراحی" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "لینکِ این دیپلوی: $url" >> "$GITHUB_STEP_SUMMARY"
+          vercel alias set "$url" lunafortuna-redesign.vercel.app --token="$VERCEL_TOKEN" || echo "alias skipped"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "لینکِ ثابت: https://lunafortuna-redesign.vercel.app" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 export default function Reveal() {
   const pathname = usePathname();
   useEffect(() => {
-    const els = document.querySelectorAll(".reveal:not(.in)");
+    const els = document.querySelectorAll(".reveal:not(.in), .img-wipe:not(.in), .rise-up:not(.in)");
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
