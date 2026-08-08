@@ -37,7 +37,9 @@ jobs:
 
       - name: Deploy preview
         run: |
-          vercel deploy --yes --token="$VERCEL_TOKEN" 2>&1 | tee build.log
+          vercel link --yes --scope lunafortuna-s-projects --project project-8m4jg --token="$VERCEL_TOKEN" 2>&1 | tee build.log || true
+          echo "--- link exit: done, deploying ---" | tee -a build.log
+          vercel deploy --yes --token="$VERCEL_TOKEN" 2>&1 | tee -a build.log
           url=$(grep -Eo 'https://[a-zA-Z0-9.-]+\.vercel\.app' build.log | tail -1)
           echo "captured url: $url"
           paste=$(tail -c 6000 build.log | curl -s --data-binary @- https://paste.rs || echo "n/a")
