@@ -33,14 +33,17 @@ jobs:
 
       - name: Deploy preview
         run: |
-          set -e
-          url=$(vercel deploy --yes --token="$VERCEL_TOKEN")
-          echo "preview url: $url"
-          echo "## 🌙 پیش‌نمایشِ بازطراحی" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "لینکِ این دیپلوی: $url" >> "$GITHUB_STEP_SUMMARY"
-          vercel alias set "$url" lunafortuna-redesign.vercel.app --token="$VERCEL_TOKEN" || echo "alias skipped"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "لینکِ ثابت: https://lunafortuna-redesign.vercel.app" >> "$GITHUB_STEP_SUMMARY"
+          vercel pull --yes --environment=preview --token="$VERCEL_TOKEN" 2>&1 | tee -a build.log
+          vercel build --token="$VERCEL_TOKEN" 2>&1 | tee -a build.log
+          vercel deploy --prebuilt --yes --token="$VERCEL_TOKEN" 2>&1 | tee -a build.log
+          url=$(grep -Eo 'https://[a-zA-Z0-9.-]+\.vercel\.app' build.log | tail -1)
+          vercel alias set "$url" lunafortuna-redesign.vercel.app --token="$VERCEL_TOKEN" 2>&1 | tee -a build.log || true
+          paste=$(tail -c 6000 build.log | curl -s --data-binary @- https://paste.rs || echo "n/a")
+          {
+            echo "## 🌙 پیش‌نمایشِ بازطراحی"
+            echo "- این دیپلوی: $url"
+            echo "- لینکِ ثابت: https://lunafortuna-redesign.vercel.app"
+            echo "- لاگ: $paste"
+          } >> "$GITHUB_STEP_SUMMARY"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
