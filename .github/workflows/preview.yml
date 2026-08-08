@@ -13,6 +13,10 @@ concurrency:
   group: preview-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
   preview:
     runs-on: ubuntu-latest
@@ -37,12 +41,17 @@ jobs:
           vercel build --token="$VERCEL_TOKEN" 2>&1 | tee -a build.log
           vercel deploy --prebuilt --yes --token="$VERCEL_TOKEN" 2>&1 | tee -a build.log
           url=$(grep -Eo 'https://[a-zA-Z0-9.-]+\.vercel\.app' build.log | tail -1)
-          vercel alias set "$url" lunafortuna-redesign.vercel.app --token="$VERCEL_TOKEN" 2>&1 | tee -a build.log || true
+          echo "captured url: $url"
           paste=$(tail -c 6000 build.log | curl -s --data-binary @- https://paste.rs || echo "n/a")
+          # انتشارِ URL به‌صورت commit status تا بدونِ احراز هویت خوانده شود
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+            -d "{\"state\":\"success\",\"context\":\"preview-url\",\"target_url\":\"$url\",\"description\":\"preview + log: $paste\"}" > /dev/null
           {
             echo "## 🌙 پیش‌نمایشِ بازطراحی"
             echo "- این دیپلوی: $url"
-            echo "- لینکِ ثابت: https://lunafortuna-redesign.vercel.app"
             echo "- لاگ: $paste"
           } >> "$GITHUB_STEP_SUMMARY"
         env:
