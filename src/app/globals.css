@@ -82,7 +82,7 @@ body {
 /* انیمیشن ظاهرشدن هنگام اسکرول */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(16px);
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 .reveal.in {
@@ -138,8 +138,8 @@ body.has-cursor button {
 /* ظاهرشدنِ خط‌به‌خطِ ادیتوریال */
 .rise-up {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform: translateY(16px);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .reveal.in .rise-up,
 .rise-up.in {

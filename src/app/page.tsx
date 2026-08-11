@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import SaleStrip from "@/components/SaleStrip";
 import Counter from "@/components/Counter";
+import Divider from "@/components/Divider";
+import BrandMarquee from "@/components/BrandMarquee";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +30,7 @@ export default async function HomePage() {
       where: { isActive: true },
       orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
       take: 48,
-      select: { name: true, slug: true },
+      select: { name: true, slug: true, logoUrl: true },
     }),
     prisma.brand.findMany({
       where: { isActive: true, saleActive: true, saleUrl: { not: null } },
@@ -97,6 +99,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══════════ مارکیِ برندها (اثباتِ اجتماعی) ═══════════ */}
+      <BrandMarquee brands={directory} />
 
       {/* ═══════════ مانیفست ═══════════ */}
       <section className="bg-cream">
@@ -181,6 +186,7 @@ export default async function HomePage() {
                 <div className="absolute inset-x-0 bottom-0 p-5">
                   <div className="text-[11px] tracking-[0.25em] text-champagne/80">{t.en}</div>
                   <div className="mt-1 font-display text-xl font-bold text-cream">{t.fa}</div>
+                  <span className="mt-2.5 block h-px w-8 bg-champagne transition-all duration-300 group-hover:w-16" />
                 </div>
               </Link>
             ))}
@@ -216,7 +222,8 @@ export default async function HomePage() {
 
       {/* ═══════════ فهرستِ خانه‌ها ═══════════ */}
       <section className="bg-cream">
-        <div className="container-luna py-24 md:py-28">
+        <Divider className="pt-16" />
+        <div className="container-luna py-20 md:py-24">
           <div className="reveal mb-10 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
             <div>
               <div className="rise-up"><Index n="۰۴" label="خانه‌های ترکیه" /></div>
