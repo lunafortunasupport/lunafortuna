@@ -23,34 +23,41 @@ export default function BrandsBrowser({ brands, initialGroup = "all" }: { brands
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">
           {groups.map((g) => (
             <button
               key={g}
               onClick={() => setGroup(g)}
-              className={`rounded-full px-4 py-2 text-[13px] transition ${
+              className={`rounded-full px-4 py-2 text-[13px] tracking-wide transition-all ${
                 group === g
-                  ? "bg-navy text-cream"
-                  : "border border-navy/15 text-navy/70 hover:border-gold hover:text-gold"
+                  ? "bg-navy text-cream shadow-sm"
+                  : "border border-navy/12 text-navy/60 hover:border-gold hover:text-gold"
               }`}
             >
               {g === "all" ? "همه" : GROUP_LABELS[g] || g}
             </button>
           ))}
         </div>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="جستجوی برند…"
-          className="w-full rounded-full border border-navy/15 bg-white px-5 py-2.5 text-sm outline-none focus:border-gold sm:w-64"
-        />
+        <div className="relative w-full sm:w-72">
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-navy/30">⌕</span>
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="جستجوی برند…"
+            className="w-full rounded-full border border-navy/12 bg-white py-2.5 pr-10 pl-5 text-sm outline-none transition focus:border-gold"
+          />
+        </div>
+      </div>
+
+      <div className="mb-5 text-[12.5px] text-navy/40">
+        {filtered.length.toLocaleString("fa-IR")} برند
       </div>
 
       {filtered.length === 0 ? (
         <p className="py-16 text-center text-navy/50">برندی پیدا نشد.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {filtered.map((b) => (
             <BrandCard key={b.slug} brand={b} />
           ))}
