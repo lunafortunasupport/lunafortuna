@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import SaleStrip from "@/components/SaleStrip";
+import Counter from "@/components/Counter";
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +90,7 @@ export default async function HomePage() {
         {/* نوار پایینِ ظریف */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-cream/10 bg-navy-ink/40 backdrop-blur-sm">
           <div className="container-luna flex flex-wrap items-center justify-between gap-4 py-4 text-[12.5px] text-cream/60">
-            <span><b className="font-display text-champagne">{brandCount.toLocaleString("fa-IR")}</b> برندِ معتبر ترکیه</span>
+            <span><Counter to={brandCount} className="font-display font-bold text-champagne" /> برندِ معتبر ترکیه</span>
             <span className="hidden sm:inline">بررسی کیفیت و سایز پیش از ارسال</span>
             <span className="hidden md:inline">قیمت شفاف با نرخ لیرِ روز</span>
             <span>هر لیر ≈ {perLir.toLocaleString("fa-IR")} تومان</span>
@@ -112,12 +113,18 @@ export default async function HomePage() {
               استانبول می‌خریم، دانه‌به‌دانه بررسی می‌کنیم، عکس واقعی می‌فرستیم و تا دستت می‌رسانیم.
             </p>
             <div className="rise-up mt-9 flex gap-10 border-t border-navy/10 pt-7" style={{ transitionDelay: "220ms" }}>
-              {[["بررسی پیش از ارسال", "۱۰۰٪"], ["هزینهٔ پنهان", "۰"], ["همراهی تا تحویل", "۲۴/۷"]].map(([l, n]) => (
-                <div key={l}>
-                  <div className="font-display text-3xl font-black text-navy">{n}</div>
-                  <div className="mt-1 text-[11.5px] text-navy/45">{l}</div>
-                </div>
-              ))}
+              <div>
+                <Counter to={100} suffix="٪" className="font-display text-3xl font-black text-navy" />
+                <div className="mt-1 text-[11.5px] text-navy/45">بررسی پیش از ارسال</div>
+              </div>
+              <div>
+                <span className="font-display text-3xl font-black text-navy">۲۴/۷</span>
+                <div className="mt-1 text-[11.5px] text-navy/45">همراهی تا تحویل</div>
+              </div>
+              <div>
+                <Counter to={brandCount} prefix="+" className="font-display text-3xl font-black text-navy" />
+                <div className="mt-1 text-[11.5px] text-navy/45">برندِ معتبر</div>
+              </div>
             </div>
           </div>
           <div className="order-1 md:order-2">
