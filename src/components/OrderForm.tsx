@@ -60,12 +60,12 @@ export default function OrderForm({ perLirToman, card, telegramSupport }: Props)
 
   if (status === "done") {
     return (
-      <div className="card-soft p-6">
+      <div className="card-soft animate-fadeIn p-6 shadow-card">
         <div className="text-center">
-          <div className="text-3xl">✅</div>
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-2xl">✅</div>
           <h3 className="mt-3 font-display text-xl font-semibold text-navy">سفارشت ثبت شد!</h3>
           <p className="mt-1 text-sm text-navy/60">
-            شمارهٔ پیگیری: <span className="font-bold text-gold">#{shortId}</span>
+            شمارهٔ پیگیری: <span className="font-bold text-gold tabular-nums">#{shortId}</span>
           </p>
         </div>
 
@@ -108,11 +108,15 @@ export default function OrderForm({ perLirToman, card, telegramSupport }: Props)
   }
 
   return (
-    <div className="card-soft p-6">
-      <div className="mb-1 font-display text-lg font-semibold text-navy">ثبت سفارش واسطه‌ای</div>
-      <p className="mb-5 text-xs text-navy/50">لینک محصول از سایت برند ترکیه را بفرست تا برایت بخریم</p>
+    <div className="card-soft relative overflow-hidden p-6 shadow-card">
+      <span className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(201,169,106,0.1),transparent_65%)]" />
+      <div className="relative mb-1 flex items-center gap-2.5 font-display text-lg font-semibold text-navy">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/12 text-gold">🛍</span>
+        ثبت سفارش واسطه‌ای
+      </div>
+      <p className="relative mb-5 text-xs text-navy/50">لینک محصول از سایت برند ترکیه را بفرست تا برایت بخریم</p>
 
-      <div className="space-y-3.5">
+      <div className="relative space-y-3.5">
         <Field label="لینک محصول *">
           <input
             value={link}
@@ -136,9 +140,9 @@ export default function OrderForm({ perLirToman, card, telegramSupport }: Props)
         </Field>
 
         {finalToman > 0 && (
-          <div className="flex items-center justify-between rounded-xl bg-navy/5 px-4 py-3">
+          <div className="flex animate-fadeIn items-center justify-between rounded-xl border border-gold/20 bg-gold/5 px-4 py-3">
             <span className="text-sm text-navy/60">قیمت تومان نهایی</span>
-            <span className="font-display text-lg font-bold text-gold">{formatToman(finalToman)}</span>
+            <span className="font-display text-lg font-bold text-gold tabular-nums">{formatToman(finalToman)}</span>
           </div>
         )}
 
@@ -184,10 +188,11 @@ export default function OrderForm({ perLirToman, card, telegramSupport }: Props)
           padding: 0.7rem 1rem;
           font-size: 0.875rem;
           outline: none;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
         :global(.inp:focus) {
           border-color: #9a7a43;
+          box-shadow: 0 0 0 3px rgba(154, 122, 67, 0.12);
         }
       `}</style>
     </div>
