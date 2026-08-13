@@ -33,6 +33,7 @@ export default async function ShopPage({
         label="بخش موجودی"
         title="موجودی انبار تهران"
         desc="کالاهایی که همین حالا در انبار تهران موجودند و آمادهٔ ارسال فوری‌اند. قیمت‌ها نهایی و به تومان است."
+        image="/images/boutique.jpg"
       />
 
       <div className="container-luna py-10">

@@ -30,6 +30,7 @@ export default async function OrderPage() {
         label="سفارش"
         title="ثبت سفارش"
         desc="لینک محصول را بفرست، قیمت تومان نهایی را ببین و پرداخت کن — ما بقیهٔ کار را انجام می‌دهیم."
+        image="/images/window-warm.jpg"
       />
 
       {user && referralActive ? (

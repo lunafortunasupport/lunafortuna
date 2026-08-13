@@ -10,6 +10,8 @@ export default function GuidePage() {
         label="راهنما"
         title="راهنمای خرید از ترکیه"
         desc="کلمات پرکاربرد ترکی، راهنمای سایز و فیلترهای مهم سایت‌های ترکیه — تا راحت‌تر محصولت را پیدا کنی."
+        image="/images/menswear.jpg"
+        imagePosition="center 20%"
       />
 
       <div className="container-luna py-12">

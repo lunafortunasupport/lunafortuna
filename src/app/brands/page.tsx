@@ -19,6 +19,7 @@ export default async function BrandsPage({ searchParams }: { searchParams: { gro
         label="کتگوری بر اساس برند"
         title="برندهای معتبر ترکیه"
         desc="همهٔ برندهای دارای نمایندگی در ترکیه. روی هر برند بزن تا محصولاتش را در همان سایت اصلی ببینی؛ بعد لینک محصول را برای ما بفرست تا برایت بخریم."
+        image="/images/rack.jpg"
       />
       <div className="container-luna py-10">
         <BrandsBrowser brands={brands} initialGroup={searchParams.group || "all"} />

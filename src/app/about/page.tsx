@@ -19,7 +19,13 @@ export default async function AboutPage() {
 
   return (
     <>
-      <PageHeader label="دربارهٔ ما" title="لونافورتونا" desc="نورِ خوشبختی — دقیقاً همان حسی که به تو می‌دهیم." />
+      <PageHeader
+        label="دربارهٔ ما"
+        title="لونافورتونا"
+        desc="نورِ خوشبختی — دقیقاً همان حسی که به تو می‌دهیم."
+        image="/images/portrait.jpg"
+        imagePosition="center 22%"
+      />
 
       <div className="container-luna py-12">
         <div className="grid gap-10 md:grid-cols-2">

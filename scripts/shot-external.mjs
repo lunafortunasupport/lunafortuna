@@ -1,0 +1,11 @@
+import { chromium } from "playwright";
+const url = process.argv[2];
+const name = process.argv[3] || "ext";
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
+const p = await ctx.newPage();
+await p.goto(url, { waitUntil: "networkidle", timeout: 45000 });
+await p.waitForTimeout(2000);
+await p.screenshot({ path: `scripts/shots/${name}.png` });
+await b.close();
+console.log("ok " + name);

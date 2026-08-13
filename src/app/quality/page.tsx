@@ -17,6 +17,7 @@ export default function QualityPage() {
         label="تضمین کیفیت"
         title="از اصالت تا سایز — هیچ چیز از چشم ما پنهان نمی‌ماند"
         desc="تمایز واقعی لونا «دسترسی» نیست؛ اعتماد و آرامش خیال است. قبل از ارسال، سایز و کیفیت هر محصول را برایت چک می‌کنیم و عکس واقعی‌اش را می‌فرستیم."
+        image="/images/quiet-luxury.jpg"
       />
 
       <div className="container-luna py-12">
