@@ -7,6 +7,7 @@ import MobileTabBar from "@/components/MobileTabBar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import CustomCursor from "@/components/CustomCursor";
+import ChatWidget from "@/components/ChatWidget";
 import { prisma } from "@/lib/prisma";
 import { GROUP_LABELS } from "@/lib/util";
 
@@ -60,6 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main>{children}</main>
         <Footer />
         <MobileTabBar />
+        <ChatWidget />
         {/* فاصلهٔ پایین برای نوار موبایل تا محتوا زیرش پنهان نشود */}
         <div className="h-20 lg:hidden" aria-hidden />
       </body>
