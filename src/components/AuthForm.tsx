@@ -64,8 +64,12 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="card-soft p-7">
-      <div className="mb-6 text-center">
+    <div className="card-soft relative overflow-hidden p-7 shadow-card">
+      <span className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(201,169,106,0.1),transparent_65%)]" />
+      <div className="relative mb-6 text-center">
+        <span className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-gold/10 text-lg text-gold">
+          🌙
+        </span>
         <div className="font-display text-2xl font-semibold text-navy">ورود به حساب</div>
         <p className="mt-1 text-sm text-navy/50">
           {step === "email" ? "با ایمیلت وارد شو یا حساب بساز" : `کد ارسال‌شده به ${email} را وارد کن`}
@@ -81,7 +85,7 @@ export default function AuthForm() {
       {/* ورود با گوگل */}
       <a
         href="/api/auth/google"
-        className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-navy/15 bg-white px-4 py-2.5 text-sm font-medium text-navy transition-colors hover:border-gold hover:bg-gold/5"
+        className="relative flex w-full items-center justify-center gap-2.5 rounded-xl border border-navy/15 bg-white px-4 py-2.5 text-sm font-medium text-navy transition-colors hover:border-gold hover:bg-gold/5"
       >
         <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
           <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
@@ -159,10 +163,11 @@ export default function AuthForm() {
           padding: 0.7rem 1rem;
           font-size: 0.9rem;
           outline: none;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
         :global(.inp:focus) {
           border-color: #9a7a43;
+          box-shadow: 0 0 0 3px rgba(154, 122, 67, 0.12);
         }
       `}</style>
     </div>
