@@ -1,14 +1,19 @@
+import Link from "next/link";
 import { formatToman } from "@/lib/format";
 import { CATEGORY_LABELS_FA, type TrendyolProduct } from "@/lib/trendyolDemo";
 
 // کارتِ دموی «آینه‌ی ترندیول» — همان زبانِ بصریِ لوکسِ سایت (نه رنگ‌بندیِ ترندیول)،
 // با دادهٔ واقعیِ زنده: قیمت، سایز و موجودی مستقیم از ترندیول گرفته شده.
+// کلیک روی کارت به صفحهٔ جزئیاتِ داخلی می‌رود (نه مستقیم به ترندیول) — لینکِ اصلی آنجاست.
 export default function TrendyolDemoCard({ product, perLirToman }: { product: TrendyolProduct; perLirToman: number }) {
   const priceToman = product.minPriceTL != null ? Math.round(product.minPriceTL * perLirToman) : null;
   const inStockCount = product.variants.filter((v) => v.inStock).length;
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-navy/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card">
+    <Link
+      href={`/preview/trendyol/${product.id}`}
+      className="group relative block overflow-hidden rounded-2xl border border-navy/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
+    >
       <div className="relative aspect-[3/4] overflow-hidden bg-cream">
         {product.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -38,7 +43,7 @@ export default function TrendyolDemoCard({ product, perLirToman }: { product: Tr
           </span>
         )}
         <h3 className="line-clamp-2 min-h-[2.6em] font-display text-[13px] font-semibold leading-6 text-navy">
-          {product.name}
+          {product.nameFa || product.name}
         </h3>
 
         {product.variants.length > 0 && (
@@ -70,15 +75,10 @@ export default function TrendyolDemoCard({ product, perLirToman }: { product: Tr
           )}
         </div>
 
-        <a
-          href={product.sourceUrl}
-          target="_blank"
-          rel="noopener"
-          className="mt-3 block text-center text-[11px] text-navy/35 underline-offset-2 hover:text-gold hover:underline"
-        >
-          مشاهدهٔ اصلِ محصول در ترندیول ↗
-        </a>
+        <span className="mt-3 block text-center text-[11px] text-navy/35 transition-colors group-hover:text-gold">
+          مشاهدهٔ جزئیات و انتخابِ سایز
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }

@@ -51,12 +51,24 @@ export interface TrendyolVariant {
   priceTL: number | null;
 }
 
+export interface TrendyolAttribute {
+  labelFa: string;
+  valueFa: string;
+}
+
 export interface TrendyolProduct {
   id: number;
   name: string;
+  /** نامِ فارسیِ خوانا برای نمایش در صفحهٔ جزئیات/سبد؛ اگر نبود از `name` (ترکی) استفاده می‌شود. */
+  nameFa?: string;
   brand: string;
   category: string;
   image: string | null;
+  /** گالریِ چندعکسی برای صفحهٔ جزئیات؛ اگر نبود همان `image` تنها عکس است. */
+  images?: string[];
+  /** ویژگی‌های محصول (جنس، رنگ، قالب…) به فارسی — دستی از دادهٔ واقعیِ ترندیول برگردانده شده. */
+  attributes?: TrendyolAttribute[];
+  descriptionFa?: string;
   sourceUrl: string;
   variants: TrendyolVariant[];
   minPriceTL: number | null;
@@ -117,9 +129,30 @@ export const SNAPSHOT_PRODUCTS: TrendyolProduct[] = [
   {
     id: 905066889,
     name: "Kadın Beyaz Uzun Kollu Basic Gömlek 50324791-VR013",
+    nameFa: "پیراهنِ سفیدِ ساده، آستین‌بلند (بیسیک)",
     brand: "U.S. Polo Assn.",
     category: "Gömlek",
     image: "https://cdn.dsmcdn.com/ty1939/prod/QC_ENRICHMENT/20260730/21/63eaefc5-0056-3282-8b7a-5954c1b8cdab/1_org_zoom.jpg",
+    images: [
+      "https://cdn.dsmcdn.com/ty1939/prod/QC_ENRICHMENT/20260730/21/63eaefc5-0056-3282-8b7a-5954c1b8cdab/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1930/prod/QC_ENRICHMENT/20260730/21/f9e31e88-d19b-3efd-9462-fa26f9a328d0/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1933/prod/QC_ENRICHMENT/20260730/21/25db9a76-6a53-3945-bc4e-2ed821f1b5d4/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1931/prod/QC_ENRICHMENT/20260730/21/c439ef91-c5c5-37f2-afe0-db6db9ef9aad/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1909/prod/QC_ENRICHMENT/20260730/21/090bdbc5-bb8c-3233-b131-6f1622519a25/1_org_zoom.jpg",
+    ],
+    descriptionFa:
+      "پیراهنِ کلاسیکِ سفید با یقهٔ پیراهنی و آستینِ بلند، دکمه‌دار و بدونِ طرح — ساده و همیشه‌کاربردی، مناسبِ پوششِ روزمره یا اداری.",
+    attributes: [
+      { labelFa: "رنگ", valueFa: "سفید" },
+      { labelFa: "جنس", valueFa: "پارچه‌ای (۶۰٪ نخ، ۴۰٪ پلی‌استر)" },
+      { labelFa: "نوعِ یقه", valueFa: "یقهٔ پیراهنی" },
+      { labelFa: "نوعِ آستین", valueFa: "آستینِ بلند" },
+      { labelFa: "نوعِ بستن", valueFa: "دکمه‌دار" },
+      { labelFa: "طرح", valueFa: "ساده، بدونِ چاپ" },
+      { labelFa: "کالکشن", valueFa: "بیسیک" },
+      { labelFa: "فصل", valueFa: "همهٔ فصل‌ها" },
+      { labelFa: "کشورِ سازنده", valueFa: "ترکیه" },
+    ],
     sourceUrl:
       "https://www.trendyol.com/u-s-polo-assn/kadin-beyaz-uzun-kollu-basic-gomlek-50324791-vr013-p-905066889?boutiqueId=61&merchantId=163",
     variants: [
@@ -235,10 +268,30 @@ export const SNAPSHOT_PRODUCTS: TrendyolProduct[] = [
   {
     id: 1101590393,
     name: "Yeşil Oversize İnce Dökümlü Dokuma Bluz TWOSS26BZ00653",
+    nameFa: "بلوزِ سبزِ اورسایز، بافتِ نازک و دورریز",
     brand: "TRENDYOLMİLLA",
     category: "Bluz",
     image:
       "https://cdn.dsmcdn.com/ty1000396/product/media/images/prod/PIM/20260508/09/725840a1-7ac9-416b-a192-d2ae56d43211/1_org_zoom.jpg",
+    images: [
+      "https://cdn.dsmcdn.com/ty1000396/product/media/images/prod/PIM/20260508/09/725840a1-7ac9-416b-a192-d2ae56d43211/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1000395/product/media/images/prod/PIM/20260508/09/736c2782-37ba-4d57-b76d-7566d7d380a5/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1000395/product/media/images/prod/PIM/20260508/09/a20b7e7d-609b-41ec-b36b-8984339130d2/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1000395/product/media/images/prod/PIM/20260508/09/41ea5a2d-41ff-4aaa-b51a-373be5c77b99/1_org_zoom.jpg",
+    ],
+    descriptionFa:
+      "بلوزی اورسایزِ سبک با یقه‌گرد و آستینِ خفاشی، از پارچهٔ بافتهٔ نخیِ نازک — برای پوششِ روزمرهٔ راحت و خنک.",
+    attributes: [
+      { labelFa: "رنگ", valueFa: "سبز" },
+      { labelFa: "جنس", valueFa: "نخی (۸۷٪ نخ، ۱۳٪ پلی‌آمید)" },
+      { labelFa: "قالب", valueFa: "اورسایز" },
+      { labelFa: "نوعِ یقه", valueFa: "یقه‌گرد (بیسیکل)" },
+      { labelFa: "نوعِ آستین", valueFa: "آستینِ خفاشیِ بلند" },
+      { labelFa: "نوعِ پارچه", valueFa: "بافتهٔ نازک (ووال)" },
+      { labelFa: "طرح", valueFa: "ساده" },
+      { labelFa: "فصل", valueFa: "بهار / پاییز" },
+      { labelFa: "کشورِ سازنده", valueFa: "ترکیه" },
+    ],
     sourceUrl:
       "https://www.trendyol-milla.com/trendyolmilla/yesil-oversize-ince-dokumlu-dokuma-bluz-twoss26bz00653-p-1101590393?boutiqueId=651724&merchantId=968",
     variants: [{ size: "استاندارد", inStock: true, priceTL: 819.99 }],
@@ -247,10 +300,30 @@ export const SNAPSHOT_PRODUCTS: TrendyolProduct[] = [
   {
     id: 938914429,
     name: "Siyah Saten Degaje Party Bluz TPRAW26BZ00003",
+    nameFa: "بلوزِ ساتنِ مشکی، یقه‌هالتر (مخصوصِ مهمانی)",
     brand: "TRENDYOLMİLLA",
     category: "Bluz",
     image:
       "https://cdn.dsmcdn.com/ty1714/prod/PLM/20250725/2018925/2025904/2043850/52eb82a3-42c1-445c-b156-7977b44a5b7c/0_org_zoom.jpg",
+    images: [
+      "https://cdn.dsmcdn.com/ty1714/prod/PLM/20250725/2018925/2025904/2043850/52eb82a3-42c1-445c-b156-7977b44a5b7c/0_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1713/prod/PLM/20250725/2018925/2025904/2043850/a71df5d1-af38-4611-8a35-7a6ebceaa564/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1715/prod/PLM/20250725/2018925/2025904/2043850/afc38165-c740-402e-8f24-dda62bacfd31/2_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1715/prod/PLM/20250725/2018925/2025904/2043850/7e64b065-fd6f-404b-be13-6be802d41cf9/3_org_zoom.jpg",
+    ],
+    descriptionFa:
+      "بلوزی شیک از ساتنِ مشکیِ خالدار با یقه‌هالتر و بدونِ آستین — انتخابی مناسب برای مهمانی و مناسبت‌های ویژه.",
+    attributes: [
+      { labelFa: "رنگ", valueFa: "مشکی" },
+      { labelFa: "جنس", valueFa: "پلی‌استر (۱۰۰٪)" },
+      { labelFa: "قالب", valueFa: "معمولی" },
+      { labelFa: "نوعِ یقه", valueFa: "یقه‌هالتر" },
+      { labelFa: "نوعِ آستین", valueFa: "بدونِ آستین" },
+      { labelFa: "نوعِ پارچه", valueFa: "ساتن" },
+      { labelFa: "طرح", valueFa: "خالدار" },
+      { labelFa: "مناسبتِ استفاده", valueFa: "مهمانی" },
+      { labelFa: "کشورِ سازنده", valueFa: "ترکیه" },
+    ],
     sourceUrl:
       "https://www.trendyol-milla.com/trendyolmilla/siyah-saten-degaje-party-bluz-tpraw26bz00003-p-938914429?boutiqueId=651724&merchantId=968",
     variants: [
@@ -266,10 +339,30 @@ export const SNAPSHOT_PRODUCTS: TrendyolProduct[] = [
   {
     id: 994002982,
     name: "Koyu Mavi Yüksek Bel Orta Esnek Wide Leg Palazzo Jeans TWOAW26JE00084",
+    nameFa: "شلوارِ جینِ سرمه‌ای، کمرِ بلند و پاچه‌گشاد (پالاتزو)",
     brand: "TRENDYOLMİLLA",
     category: "Jeans",
     image:
       "https://cdn.dsmcdn.com/ty1782/prod/PLM/20251103/2018925/2029892/2021916/34d506c8-8da8-4050-9e56-7d17bc015ed8/0_org_zoom.jpg",
+    images: [
+      "https://cdn.dsmcdn.com/ty1782/prod/PLM/20251103/2018925/2029892/2021916/34d506c8-8da8-4050-9e56-7d17bc015ed8/0_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1784/prod/PLM/20251103/2018925/2029892/2021916/ffd483a7-197a-45d6-9b20-17481168231a/1_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1784/prod/PLM/20251103/2018925/2029892/2021916/9dd71d10-ab0f-4a6a-b566-1861674661b0/2_org_zoom.jpg",
+      "https://cdn.dsmcdn.com/ty1784/prod/PLM/20251103/2018925/2029892/2021916/035ea0a1-e522-410c-9f12-df56d3926502/3_org_zoom.jpg",
+    ],
+    descriptionFa:
+      "شلوارِ جینِ کمربلند با پاچه‌گشادِ پالاتزو و کششِ متوسط — راحت و شیک، برای استفادهٔ روزمره.",
+    attributes: [
+      { labelFa: "رنگ", valueFa: "سرمه‌ای" },
+      { labelFa: "جنس", valueFa: "نخی (۹۹٪ نخ، ۱٪ الاستان)" },
+      { labelFa: "کمر", valueFa: "کمرِ بلند" },
+      { labelFa: "نوعِ پاچه", valueFa: "پاچه‌گشاد" },
+      { labelFa: "سیلوئت", valueFa: "پاچه‌گشاد (Wide Leg)" },
+      { labelFa: "نوعِ پارچه", valueFa: "جین (دنیم راحت)" },
+      { labelFa: "طرح", valueFa: "ساده" },
+      { labelFa: "مناسبتِ استفاده", valueFa: "روزمره" },
+      { labelFa: "کشورِ سازنده", valueFa: "ترکیه" },
+    ],
     sourceUrl:
       "https://www.trendyol-milla.com/trendyolmilla/koyu-mavi-yuksek-bel-orta-esnek-wide-leg-palazzo-jeans-twoaw26je00084-p-994002982?boutiqueId=651724&merchantId=968",
     variants: [
@@ -283,6 +376,11 @@ export const SNAPSHOT_PRODUCTS: TrendyolProduct[] = [
     minPriceTL: 716.99,
   },
 ];
+
+/** پیداکردنِ یک محصولِ عکسِ‌لحظه‌ای با شناسه — برای صفحهٔ جزئیات و سبد. */
+export function getSnapshotProduct(id: number): TrendyolProduct | undefined {
+  return SNAPSHOT_PRODUCTS.find((p) => p.id === id);
+}
 
 export const CATEGORY_LABELS_FA: Record<string, string> = {
   Gömlek: "پیراهن",
