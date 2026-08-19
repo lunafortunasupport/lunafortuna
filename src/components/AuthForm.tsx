@@ -11,7 +11,7 @@ const GOOGLE_ERRORS: Record<string, string> = {
   google_email: "ایمیل گوگل تأیید نشده است.",
 };
 
-export default function AuthForm() {
+export default function AuthForm({ glass = false }: { glass?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlError = GOOGLE_ERRORS[searchParams.get("error") || ""] || "";
@@ -64,7 +64,13 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="card-soft relative overflow-hidden p-7 shadow-card">
+    <div
+      className={
+        glass
+          ? "relative overflow-hidden rounded-3xl border border-white/25 bg-cream/85 p-7 shadow-[0_30px_90px_rgba(12,21,38,0.45)] backdrop-blur-2xl"
+          : "card-soft relative overflow-hidden p-7 shadow-card"
+      }
+    >
       <span className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(201,169,106,0.1),transparent_65%)]" />
       <div className="relative mb-6 text-center">
         <span className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-gold/10 text-lg text-gold">

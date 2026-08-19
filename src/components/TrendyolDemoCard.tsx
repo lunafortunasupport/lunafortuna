@@ -1,5 +1,5 @@
 import { formatToman } from "@/lib/format";
-import type { TrendyolProduct } from "@/lib/trendyolDemo";
+import { CATEGORY_LABELS_FA, type TrendyolProduct } from "@/lib/trendyolDemo";
 
 // کارتِ دموی «آینه‌ی ترندیول» — همان زبانِ بصریِ لوکسِ سایت (نه رنگ‌بندیِ ترندیول)،
 // با دادهٔ واقعیِ زنده: قیمت، سایز و موجودی مستقیم از ترندیول گرفته شده.
@@ -32,6 +32,11 @@ export default function TrendyolDemoCard({ product, perLirToman }: { product: Tr
       </div>
 
       <div className="p-4">
+        {product.category && (
+          <span className="mb-1.5 inline-block text-[10px] font-medium tracking-wide text-gold">
+            {CATEGORY_LABELS_FA[product.category] || product.category}
+          </span>
+        )}
         <h3 className="line-clamp-2 min-h-[2.6em] font-display text-[13px] font-semibold leading-6 text-navy">
           {product.name}
         </h3>
