@@ -230,10 +230,64 @@ export const SNAPSHOT_PRODUCTS: TrendyolProduct[] = [
     ],
     minPriceTL: 990,
   },
+  // ── برندِ اختصاصیِ خودِ ترندیول («TRENDYOLMİLLA») — کاربر خواست اولویت داشته باشد.
+  // این برند از سایتِ جدایش (trendyol-milla.com) گرفته شده، نه از trendyol.com.
+  {
+    id: 1101590393,
+    name: "Yeşil Oversize İnce Dökümlü Dokuma Bluz TWOSS26BZ00653",
+    brand: "TRENDYOLMİLLA",
+    category: "Bluz",
+    image:
+      "https://cdn.dsmcdn.com/ty1000396/product/media/images/prod/PIM/20260508/09/725840a1-7ac9-416b-a192-d2ae56d43211/1_org_zoom.jpg",
+    sourceUrl:
+      "https://www.trendyol-milla.com/trendyolmilla/yesil-oversize-ince-dokumlu-dokuma-bluz-twoss26bz00653-p-1101590393?boutiqueId=651724&merchantId=968",
+    variants: [{ size: "استاندارد", inStock: true, priceTL: 819.99 }],
+    minPriceTL: 819.99,
+  },
+  {
+    id: 938914429,
+    name: "Siyah Saten Degaje Party Bluz TPRAW26BZ00003",
+    brand: "TRENDYOLMİLLA",
+    category: "Bluz",
+    image:
+      "https://cdn.dsmcdn.com/ty1714/prod/PLM/20250725/2018925/2025904/2043850/52eb82a3-42c1-445c-b156-7977b44a5b7c/0_org_zoom.jpg",
+    sourceUrl:
+      "https://www.trendyol-milla.com/trendyolmilla/siyah-saten-degaje-party-bluz-tpraw26bz00003-p-938914429?boutiqueId=651724&merchantId=968",
+    variants: [
+      { size: "32", inStock: true, priceTL: 399.99 },
+      { size: "34", inStock: true, priceTL: 399.99 },
+      { size: "36", inStock: true, priceTL: 399.99 },
+      { size: "38", inStock: true, priceTL: 399.99 },
+      { size: "40", inStock: false, priceTL: 399.99 },
+      { size: "42", inStock: false, priceTL: 399.99 },
+    ],
+    minPriceTL: 399.99,
+  },
+  {
+    id: 994002982,
+    name: "Koyu Mavi Yüksek Bel Orta Esnek Wide Leg Palazzo Jeans TWOAW26JE00084",
+    brand: "TRENDYOLMİLLA",
+    category: "Jeans",
+    image:
+      "https://cdn.dsmcdn.com/ty1782/prod/PLM/20251103/2018925/2029892/2021916/34d506c8-8da8-4050-9e56-7d17bc015ed8/0_org_zoom.jpg",
+    sourceUrl:
+      "https://www.trendyol-milla.com/trendyolmilla/koyu-mavi-yuksek-bel-orta-esnek-wide-leg-palazzo-jeans-twoaw26je00084-p-994002982?boutiqueId=651724&merchantId=968",
+    variants: [
+      { size: "32", inStock: true, priceTL: 716.99 },
+      { size: "34", inStock: true, priceTL: 716.99 },
+      { size: "36", inStock: true, priceTL: 716.99 },
+      { size: "38", inStock: true, priceTL: 716.99 },
+      { size: "40", inStock: true, priceTL: 716.99 },
+      { size: "42", inStock: true, priceTL: 716.99 },
+    ],
+    minPriceTL: 716.99,
+  },
 ];
 
 export const CATEGORY_LABELS_FA: Record<string, string> = {
   Gömlek: "پیراهن",
   "Sırt Çantası": "کوله‌پشتی",
   Tulum: "تولوم (سرهمی)",
+  Bluz: "بلوز",
+  Jeans: "شلوار جین",
 };

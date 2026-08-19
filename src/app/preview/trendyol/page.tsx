@@ -14,11 +14,16 @@ export default async function TrendyolPreviewPage() {
   const perLirToman = Math.round(s.exchangeRate * (1 + fees.normal));
 
   const products = SNAPSHOT_PRODUCTS;
-  const brands = [...new Set(products.map((p) => p.brand))];
+  const OWN_BRAND = "TRENDYOLMİLLA";
+  const millaProducts = products.filter((p) => p.brand === OWN_BRAND);
+  const otherProducts = products.filter((p) => p.brand !== OWN_BRAND);
+  const brands = [...new Set(products.map((p) => p.brand))].sort((a, b) =>
+    a === OWN_BRAND ? -1 : b === OWN_BRAND ? 1 : 0
+  );
 
-  // گروه‌بندی بر اساسِ دسته‌بندیِ واقعیِ ترندیول
+  // گروه‌بندی بر اساسِ دسته‌بندیِ واقعیِ ترندیول (بدونِ محصولاتِ ترندیول‌میلا — آن‌ها بالا و جدا نمایش داده می‌شوند)
   const byCategory = new Map<string, typeof products>();
-  for (const p of products) {
+  for (const p of otherProducts) {
     const key = p.category || "سایر";
     if (!byCategory.has(key)) byCategory.set(key, []);
     byCategory.get(key)!.push(p);
@@ -54,16 +59,45 @@ export default async function TrendyolPreviewPage() {
             برندهای این کاتالوگ
           </div>
           <div className="flex flex-wrap gap-2.5">
-            {brands.map((b) => (
-              <span
-                key={b}
-                className="rounded-full border border-navy/12 bg-white px-4 py-2 text-[12.5px] font-medium text-navy/75"
-              >
-                {b}
-              </span>
-            ))}
+            {brands.map((b) =>
+              b === OWN_BRAND ? (
+                <span
+                  key={b}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-[12.5px] font-semibold text-gold"
+                >
+                  ✦ {b}
+                  <span className="text-[10px] font-normal text-gold/70">برندِ اختصاصیِ ترندیول</span>
+                </span>
+              ) : (
+                <span
+                  key={b}
+                  className="rounded-full border border-navy/12 bg-white px-4 py-2 text-[12.5px] font-medium text-navy/75"
+                >
+                  {b}
+                </span>
+              )
+            )}
           </div>
         </section>
+
+        {/* برندِ اختصاصیِ ترندیول — اولویت طبقِ خواستهٔ کاربر */}
+        {millaProducts.length > 0 && (
+          <section className="mb-12">
+            <div className="mb-5 flex items-center gap-3">
+              <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-navy">
+                <span className="text-gold">✦</span> TRENDYOLMİLLA
+              </h2>
+              <span className="rounded-full bg-gold/15 px-2.5 py-0.5 text-[11px] font-medium text-gold">
+                برندِ اختصاصیِ ترندیول
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              {millaProducts.map((p) => (
+                <TrendyolDemoCard key={p.id} product={p} perLirToman={perLirToman} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <Divider className="mb-10" />
 
