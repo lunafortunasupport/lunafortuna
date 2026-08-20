@@ -1,0 +1,45 @@
+# سینکِ دوره‌ایِ کاتالوگِ برندِ آمبار (Ambar Giyim) — مستقیم از سایتِ رسمیِ خودشان
+# (ambargiyim.com.tr، نه ترندیول) در MirrorProduct/MirrorVariant به‌روز می‌کند.
+# جدا از sync-trendyol.yml چون منبعِ دادهٔ کاملاً متفاوتی‌ست و به Playwright/Chromium نیاز ندارد
+# (سایتِ آمبار پشتِ محافظتِ TLS-fingerprintِ ترندیول نیست — fetchِ سادهٔ Node کافی‌ست).
+#
+# تنظیمِ لازم (یک‌بار): همان secret به‌نامِ DATABASE_URL که برای sync-trendyol.yml ساخته‌ای کافی‌ست.
+
+name: Sync Ambar catalog
+
+on:
+  schedule:
+    - cron: "30 */12 * * *" # هر ۱۲ ساعت (نیم‌ساعت جابه‌جا از سینکِ ترندیول تا هم‌زمان روی DB ننشینند)
+  workflow_dispatch: {} # اجرای دستی از تب Actions
+
+concurrency:
+  group: sync-ambar
+  cancel-in-progress: true
+
+jobs:
+  sync-ambar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      # provider را به postgresql سوییچ کن (مثل build) تا کلاینت به Neon وصل شود.
+      - name: Switch Prisma provider to postgresql
+        run: node -e "const fs=require('fs');const p='prisma/schema.prisma';let s=fs.readFileSync(p,'utf8');fs.writeFileSync(p,s.replace('provider = \"sqlite\"','provider = \"postgresql\"'));console.log('provider → postgresql')"
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run catalog sync
+        run: npx tsx scripts/sync-ambar.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

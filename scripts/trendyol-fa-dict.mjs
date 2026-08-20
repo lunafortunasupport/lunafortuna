@@ -38,6 +38,11 @@ export const CATEGORY_LABELS_FA = {
   Atlet: "زیرپوش/تاپ",
   Büstiyer: "بوستیه",
   Sandalet: "صندل",
+  // ── واژه‌های اضافیِ سایتِ آمبار (scripts/sync-ambar.mjs) ──
+  Kaban: "پالتو",
+  Yelek: "جلیقه",
+  Body: "بادی",
+  Takım: "ست",
 };
 
 // کلیدهای رایجِ ویژگی (attribute.key.name) → برچسبِ فارسی.

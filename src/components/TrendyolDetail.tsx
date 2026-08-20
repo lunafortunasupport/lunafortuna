@@ -32,6 +32,15 @@ export default function TrendyolDetail({
   const breakdown = priceBreakdown(selectedVariant, perLirToman, cargoFeeEstimateTL);
   const sale = saleView(product, perLirToman);
   const alreadyInCart = size ? has(product.id, size) : false;
+  // نامِ سایتِ منبع را از خودِ لینک دربیاور — محصولات همیشه از ترندیول نیستند (مثلاً آمبار از
+  // سایتِ رسمیِ خودش می‌آید)، پس این برچسب نباید هاردکد باشد.
+  const sourceHost = useMemo(() => {
+    try {
+      return new URL(product.sourceUrl).hostname.replace(/^www\./, "");
+    } catch {
+      return null;
+    }
+  }, [product.sourceUrl]);
 
   function handleAdd() {
     if (!selectedVariant || !selectedVariant.inStock) return;
@@ -198,7 +207,7 @@ export default function TrendyolDetail({
           rel="noopener"
           className="mt-4 inline-flex items-center gap-1.5 text-[12.5px] text-navy/40 underline-offset-2 hover:text-gold hover:underline"
         >
-          مشاهدهٔ اصلِ محصول در ترندیول ↗
+          مشاهدهٔ اصلِ محصول{sourceHost ? ` در ${sourceHost}` : ""} ↗
         </a>
 
         {/* ویژگی‌ها */}
