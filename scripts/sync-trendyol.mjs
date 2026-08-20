@@ -25,7 +25,7 @@ const prisma = new PrismaClient();
 
 const LIMIT_CATEGORIES = Number(process.env.LIMIT_CATEGORIES) || Infinity;
 const LIMIT_PER_CATEGORY = Number(process.env.LIMIT_PER_CATEGORY) || 60;
-const TOTAL_CAP = Number(process.env.TOTAL_CAP) || 1400;
+const TOTAL_CAP = Number(process.env.TOTAL_CAP) || 2200;
 const DETAIL_CONCURRENCY = Number(process.env.DETAIL_CONCURRENCY) || 4;
 
 const UA =
@@ -71,19 +71,47 @@ const CATEGORIES = [
   { site: "trendyol-milla", base: "https://www.trendyol-milla.com", q: "kot pantolon", label: "شلوار جین" },
   { site: "trendyol-milla", base: "https://www.trendyol-milla.com", q: "sırt çantası", label: "کوله‌پشتی" },
   { site: "trendyol-milla", base: "https://www.trendyol-milla.com", q: "ceket", label: "ژاکت" },
-  // ── ترندیولِ عمومی (تنوعِ دسته‌بندیِ بیشتر) ──
+  // ── ترندیولِ عمومی (ملتی‌برند — پرفروش‌ترین‌ها از ده‌ها برند، تنوعِ گسترده) ──
+  // زنانه
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın bluz", label: "بلوز" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın gömlek", label: "پیراهن" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın kot pantolon", label: "شلوار جین" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın sırt çantası", label: "کوله‌پشتی" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın elbise", label: "لباس" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın ceket", label: "ژاکت" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın etek", label: "دامن" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın çanta", label: "کیف" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın ceket", label: "ژاکت" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın tulum", label: "تولوم" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın triko", label: "تریکو" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın ayakkabı", label: "کفش" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın sweatshirt", label: "سویشرت" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın kazak", label: "پلیور" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın hırka", label: "ژاکتِ کش‌باف" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın şort", label: "شورت" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın tişört", label: "تی‌شرت" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın mont", label: "کاپشن" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın trençkot", label: "ترنچ‌کت" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın çanta", label: "کیف" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın sırt çantası", label: "کوله‌پشتی" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın ayakkabı", label: "کفش" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın topuklu ayakkabı", label: "کفشِ پاشنه‌دار" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın sneaker", label: "کتانی" },
+  // مردانه
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek gömlek", label: "پیراهنِ مردانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek tişört", label: "تی‌شرتِ مردانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek pantolon", label: "شلوارِ مردانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek kot pantolon", label: "شلوار جینِ مردانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek sweatshirt", label: "سویشرتِ مردانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek ceket", label: "کتِ مردانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek mont", label: "کاپشنِ مردانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek ayakkabı", label: "کفشِ مردانه" },
+  // بچگانه
+  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk elbise", label: "لباسِ بچگانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk tişört", label: "تی‌شرتِ بچگانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk ayakkabı", label: "کفشِ بچگانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "bebek tulum", label: "سرهمیِ نوزاد" },
+  // خانه
+  { site: "trendyol", base: "https://www.trendyol.com", q: "nevresim takımı", label: "روتختی" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "havlu", label: "حوله" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "ev dekorasyon", label: "دکوراسیونِ خانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "mutfak", label: "آشپزخانه" },
   // ── برندهای منتخب (ویترینِ جدا) — featuredBrand ست می‌شود؛ brandMatch یعنی فقط محصولاتی که
   //    برندشان با این‌ها می‌خواند تگ بخورند (کوئریِ برند گاهی فروشنده‌های دیگر هم برمی‌گرداند). ──
   { site: "trendyol", base: "https://www.trendyol.com", q: "happiness istanbul", label: "Happiness", featuredBrand: "happiness", brandMatch: ["happiness"] },

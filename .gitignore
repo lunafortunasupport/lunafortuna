@@ -44,3 +44,4 @@ yarn-error.log*
 # screenshot artifacts
 scripts/shots/
 scripts/sync-now.sh
+scripts/.sync-prod.env
