@@ -15,8 +15,21 @@ interface Group {
   label: string;
   count: number;
 }
+interface CatalogBrand {
+  slug: string;
+  nameFa: string;
+  count: number;
+}
 
-export default function Nav({ categories, brandGroups }: { categories: Cat[]; brandGroups: Group[] }) {
+export default function Nav({
+  categories,
+  brandGroups,
+  catalogBrands,
+}: {
+  categories: Cat[];
+  brandGroups: Group[];
+  catalogBrands: CatalogBrand[];
+}) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -73,6 +86,30 @@ export default function Nav({ categories, brandGroups }: { categories: Cat[]; br
                 ))}
               </div>
             </Dropdown>
+            {catalogBrands.length > 0 && (
+              <Dropdown label="کاتالوگِ ترکیه" href="/preview/trendyol" active={isActive("/preview/trendyol")} dark={overHero}>
+                <div className="grid w-[540px] max-w-[calc(100vw-2rem)] grid-cols-[1.25fr_1fr] gap-3 p-4">
+                  <div>
+                    <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+                      برندهای منتخب
+                    </div>
+                    <div className="grid grid-cols-2 gap-0.5">
+                      {catalogBrands.map((b) => (
+                        <DropItem key={b.slug} href={`/preview/trendyol?fbrand=${b.slug}`} label={b.nameFa} badge={b.count} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="border-s border-navy/10 ps-3">
+                    <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+                      میان‌بُرها
+                    </div>
+                    <DropItem href="/preview/trendyol" label="محبوب‌ترین‌ها" icon="❤" />
+                    <DropItem href="/preview/trendyol/sale" label="تخفیف‌ها" icon="🏷" />
+                    <DropItem href="/preview/trendyol/brands" label="همهٔ برندها" icon="✦" />
+                  </div>
+                </div>
+              </Dropdown>
+            )}
             <Link href="/order" className={linkCls("/order")}>ثبت سفارش</Link>
             <Link href="/quality" className={linkCls("/quality")}>بررسی کیفیت</Link>
             <Link href="/guide" className={linkCls("/guide")}>راهنمای خرید</Link>
@@ -127,8 +164,8 @@ export default function Nav({ categories, brandGroups }: { categories: Cat[]; br
         }`}
       >
         {[
-          ["/", "خانه"], ["/shop", "موجودی"], ["/brands", "برندها"], ["/order", "ثبت سفارش"],
-          ["/quality", "بررسی کیفیت"], ["/guide", "راهنمای خرید"], ["/about", "دربارهٔ ما"], ["/account", "حساب من"],
+          ["/", "خانه"], ["/shop", "موجودی"], ["/brands", "برندها"], ["/preview/trendyol", "کاتالوگِ ترکیه"],
+          ["/order", "ثبت سفارش"], ["/quality", "بررسی کیفیت"], ["/guide", "راهنمای خرید"], ["/about", "دربارهٔ ما"], ["/account", "حساب من"],
         ].map(([href, label]) => (
           <Link
             key={href}

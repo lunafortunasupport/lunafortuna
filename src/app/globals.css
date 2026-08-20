@@ -14,9 +14,8 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* اسکرولِ نرم توسط Lenis (SmoothScroll.tsx) مدیریت می‌شود؛ scroll-behavior: smooth با آن
+   تداخل دارد. برای کاربرانِ prefers-reduced-motion (که Lenis اجرا نمی‌شود) اسکرولِ نیتیو کافی است. */
 
 body {
   background: var(--cream);

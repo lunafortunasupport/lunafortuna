@@ -6,6 +6,14 @@ import SaleStrip from "@/components/SaleStrip";
 import Counter from "@/components/Counter";
 import Divider from "@/components/Divider";
 import BrandMarquee from "@/components/BrandMarquee";
+import PopularShowcase from "@/components/PopularShowcase";
+import {
+  queryMirrorProducts,
+  getFeaturedBrandStats,
+  priceBreakdown,
+  saleView,
+  type MirrorProductWithVariants,
+} from "@/lib/trendyolCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +32,7 @@ export default async function HomePage() {
   const s = await getSettings();
   const perLir = Math.round(s.exchangeRate * (1 + s.feeNormal));
 
-  const [brandCount, directory, sales] = await Promise.all([
+  const [brandCount, directory, sales, popular, featuredStats] = await Promise.all([
     prisma.brand.count({ where: { isActive: true } }),
     prisma.brand.findMany({
       where: { isActive: true },
@@ -38,7 +46,38 @@ export default async function HomePage() {
       take: 12,
       select: { slug: true, name: true, logoUrl: true, saleUrl: true, saleLabel: true },
     }),
+    queryMirrorProducts({ sort: "popular", page: 1 }, perLir),
+    getFeaturedBrandStats(),
   ]);
+
+  // محبوب‌ترین‌ها → دادهٔ سادهٔ سریالایزبل برای کامپوننتِ کلاینت (قیمت‌ها همین‌جا حساب می‌شوند).
+  const toItem = (p: MirrorProductWithVariants) => {
+    const cheapest = p.variants.reduce<MirrorProductWithVariants["variants"][number] | null>((best, v) => {
+      if (v.priceTL == null) return best;
+      if (!best || (best.priceTL ?? Infinity) > v.priceTL) return v;
+      return best;
+    }, null);
+    const breakdown = priceBreakdown(cheapest, perLir, s.cargoFeeEstimateTL);
+    const sale = saleView(p, perLir);
+    return {
+      id: p.id,
+      title: p.nameFa || p.nameTr,
+      brand: p.brand,
+      image: p.image,
+      categoryFa: p.categoryFa,
+      favoriteCount: p.favoriteCount,
+      itemToman: breakdown.itemToman,
+      originalToman: sale.onSale ? sale.originalToman : null,
+      discountPct: sale.onSale ? sale.discountPct : null,
+      freeCargo: breakdown.freeCargo,
+    };
+  };
+  const popularItems = popular.items.map(toItem);
+  const leadItem = popularItems[0] || null;
+  const railItems = popularItems.slice(1);
+  const showcaseBrands = featuredStats
+    .filter((b) => b.count > 0)
+    .map((b) => ({ slug: b.slug, nameFa: b.nameFa, nameEn: b.nameEn, count: b.count, image: b.sampleImages[0] || null }));
 
   const tiles = [
     { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", group: "clothing" },
@@ -194,6 +233,28 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ═══════════ محبوب‌ترین‌های ترکیه (کاتالوگِ زنده) ═══════════ */}
+      {leadItem && (
+        <section className="bg-cream">
+          <div className="container-luna py-24 md:py-28">
+            <div className="reveal mb-12 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
+              <div>
+                <div className="rise-up"><Index n="۰۴" label="محبوب‌ترین‌های ترکیه" /></div>
+                <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
+                  آنچه خریداران بیشتر پسندیده‌اند
+                </h2>
+              </div>
+              <Link href="/preview/trendyol" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">
+                دیدنِ همهٔ محبوب‌ها ←
+              </Link>
+            </div>
+            <div className="reveal">
+              <PopularShowcase lead={leadItem} rail={railItems} brands={showcaseBrands} />
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ═══════════ لحظهٔ ادیتوریال (تمام‌عرض) ═══════════ */}
       <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-navy-ink text-cream">
         <Image src="/images/editorial-duomo.jpg" alt="سبکِ خیابانی اروپا" fill sizes="100vw" className="object-cover object-top opacity-70" />
@@ -226,7 +287,7 @@ export default async function HomePage() {
         <div className="container-luna py-20 md:py-24">
           <div className="reveal mb-10 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
             <div>
-              <div className="rise-up"><Index n="۰۴" label="خانه‌های ترکیه" /></div>
+              <div className="rise-up"><Index n="۰۵" label="خانه‌های ترکیه" /></div>
               <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
                 {brandCount.toLocaleString("fa-IR")} برند، دست‌چین‌شده
               </h2>
