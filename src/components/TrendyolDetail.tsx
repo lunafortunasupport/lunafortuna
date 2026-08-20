@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { formatToman } from "@/lib/format";
 import { useCart } from "@/lib/trendyolCart";
-import { priceBreakdown, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
+import { priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
 
 export default function TrendyolDetail({
   product,
@@ -30,6 +30,7 @@ export default function TrendyolDetail({
     [product.variants, size]
   );
   const breakdown = priceBreakdown(selectedVariant, perLirToman, cargoFeeEstimateTL);
+  const sale = saleView(product, perLirToman);
   const alreadyInCart = size ? has(product.id, size) : false;
 
   function handleAdd() {
@@ -96,6 +97,11 @@ export default function TrendyolDetail({
             {product.categoryFa}
           </span>
           <span className="rounded-full bg-navy/85 px-3 py-1 text-[10.5px] font-medium text-cream">دادهٔ زنده</span>
+          {sale.onSale && sale.discountPct ? (
+            <span className="rounded-full bg-[#b8442f] px-3 py-1 text-[10.5px] font-bold text-white tabular-nums">
+              {sale.discountPct.toLocaleString("fa-IR")}٪ تخفیف
+            </span>
+          ) : null}
         </div>
 
         <h1 className="mt-4 font-display text-2xl font-semibold leading-9 text-navy">
@@ -140,8 +146,14 @@ export default function TrendyolDetail({
         <div className="mt-6 rounded-2xl border border-gold/20 bg-gold/5 px-5 py-4">
           {breakdown.itemToman != null ? (
             <>
+              {sale.onSale && sale.originalToman != null && (
+                <div className="mb-1.5 flex items-center justify-between text-[13px]">
+                  <span className="text-navy/60">قیمتِ قبل از تخفیف</span>
+                  <span className="tabular-nums text-navy/35 line-through">{formatToman(sale.originalToman)}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between text-[13px] text-navy/60">
-                <span>قیمتِ کالا</span>
+                <span>قیمتِ کالا{sale.onSale ? " (با تخفیف)" : ""}</span>
                 <span className="tabular-nums text-navy/75">{formatToman(breakdown.itemToman)}</span>
               </div>
               <div className="mt-1.5 flex items-center justify-between text-[13px]">

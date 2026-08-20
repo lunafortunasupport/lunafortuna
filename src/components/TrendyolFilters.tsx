@@ -34,8 +34,9 @@ export default function TrendyolFilters({ facets, total }: { facets: CatalogFace
   const size = params.get("size") || "";
   const price = params.get("price") || "";
   const sort = params.get("sort") || "popular";
+  const onSale = params.get("sale") === "1";
 
-  const activeExtraFilters = [size, price].filter(Boolean).length + (sort !== "popular" ? 1 : 0);
+  const activeExtraFilters = [size, price].filter(Boolean).length + (sort !== "popular" ? 1 : 0) + (onSale ? 1 : 0);
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
@@ -136,6 +137,18 @@ export default function TrendyolFilters({ facets, total }: { facets: CatalogFace
             ))}
           </div>
         )}
+
+        {/* فقط تخفیف‌دارها */}
+        <div className="mt-2.5">
+          <button
+            onClick={() => updateParam("sale", onSale ? "" : "1")}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[12px] font-medium transition-colors ${
+              onSale ? "border-[#b8442f] bg-[#b8442f] text-white" : "border-[#b8442f]/40 bg-[#b8442f]/5 text-[#b8442f] hover:bg-[#b8442f]/10"
+            }`}
+          >
+            🏷️ فقط تخفیف‌دارها
+          </button>
+        </div>
 
         {/* پنلِ فیلترهای اضافه (سایز/قیمت/مرتب‌سازی) */}
         {panelOpen && (

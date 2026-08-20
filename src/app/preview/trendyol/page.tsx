@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSettings, feesFromSettings } from "@/lib/settings";
-import { queryMirrorProducts, getFacets, type PriceBucket, type SortOption } from "@/lib/trendyolCatalog";
+import { queryMirrorProducts, getFacets, getFeaturedBrand, type PriceBucket, type SortOption } from "@/lib/trendyolCatalog";
 import TrendyolDemoCard from "@/components/TrendyolDemoCard";
 import TrendyolFilters from "@/components/TrendyolFilters";
 
@@ -27,6 +27,8 @@ export default async function TrendyolPreviewPage({
     size: sp.size || undefined,
     price: VALID_BUCKETS.includes(sp.price as PriceBucket) ? (sp.price as PriceBucket) : undefined,
     sort: VALID_SORTS.includes(sp.sort as SortOption) ? (sp.sort as SortOption) : undefined,
+    onSale: sp.sale === "1" || undefined,
+    featuredBrand: sp.fbrand || undefined,
     page: Number(sp.page) || 1,
   };
 
@@ -34,6 +36,7 @@ export default async function TrendyolPreviewPage({
     queryMirrorProducts(filters, perLirToman),
     getFacets(),
   ]);
+  const activeFeaturedBrand = filters.featuredBrand ? getFeaturedBrand(filters.featuredBrand) : undefined;
 
   const qs = (p: number) => {
     const next = new URLSearchParams();
@@ -43,6 +46,8 @@ export default async function TrendyolPreviewPage({
     if (filters.size) next.set("size", filters.size);
     if (filters.price) next.set("price", filters.price);
     if (filters.sort) next.set("sort", filters.sort);
+    if (filters.onSale) next.set("sale", "1");
+    if (filters.featuredBrand) next.set("fbrand", filters.featuredBrand);
     if (p > 1) next.set("page", String(p));
     const s = next.toString();
     return s ? `/preview/trendyol?${s}` : "/preview/trendyol";
@@ -70,6 +75,19 @@ export default async function TrendyolPreviewPage({
       </div>
 
       <TrendyolFilters facets={facets} total={total} />
+
+      {activeFeaturedBrand && (
+        <div className="container-luna pt-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-gold/25 bg-gold/8 px-4 py-3">
+            <span className="text-[12.5px] text-navy/70">
+              نمایشِ محصولاتِ <b className="text-navy">{activeFeaturedBrand.nameFa}</b>
+            </span>
+            <Link href="/preview/trendyol/brands" className="text-[12px] font-medium text-gold hover:underline">
+              ← بازگشت به همهٔ برندها
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="container-luna py-10">
         {items.length === 0 ? (

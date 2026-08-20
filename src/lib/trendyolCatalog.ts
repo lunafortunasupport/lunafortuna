@@ -18,6 +18,28 @@ export interface CatalogFilters {
   price?: PriceBucket;
   sort?: SortOption;
   page?: number;
+  featuredBrand?: string;
+  onSale?: boolean;
+}
+
+export interface FeaturedBrand {
+  slug: string;
+  nameFa: string;
+  nameEn: string;
+  blurbFa: string;
+}
+
+// منبعِ واحدِ برندهای منتخب — ترتیب همان ترتیبِ نمایش در صفحهٔ برندها.
+export const FEATURED_BRANDS: FeaturedBrand[] = [
+  { slug: "trendyol-milla", nameFa: "ترندیول‌میلا", nameEn: "TRENDYOLMİLLA", blurbFa: "برندِ اختصاصیِ زنانهٔ ترندیول — پوشاکِ روزمره تا مجلسی." },
+  { slug: "happiness", nameFa: "هپینس استانبول", nameEn: "Happiness İstanbul", blurbFa: "استریت‌ویرِ محبوبِ استانبول — راحت، اسپرت، جوان‌پسند." },
+  { slug: "trendyol-kids", nameFa: "ترندیول کیدز", nameEn: "TRENDYOLKIDS", blurbFa: "پوشاکِ بچگانهٔ برندِ خودِ ترندیول." },
+  { slug: "trendyol-shoes", nameFa: "ترندیول شوز", nameEn: "TRENDYOL SHOES", blurbFa: "کفشِ زنانهٔ برندِ خودِ ترندیول." },
+  { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان." },
+];
+
+export function getFeaturedBrand(slug: string): FeaturedBrand | undefined {
+  return FEATURED_BRANDS.find((b) => b.slug === slug);
 }
 
 export interface MirrorProductWithVariants extends MirrorProduct {
@@ -43,6 +65,8 @@ export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: 
   const where: Record<string, unknown> = { isActive: true };
   if (filters.category) where.category = filters.category;
   if (filters.brand) where.brand = filters.brand;
+  if (filters.featuredBrand) where.featuredBrand = filters.featuredBrand;
+  if (filters.onSale) where.onSale = true;
   if (filters.size) where.variants = { some: { size: filters.size, inStock: true } };
   if (filters.q) where.searchText = { contains: trLower(filters.q) };
   if (filters.price) {
@@ -57,6 +81,7 @@ export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: 
   if (filters.sort === "price_asc") orderBy = [{ minPriceTL: "asc" }];
   else if (filters.sort === "price_desc") orderBy = [{ minPriceTL: "desc" }];
   else if (filters.sort === "new") orderBy = [{ lastSyncedAt: "desc" }];
+  else if (filters.onSale) orderBy = [{ discountPct: "desc" }];
 
   const page = Math.max(1, filters.page || 1);
   const [items, total] = await Promise.all([
@@ -144,4 +169,58 @@ export function parseImages(images: string): string[] {
 }
 export function parseAttributes(attributes: string): { labelFa: string; valueFa: string }[] {
   return parseJson(attributes, []);
+}
+
+export interface SaleView {
+  onSale: boolean;
+  currentToman: number | null;
+  originalToman: number | null;
+  discountPct: number | null;
+  promoLabel: string | null;
+}
+
+/**
+ * نمای تخفیف بر اساسِ ارزان‌ترین قیمتِ محصول (minPriceTL) و قیمتِ قبلی (originalPriceTL).
+ *
+ * نکته: originalPriceTL از سطحِ لیستینگِ جستجو گرفته می‌شود، در حالی‌که minPriceTL از
+ * ارزان‌ترینِ سایزهای واقعاً اسکرپ‌شده در صفحهٔ جزئیات می‌آید — این دو گاهی به یک سایز/واریانت
+ * اشاره ندارند (مثلاً وقتی چند رنگ‌بندی زیرِ یک لیستینگ ادغام شده‌اند) و می‌تواند «قیمتِ قبلی»یی
+ * کمتر از قیمتِ فعلی برگرداند که منطقاً یعنی تخفیف واقعی نیست. برای همین فقط وقتی originalToman
+ * واقعاً از currentToman بیشتر باشد onSale=true می‌شود؛ در غیرِ این صورت برچسب پنهان می‌ماند.
+ */
+export function saleView(p: MirrorProduct, perLirToman: number): SaleView {
+  const currentToman = p.minPriceTL != null ? Math.round(p.minPriceTL * perLirToman) : null;
+  const rawOriginalToman = p.onSale && p.originalPriceTL != null ? Math.round(p.originalPriceTL * perLirToman) : null;
+  const genuineDiscount = rawOriginalToman != null && currentToman != null && rawOriginalToman > currentToman;
+  return {
+    onSale: genuineDiscount,
+    currentToman,
+    originalToman: genuineDiscount ? rawOriginalToman : null,
+    discountPct: genuineDiscount ? p.discountPct : null,
+    promoLabel: genuineDiscount ? p.promoLabel : null,
+  };
+}
+
+export interface FeaturedBrandStat extends FeaturedBrand {
+  count: number;
+  sampleImages: string[];
+}
+
+/** برای صفحهٔ ایندکسِ برندها: تعدادِ محصولِ فعال + چند عکسِ نمونه per برندِ منتخب. */
+export async function getFeaturedBrandStats(): Promise<FeaturedBrandStat[]> {
+  const stats = await Promise.all(
+    FEATURED_BRANDS.map(async (b) => {
+      const [count, samples] = await Promise.all([
+        prisma.mirrorProduct.count({ where: { isActive: true, featuredBrand: b.slug } }),
+        prisma.mirrorProduct.findMany({
+          where: { isActive: true, featuredBrand: b.slug, image: { not: null } },
+          orderBy: [{ favoriteCount: "desc" }],
+          take: 3,
+          select: { image: true },
+        }),
+      ]);
+      return { ...b, count, sampleImages: samples.map((s) => s.image!).filter(Boolean) };
+    })
+  );
+  return stats;
 }

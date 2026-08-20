@@ -103,6 +103,13 @@ model MirrorProduct {
   minPriceTL    Float?
   ratingScore   Float?
   favoriteCount Int?
+  // ── تخفیف (از فازِ لیستینگ) ──
+  originalPriceTL Float?   // قیمتِ قبلی وقتی تخفیف هست (برای خط‌خورده)
+  discountPct     Int?     // درصدِ تخفیف
+  onSale          Boolean  @default(false)
+  promoLabel      String?  // نامِ کمپین، مثل «۵۰٪ روی نفرِ سوم»
+  // ── برندِ منتخب (ویترینِ جدا) ──
+  featuredBrand   String?  // اسلاگ: trendyol-milla | happiness | trendyol-kids | trendyol-shoes | ambar (خالی = عمومی)
   isActive      Boolean  @default(true) // false = در آخرین سینک دیده نشد
   lastSyncedAt  DateTime @default(now())
   createdAt     DateTime @default(now())
@@ -114,6 +121,8 @@ model MirrorProduct {
   @@index([brand])
   @@index([minPriceTL])
   @@index([isActive])
+  @@index([onSale])
+  @@index([featuredBrand])
 }
 
 model MirrorVariant {

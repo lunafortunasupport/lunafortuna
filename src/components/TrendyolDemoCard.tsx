@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { formatToman } from "@/lib/format";
-import { priceBreakdown, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
+import { priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
 
 // کارتِ کاتالوگِ آینه‌ایِ ترندیول — همان زبانِ بصریِ لوکسِ سایت (نه رنگ‌بندیِ ترندیول)،
 // با دادهٔ واقعیِ سینک‌شده: قیمت، سایز، موجودی و کارگو مستقیم از ترندیول گرفته شده.
@@ -20,6 +20,7 @@ export default function TrendyolDemoCard({
     return best;
   }, null);
   const breakdown = priceBreakdown(cheapest, perLirToman, cargoFeeEstimateTL);
+  const sale = saleView(product, perLirToman);
   const inStockCount = product.variants.filter((v) => v.inStock).length;
 
   return (
@@ -44,11 +45,15 @@ export default function TrendyolDemoCard({
         <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-medium tracking-wide text-navy shadow-sm">
           {product.brand}
         </span>
-        {!breakdown.freeCargo && (
+        {sale.onSale && sale.discountPct ? (
+          <span className="absolute left-3 top-3 rounded-full bg-[#b8442f] px-2.5 py-1 text-[10px] font-bold tracking-wide text-white shadow-sm tabular-nums">
+            {sale.discountPct.toLocaleString("fa-IR")}٪ تخفیف
+          </span>
+        ) : !breakdown.freeCargo ? (
           <span className="absolute left-3 top-3 rounded-full bg-navy/85 px-2.5 py-1 text-[9.5px] font-medium tracking-wide text-cream backdrop-blur-sm">
             + هزینهٔ کارگو
           </span>
-        )}
+        ) : null}
       </div>
 
       <div className="p-4">
@@ -77,8 +82,15 @@ export default function TrendyolDemoCard({
         )}
 
         <div className="mt-3 flex items-center justify-between">
-          <span className="font-display text-[15px] font-bold text-gold tabular-nums">
-            {breakdown.itemToman != null ? formatToman(breakdown.itemToman) : "—"}
+          <span className="flex items-baseline gap-1.5">
+            <span className="font-display text-[15px] font-bold text-gold tabular-nums">
+              {breakdown.itemToman != null ? formatToman(breakdown.itemToman) : "—"}
+            </span>
+            {sale.onSale && sale.originalToman != null && (
+              <span className="text-[11px] text-navy/30 line-through tabular-nums">
+                {formatToman(sale.originalToman)}
+              </span>
+            )}
           </span>
           {inStockCount > 0 ? (
             <span className="inline-flex items-center gap-1 text-[10.5px] text-navy/40">

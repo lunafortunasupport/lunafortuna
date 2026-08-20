@@ -84,7 +84,17 @@ const CATEGORIES = [
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın triko", label: "تریکو" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın ayakkabı", label: "کفش" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın mont", label: "کاپشن" },
+  // ── برندهای منتخب (ویترینِ جدا) — featuredBrand ست می‌شود؛ brandMatch یعنی فقط محصولاتی که
+  //    برندشان با این‌ها می‌خواند تگ بخورند (کوئریِ برند گاهی فروشنده‌های دیگر هم برمی‌گرداند). ──
+  { site: "trendyol", base: "https://www.trendyol.com", q: "happiness istanbul", label: "Happiness", featuredBrand: "happiness", brandMatch: ["happiness"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "trendyolkids çocuk", label: "بچگانه", featuredBrand: "trendyol-kids", brandMatch: ["trendyolkids", "trendyol kids"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "trendyol shoes kadın", label: "کفش", featuredBrand: "trendyol-shoes", brandMatch: ["trendyol shoes"] },
 ].slice(0, LIMIT_CATEGORIES);
+
+// همهٔ ورودی‌های ترندیول‌میلا برندِ منتخبِ trendyol-milla هستند.
+for (const c of CATEGORIES) {
+  if (c.site === "trendyol-milla" && !c.featuredBrand) c.featuredBrand = "trendyol-milla";
+}
 
 const APIGW = {
   "trendyol-milla": "https://apigw.trendyol-milla.com/discovery-sfint-search-service/api/search/products/",
@@ -127,6 +137,18 @@ async function collectCandidates(page, cat) {
     if (!Array.isArray(products) || products.length === 0) break;
     for (const p of products) {
       if (!p?.id || !p?.url) continue;
+      // برندِ منتخب: فقط اگر (الف) دسته featuredBrand ندارد، یا (ب) برندِ محصول با brandMatch می‌خواند.
+      let featuredBrand = null;
+      if (cat.featuredBrand) {
+        const brandLc = (p.brand || "").toLocaleLowerCase("tr-TR");
+        if (!cat.brandMatch || cat.brandMatch.some((m) => brandLc.includes(m))) {
+          featuredBrand = cat.featuredBrand;
+        }
+      }
+      // تخفیف: قیمتِ قبلی (old/originalPrice) در برابرِ قیمتِ فعلی (current).
+      const cur = p.price?.current ?? p.price?.discountedPrice ?? null;
+      const old = p.price?.originalPrice ?? p.price?.old ?? null;
+      const onSale = cur != null && old != null && old > cur * 1.001;
       out.push({
         sourceId: p.id,
         sourceSite: cat.site,
@@ -135,6 +157,11 @@ async function collectCandidates(page, cat) {
         categoryTr: p.category?.name || cat.label,
         ratingScore: p.ratingScore?.averageRating ?? null,
         favoriteCount: p.ratingScore?.totalCount ?? null,
+        featuredBrand,
+        onSale,
+        originalPriceTL: onSale ? old : null,
+        discountPct: onSale ? Math.round(((old - cur) / old) * 100) : null,
+        promoLabel: p.singlePromotion?.name || p.promotions?.[0]?.name || null,
       });
       if (out.length >= LIMIT_PER_CATEGORY) break;
     }
@@ -236,6 +263,13 @@ async function upsertProduct(c, detail, now) {
   const categoryTr = detail.categoryTr || c.categoryTr;
   const searchText = trLower([nameFa, detail.nameTr, detail.brand].filter(Boolean).join(" "));
 
+  // originalPriceTL از سطحِ لیستینگِ جستجو می‌آید ولی minPriceTL از ارزان‌ترینِ سایزهای واقعاً
+  // اسکرپ‌شدهٔ همین محصول — وقتی چند رنگ‌بندی زیرِ یک لیستینگ ادغام شده باشند این دو به یک
+  // سایز/واریانت اشاره ندارند و originalPriceTL می‌تواند حتی کمتر از minPriceTL دربیاید (تخفیفِ
+  // منطقاً معکوس). فقط وقتی واقعاً originalPriceTL > minPriceTL باشد تخفیف را ذخیره کن.
+  const genuineDiscount =
+    !!c.onSale && c.originalPriceTL != null && detail.minPriceTL != null && c.originalPriceTL > detail.minPriceTL;
+
   const data = {
     sourceUrl: c.sourceUrl,
     brand: detail.brand || c.brand,
@@ -251,6 +285,11 @@ async function upsertProduct(c, detail, now) {
     minPriceTL: detail.minPriceTL,
     ratingScore: c.ratingScore,
     favoriteCount: c.favoriteCount,
+    onSale: genuineDiscount,
+    originalPriceTL: genuineDiscount ? c.originalPriceTL : null,
+    discountPct: genuineDiscount ? c.discountPct : null,
+    promoLabel: genuineDiscount ? c.promoLabel : null,
+    featuredBrand: c.featuredBrand ?? null,
     isActive: true,
     lastSyncedAt: now,
   };
@@ -303,9 +342,13 @@ async function main() {
       let added = 0;
       for (const c of candidates) {
         const key = `${c.sourceSite}:${c.sourceId}`;
-        if (!seen.has(key)) {
+        const prev = seen.get(key);
+        if (!prev) {
           seen.set(key, c);
           added++;
+        } else if (!prev.featuredBrand && c.featuredBrand) {
+          // اگر همین محصول قبلاً از کوئریِ عمومی دیده شده بود، برچسبِ برندِ منتخب را حفظ کن.
+          prev.featuredBrand = c.featuredBrand;
         }
       }
       console.log(`  لیستینگ ${cat.site}/${cat.label}: ${candidates.length} کاندید (${added} جدید)`);
