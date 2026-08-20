@@ -84,6 +84,52 @@ model Product {
   updatedAt   DateTime  @updatedAt
 }
 
+// ── کاتالوگِ آینه‌ایِ ترندیول (پیش‌نمایش) — با سینکِ زمان‌بندی‌شده پر می‌شود، نه دستی ──
+model MirrorProduct {
+  id            String   @id @default(cuid())
+  sourceSite    String // "trendyol" | "trendyol-milla"
+  sourceId      Int
+  sourceUrl     String
+  brand         String
+  category      String // کلیدِ خامِ ترکی (پایدار، برای فیلتر)
+  categoryFa    String // برچسبِ فارسی برای نمایش
+  nameTr        String
+  nameFa        String?
+  descriptionFa String?
+  image         String?
+  images        String   @default("[]") // JSON array
+  attributes    String   @default("[]") // JSON: {labelFa, valueFa}[]
+  searchText    String   @default("") // نام‌ها+برند به‌صورتِ lowercase (ترکیِ ایمن) برای contains
+  minPriceTL    Float?
+  ratingScore   Float?
+  favoriteCount Int?
+  isActive      Boolean  @default(true) // false = در آخرین سینک دیده نشد
+  lastSyncedAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  variants      MirrorVariant[]
+
+  @@unique([sourceSite, sourceId])
+  @@index([category])
+  @@index([brand])
+  @@index([minPriceTL])
+  @@index([isActive])
+}
+
+model MirrorVariant {
+  id        String        @id @default(cuid())
+  productId String
+  product   MirrorProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      String
+  inStock   Boolean
+  priceTL   Float?
+  freeCargo Boolean       @default(false)
+
+  @@unique([productId, size])
+  @@index([productId])
+  @@index([size])
+}
+
 // ── کاربران (فاز ۲) ──
 model User {
   id            String    @id @default(cuid())
@@ -159,5 +205,6 @@ model Settings {
   instagram      String   @default("lunafortuna.shop")
   phone          String   @default("00905318662989")
   aboutContent   String   @default("{}") // JSON: متن و اعضای تیم
+  cargoFeeEstimateTL Float @default(150) // برآوردِ هزینهٔ کارگوی داخلِ ترکیه وقتی freeCargo نیست
   updatedAt      DateTime @updatedAt
 }

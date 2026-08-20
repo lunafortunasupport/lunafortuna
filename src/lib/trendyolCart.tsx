@@ -6,10 +6,12 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
-const STORAGE_KEY = "luna_trendyol_cart_v1";
+// v2: بعدِ اتصالِ کاتالوگ به دیتابیسِ واقعی، productId از عددِ دستیِ دموی قدیم به cuidِ
+// MirrorProduct تغییر کرد — کلیدِ ذخیره عوض شد تا سبدهای قدیمی به‌جای resolveِ اشتباه، پاک شروع شوند.
+const STORAGE_KEY = "luna_trendyol_cart_v2";
 
 export interface TrendyolCartItem {
-  productId: number;
+  productId: string;
   name: string;
   nameFa?: string;
   brand: string;
@@ -17,14 +19,15 @@ export interface TrendyolCartItem {
   sourceUrl: string;
   size: string;
   priceTL: number;
+  freeCargo: boolean;
 }
 
 interface CartCtx {
   items: TrendyolCartItem[];
   add: (item: TrendyolCartItem) => void;
-  remove: (productId: number, size: string) => void;
+  remove: (productId: string, size: string) => void;
   clear: () => void;
-  has: (productId: number, size: string) => boolean;
+  has: (productId: string, size: string) => boolean;
   count: number;
 }
 
@@ -61,14 +64,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const remove = useCallback((productId: number, size: string) => {
+  const remove = useCallback((productId: string, size: string) => {
     setItems((prev) => prev.filter((p) => !(p.productId === productId && p.size === size)));
   }, []);
 
   const clear = useCallback(() => setItems([]), []);
 
   const has = useCallback(
-    (productId: number, size: string) => items.some((p) => p.productId === productId && p.size === size),
+    (productId: string, size: string) => items.some((p) => p.productId === productId && p.size === size),
     [items]
   );
 

@@ -1,12 +1,25 @@
 import Link from "next/link";
 import { formatToman } from "@/lib/format";
-import { CATEGORY_LABELS_FA, type TrendyolProduct } from "@/lib/trendyolDemo";
+import { priceBreakdown, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
 
-// کارتِ دموی «آینه‌ی ترندیول» — همان زبانِ بصریِ لوکسِ سایت (نه رنگ‌بندیِ ترندیول)،
-// با دادهٔ واقعیِ زنده: قیمت، سایز و موجودی مستقیم از ترندیول گرفته شده.
+// کارتِ کاتالوگِ آینه‌ایِ ترندیول — همان زبانِ بصریِ لوکسِ سایت (نه رنگ‌بندیِ ترندیول)،
+// با دادهٔ واقعیِ سینک‌شده: قیمت، سایز، موجودی و کارگو مستقیم از ترندیول گرفته شده.
 // کلیک روی کارت به صفحهٔ جزئیاتِ داخلی می‌رود (نه مستقیم به ترندیول) — لینکِ اصلی آنجاست.
-export default function TrendyolDemoCard({ product, perLirToman }: { product: TrendyolProduct; perLirToman: number }) {
-  const priceToman = product.minPriceTL != null ? Math.round(product.minPriceTL * perLirToman) : null;
+export default function TrendyolDemoCard({
+  product,
+  perLirToman,
+  cargoFeeEstimateTL,
+}: {
+  product: MirrorProductWithVariants;
+  perLirToman: number;
+  cargoFeeEstimateTL: number;
+}) {
+  const cheapest = product.variants.reduce<MirrorProductWithVariants["variants"][number] | null>((best, v) => {
+    if (v.priceTL == null) return best;
+    if (!best || (best.priceTL ?? Infinity) > v.priceTL) return v;
+    return best;
+  }, null);
+  const breakdown = priceBreakdown(cheapest, perLirToman, cargoFeeEstimateTL);
   const inStockCount = product.variants.filter((v) => v.inStock).length;
 
   return (
@@ -19,7 +32,7 @@ export default function TrendyolDemoCard({ product, perLirToman }: { product: Tr
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.image}
-            alt={product.name}
+            alt={product.nameFa || product.nameTr}
             className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             loading="lazy"
           />
@@ -31,19 +44,21 @@ export default function TrendyolDemoCard({ product, perLirToman }: { product: Tr
         <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-medium tracking-wide text-navy shadow-sm">
           {product.brand}
         </span>
-        <span className="absolute left-3 top-3 rounded-full bg-navy/85 px-2.5 py-1 text-[9.5px] font-medium tracking-wide text-cream backdrop-blur-sm">
-          دادهٔ زنده
-        </span>
+        {!breakdown.freeCargo && (
+          <span className="absolute left-3 top-3 rounded-full bg-navy/85 px-2.5 py-1 text-[9.5px] font-medium tracking-wide text-cream backdrop-blur-sm">
+            + هزینهٔ کارگو
+          </span>
+        )}
       </div>
 
       <div className="p-4">
-        {product.category && (
+        {product.categoryFa && (
           <span className="mb-1.5 inline-block text-[10px] font-medium tracking-wide text-gold">
-            {CATEGORY_LABELS_FA[product.category] || product.category}
+            {product.categoryFa}
           </span>
         )}
         <h3 className="line-clamp-2 min-h-[2.6em] font-display text-[13px] font-semibold leading-6 text-navy">
-          {product.nameFa || product.name}
+          {product.nameFa || product.nameTr}
         </h3>
 
         {product.variants.length > 0 && (
@@ -63,7 +78,7 @@ export default function TrendyolDemoCard({ product, perLirToman }: { product: Tr
 
         <div className="mt-3 flex items-center justify-between">
           <span className="font-display text-[15px] font-bold text-gold tabular-nums">
-            {priceToman != null ? formatToman(priceToman) : "—"}
+            {breakdown.itemToman != null ? formatToman(breakdown.itemToman) : "—"}
           </span>
           {inStockCount > 0 ? (
             <span className="inline-flex items-center gap-1 text-[10.5px] text-navy/40">

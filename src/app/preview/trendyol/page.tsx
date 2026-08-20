@@ -1,33 +1,52 @@
+import Link from "next/link";
 import { getSettings, feesFromSettings } from "@/lib/settings";
-import { SNAPSHOT_PRODUCTS, CATEGORY_LABELS_FA } from "@/lib/trendyolDemo";
+import { queryMirrorProducts, getFacets, type PriceBucket, type SortOption } from "@/lib/trendyolCatalog";
 import TrendyolDemoCard from "@/components/TrendyolDemoCard";
-import Divider from "@/components/Divider";
+import TrendyolFilters from "@/components/TrendyolFilters";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "پیش‌نمایشِ فنی — کاتالوگِ ترندیول" };
 
-// این صفحه از منو لینک نشده — فقط یک نمونهٔ فنی برای بررسیِ داخلی است.
-// ساختار طبق درخواستِ کاربر: هدر/معرفی → برندها → محصولات (دسته‌بندی‌شده).
-export default async function TrendyolPreviewPage() {
+const VALID_SORTS: SortOption[] = ["popular", "price_asc", "price_desc", "new"];
+const VALID_BUCKETS: PriceBucket[] = ["under1", "1to3", "3to6", "over6"];
+
+export default async function TrendyolPreviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const sp = await searchParams;
   const s = await getSettings();
   const fees = feesFromSettings(s);
   const perLirToman = Math.round(s.exchangeRate * (1 + fees.normal));
 
-  const products = SNAPSHOT_PRODUCTS;
-  const OWN_BRAND = "TRENDYOLMİLLA";
-  const millaProducts = products.filter((p) => p.brand === OWN_BRAND);
-  const otherProducts = products.filter((p) => p.brand !== OWN_BRAND);
-  const brands = [...new Set(products.map((p) => p.brand))].sort((a, b) =>
-    a === OWN_BRAND ? -1 : b === OWN_BRAND ? 1 : 0
-  );
+  const filters = {
+    q: sp.q || undefined,
+    category: sp.cat || undefined,
+    brand: sp.brand || undefined,
+    size: sp.size || undefined,
+    price: VALID_BUCKETS.includes(sp.price as PriceBucket) ? (sp.price as PriceBucket) : undefined,
+    sort: VALID_SORTS.includes(sp.sort as SortOption) ? (sp.sort as SortOption) : undefined,
+    page: Number(sp.page) || 1,
+  };
 
-  // گروه‌بندی بر اساسِ دسته‌بندیِ واقعیِ ترندیول (بدونِ محصولاتِ ترندیول‌میلا — آن‌ها بالا و جدا نمایش داده می‌شوند)
-  const byCategory = new Map<string, typeof products>();
-  for (const p of otherProducts) {
-    const key = p.category || "سایر";
-    if (!byCategory.has(key)) byCategory.set(key, []);
-    byCategory.get(key)!.push(p);
-  }
+  const [{ items, total, page, pageCount }, facets] = await Promise.all([
+    queryMirrorProducts(filters, perLirToman),
+    getFacets(),
+  ]);
+
+  const qs = (p: number) => {
+    const next = new URLSearchParams();
+    if (filters.q) next.set("q", filters.q);
+    if (filters.category) next.set("cat", filters.category);
+    if (filters.brand) next.set("brand", filters.brand);
+    if (filters.size) next.set("size", filters.size);
+    if (filters.price) next.set("price", filters.price);
+    if (filters.sort) next.set("sort", filters.sort);
+    if (p > 1) next.set("page", String(p));
+    const s = next.toString();
+    return s ? `/preview/trendyol?${s}` : "/preview/trendyol";
+  };
 
   return (
     <div>
@@ -43,82 +62,63 @@ export default async function TrendyolPreviewPage() {
           </span>
           <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">کاتالوگِ ترندیول، به فارسی و تومان</h1>
           <p className="mt-3 max-w-2xl text-[13.5px] leading-7 text-cream/70">
-            این صفحه برای بررسیِ داخلی است (از منو لینک نشده). {products.length} محصول یک{" "}
-            <b className="text-champagne">عکسِ‌لحظه‌ایِ واقعی</b> از ترندیول‌اند (نه ساختگی) — قیمت با نرخِ روز به
-            تومان، سایز و موجودی دقیقاً همان چیزی‌ست که در ترندیول است. روی محصول کلیک کن، سایز را انتخاب و به سبد
-            اضافه کن — هنوز چند محصول (طبقِ اولویتِ TRENDYOLMİLLA) ترجمهٔ کاملِ فارسی دارند، بقیه به‌مرور تکمیل
-            می‌شوند، و این‌جا لحظه‌ای به‌روز نمی‌شود.
+            این صفحه برای بررسیِ داخلی است (از منو لینک نشده). محصولات یک <b className="text-champagne">عکسِ‌لحظه‌ایِ واقعی</b>{" "}
+            از ترندیول‌اند (نه ساختگی) و هر ۱۲ ساعت به‌روزرسانی می‌شوند — قیمت با نرخِ روز به تومان، به‌علاوهٔ برآوردِ
+            هزینهٔ کارگوی داخلِ ترکیه وقتی رایگان نباشد. سرچ کن، فیلتر کن، سایز را انتخاب و به سبد اضافه کن.
           </p>
         </div>
       </div>
 
+      <TrendyolFilters facets={facets} total={total} />
+
       <div className="container-luna py-10">
-        {/* برندها */}
-        <section className="mb-10">
-          <div className="mb-4 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.2em] text-navy/50">
-            <span className="h-px w-5 bg-gold/50" />
-            برندهای این کاتالوگ
+        {items.length === 0 ? (
+          <div className="rounded-2xl border border-navy/8 bg-white py-16 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-navy/5 text-2xl">🔍</div>
+            <h3 className="mt-4 font-display text-lg font-semibold text-navy">چیزی با این فیلترها پیدا نشد</h3>
+            <p className="mt-1.5 text-[13px] text-navy/50">فیلترها را کم‌تر کن یا کلیدواژهٔ دیگری امتحان کن.</p>
+            <Link href="/preview/trendyol" className="btn-outline mt-5 inline-flex">
+              پاک‌کردنِ فیلترها
+            </Link>
           </div>
-          <div className="flex flex-wrap gap-2.5">
-            {brands.map((b) =>
-              b === OWN_BRAND ? (
-                <span
-                  key={b}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-[12.5px] font-semibold text-gold"
-                >
-                  ✦ {b}
-                  <span className="text-[10px] font-normal text-gold/70">برندِ اختصاصیِ ترندیول</span>
-                </span>
-              ) : (
-                <span
-                  key={b}
-                  className="rounded-full border border-navy/12 bg-white px-4 py-2 text-[12.5px] font-medium text-navy/75"
-                >
-                  {b}
-                </span>
-              )
-            )}
-          </div>
-        </section>
-
-        {/* برندِ اختصاصیِ ترندیول — اولویت طبقِ خواستهٔ کاربر */}
-        {millaProducts.length > 0 && (
-          <section className="mb-12">
-            <div className="mb-5 flex items-center gap-3">
-              <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-navy">
-                <span className="text-gold">✦</span> TRENDYOLMİLLA
-              </h2>
-              <span className="rounded-full bg-gold/15 px-2.5 py-0.5 text-[11px] font-medium text-gold">
-                برندِ اختصاصیِ ترندیول
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-              {millaProducts.map((p) => (
-                <TrendyolDemoCard key={p.id} product={p} perLirToman={perLirToman} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        <Divider className="mb-10" />
-
-        {/* محصولات — دسته‌بندی‌شده */}
-        {[...byCategory.entries()].map(([cat, items]) => (
-          <section key={cat} className="mb-12 last:mb-0">
-            <div className="mb-5 flex items-center gap-3">
-              <h2 className="font-display text-lg font-semibold text-navy">{CATEGORY_LABELS_FA[cat] || cat}</h2>
-              <span className="rounded-full bg-gold/10 px-2.5 py-0.5 text-[11px] text-gold">
-                {items.length.toLocaleString("fa-IR")} کالا
-              </span>
-            </div>
+        ) : (
+          <>
             <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
               {items.map((p) => (
-                <TrendyolDemoCard key={p.id} product={p} perLirToman={perLirToman} />
+                <TrendyolDemoCard key={p.id} product={p} perLirToman={perLirToman} cargoFeeEstimateTL={s.cargoFeeEstimateTL} />
               ))}
             </div>
-          </section>
-        ))}
+
+            {pageCount > 1 && (
+              <nav className="mt-10 flex items-center justify-center gap-2" aria-label="صفحه‌بندی">
+                <PageLink href={qs(page - 1)} disabled={page <= 1}>
+                  ← قبلی
+                </PageLink>
+                <span className="px-3 text-[12.5px] text-navy/50 tabular-nums">
+                  صفحهٔ {page.toLocaleString("fa-IR")} از {pageCount.toLocaleString("fa-IR")}
+                </span>
+                <PageLink href={qs(page + 1)} disabled={page >= pageCount}>
+                  بعدی →
+                </PageLink>
+              </nav>
+            )}
+          </>
+        )}
       </div>
     </div>
+  );
+}
+
+function PageLink({ href, disabled, children }: { href: string; disabled?: boolean; children: React.ReactNode }) {
+  if (disabled) {
+    return <span className="rounded-full border border-navy/8 px-4 py-2 text-[12.5px] text-navy/25">{children}</span>;
+  }
+  return (
+    <Link
+      href={href}
+      className="rounded-full border border-navy/12 bg-white px-4 py-2 text-[12.5px] text-navy/70 transition-colors hover:border-gold/40 hover:text-gold"
+    >
+      {children}
+    </Link>
   );
 }

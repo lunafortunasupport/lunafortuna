@@ -1,45 +1,79 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatToman } from "@/lib/format";
 import { useCart } from "@/lib/trendyolCart";
 
 interface Props {
   perLirToman: number;
+  cargoFeeEstimateTL: number;
   defaultName: string;
   card: { number: string; owner: string; bank: string };
   telegramSupport: string;
 }
 
-export default function TrendyolCartView({ perLirToman, defaultName, card, telegramSupport }: Props) {
+export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defaultName, card, telegramSupport }: Props) {
   const { items, remove, clear } = useCart();
   const [name, setName] = useState(defaultName);
   const [contact, setContact] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [copied, setCopied] = useState(false);
+  const [invalid, setInvalid] = useState<Set<string>>(new Set());
 
+  // بازبینیِ سبک: چون کاتالوگ هر ۱۲ ساعت عوض می‌شود، آیتم‌های سبدِ فریزشده را با وضعیتِ فعلی چک کن.
+  useEffect(() => {
+    if (items.length === 0) return;
+    let cancelled = false;
+    fetch("/api/trendyol-cart/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: items.map((it) => ({ productId: it.productId, size: it.size })) }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        const bad = new Set<string>(
+          (data.results || []).filter((r: { valid: boolean }) => !r.valid).map((r: { productId: string; size: string }) => `${r.productId}:${r.size}`)
+        );
+        setInvalid(bad);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
+
+  function itemCargoToman(freeCargo: boolean) {
+    return freeCargo ? 0 : Math.round(cargoFeeEstimateTL * perLirToman);
+  }
+
+  const validItems = useMemo(() => items.filter((it) => !invalid.has(`${it.productId}:${it.size}`)), [items, invalid]);
   const totalToman = useMemo(
-    () => items.reduce((sum, it) => sum + Math.round(it.priceTL * perLirToman), 0),
-    [items, perLirToman]
+    () => validItems.reduce((sum, it) => sum + Math.round(it.priceTL * perLirToman) + itemCargoToman(it.freeCargo), 0),
+    [validItems, perLirToman, cargoFeeEstimateTL]
   );
-  const canSubmit = contact.trim().length > 2 && items.length > 0;
+  const canSubmit = contact.trim().length > 2 && validItems.length > 0;
 
   async function submit() {
     if (!canSubmit) return;
     setStatus("sending");
     try {
-      for (const it of items) {
+      for (const it of validItems) {
+        const cargoTL = it.freeCargo ? 0 : cargoFeeEstimateTL;
         const res = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "link",
             link: it.sourceUrl,
-            lirPrice: it.priceTL,
+            lirPrice: it.priceTL + cargoTL,
             customerName: name,
             contact,
-            description: `کاتالوگِ ترندیول (پیش‌نمایش) — ${it.nameFa || it.name} — سایز: ${it.size}`,
+            description: `کاتالوگِ ترندیول (پیش‌نمایش) — ${it.nameFa || it.name} — سایز: ${it.size} — کالا: ${it.priceTL} لیر${
+              cargoTL ? ` + برآوردِ کارگو: ${cargoTL} لیر` : " — کارگو: رایگان"
+            }`,
           }),
         });
         if (!res.ok) throw new Error("order failed");
@@ -118,42 +152,54 @@ export default function TrendyolCartView({ perLirToman, defaultName, card, teleg
     <div className="grid gap-10 md:grid-cols-[1fr_380px]">
       {/* فهرستِ آیتم‌ها */}
       <div className="space-y-3">
-        {items.map((it) => (
-          <div
-            key={`${it.productId}-${it.size}`}
-            className="flex items-center gap-4 rounded-2xl border border-navy/8 bg-white p-3.5"
-          >
-            <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-cream">
-              {it.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={it.image} alt={it.nameFa || it.name} className="h-full w-full object-cover" />
-              ) : null}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] text-navy/45">{it.brand}</div>
-              <div className="line-clamp-1 text-[13.5px] font-medium text-navy">{it.nameFa || it.name}</div>
-              <div className="mt-1 text-[12px] text-navy/50">سایز: {it.size}</div>
-            </div>
-            <div className="shrink-0 text-left">
-              <div className="font-display text-[14px] font-bold text-gold tabular-nums">
-                {formatToman(Math.round(it.priceTL * perLirToman))}
+        {items.map((it) => {
+          const key = `${it.productId}:${it.size}`;
+          const isInvalid = invalid.has(key);
+          const cargoToman = itemCargoToman(it.freeCargo);
+          return (
+            <div
+              key={key}
+              className={`flex items-center gap-4 rounded-2xl border bg-white p-3.5 ${
+                isInvalid ? "border-red-200 bg-red-50/40" : "border-navy/8"
+              }`}
+            >
+              <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-cream">
+                {it.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={it.image} alt={it.nameFa || it.name} className="h-full w-full object-cover" />
+                ) : null}
               </div>
-              <button
-                onClick={() => remove(it.productId, it.size)}
-                className="mt-1 text-[11.5px] text-navy/35 hover:text-red-500"
-              >
-                حذف
-              </button>
+              <div className="min-w-0 flex-1">
+                <div className="text-[11px] text-navy/45">{it.brand}</div>
+                <div className="line-clamp-1 text-[13.5px] font-medium text-navy">{it.nameFa || it.name}</div>
+                <div className="mt-1 text-[12px] text-navy/50">سایز: {it.size}</div>
+                {isInvalid ? (
+                  <div className="mt-1 text-[11.5px] font-medium text-red-500">این کالا دیگر موجود نیست</div>
+                ) : !it.freeCargo ? (
+                  <div className="mt-1 text-[11px] text-navy/40">+ کارگوی برآوردی: {formatToman(cargoToman)}</div>
+                ) : null}
+              </div>
+              <div className="shrink-0 text-left">
+                <div className="font-display text-[14px] font-bold text-gold tabular-nums">
+                  {formatToman(Math.round(it.priceTL * perLirToman) + cargoToman)}
+                </div>
+                <button
+                  onClick={() => remove(it.productId, it.size)}
+                  className="mt-1 text-[11.5px] text-navy/35 hover:text-red-500"
+                >
+                  حذف
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* تسویه */}
       <div className="card-soft relative h-fit overflow-hidden p-6 shadow-card md:sticky md:top-24">
         <span className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(201,169,106,0.1),transparent_65%)]" />
         <div className="relative flex items-center justify-between border-b border-navy/8 pb-4">
-          <span className="text-sm text-navy/60">جمعِ کل</span>
+          <span className="text-sm text-navy/60">جمعِ کل (شاملِ کارگوی برآوردی)</span>
           <span className="font-display text-lg font-bold text-gold tabular-nums">{formatToman(totalToman)}</span>
         </div>
 
@@ -180,8 +226,13 @@ export default function TrendyolCartView({ perLirToman, defaultName, card, teleg
             خطا در ثبتِ برخی سفارش‌ها. دوباره تلاش کن یا از تلگرام سفارش بده.
           </p>
         )}
+        {invalid.size > 0 && (
+          <p className="relative mt-3 text-center text-[11.5px] text-red-500">
+            {invalid.size.toLocaleString("fa-IR")} کالای ناموجود در سبد است و در سفارش لحاظ نمی‌شود.
+          </p>
+        )}
         <p className="relative mt-3 text-center text-[11px] leading-5 text-navy/35">
-          به‌ازای هر کالا یک سفارش با لینکِ اصلِ محصول برای ما ثبت می‌شود تا موجودی/قیمت را تأیید کنیم.
+          به‌ازای هر کالا یک سفارش با لینکِ اصلِ محصول و هزینهٔ کارگو برای ما ثبت می‌شود تا موجودی/قیمت را تأیید کنیم.
         </p>
 
         <style jsx>{`

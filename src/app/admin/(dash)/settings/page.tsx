@@ -50,6 +50,17 @@ export default async function AdminSettings() {
           <p className="text-[11px] text-navy/40">مثلاً ۰٫۱۵ یعنی ۱۵٪. کارمزد در نرخ تومان پنهان می‌ماند.</p>
         </Section>
 
+        {/* کارگوی کاتالوگِ ترندیول */}
+        <Section title="هزینهٔ کارگو — کاتالوگِ ترندیول">
+          <Field label="برآوردِ هزینهٔ کارگوی داخلِ ترکیه (لیر)">
+            <input name="cargoFeeEstimateTL" defaultValue={s.cargoFeeEstimateTL} className="inp" dir="ltr" />
+          </Field>
+          <p className="text-[11px] text-navy/40">
+            وقتی محصولِ کاتالوگِ ترندیول کارگوی رایگان نداشته باشد، همین مبلغ (به لیر) به قیمتِ نهاییِ
+            نمایش‌داده‌شده به مشتری اضافه می‌شود — با برچسبِ «برآوردی».
+          </p>
+        </Section>
+
         {/* کارت */}
         <Section title="اطلاعات پرداخت">
           <Field label="شماره کارت">

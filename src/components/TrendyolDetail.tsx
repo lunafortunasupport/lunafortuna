@@ -3,19 +3,23 @@
 import { useMemo, useState } from "react";
 import { formatToman } from "@/lib/format";
 import { useCart } from "@/lib/trendyolCart";
-import type { TrendyolProduct } from "@/lib/trendyolDemo";
+import { priceBreakdown, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
 
 export default function TrendyolDetail({
   product,
+  images,
+  attributes,
   perLirToman,
-  categoryLabel,
+  cargoFeeEstimateTL,
 }: {
-  product: TrendyolProduct;
+  product: MirrorProductWithVariants;
+  images: string[];
+  attributes: { labelFa: string; valueFa: string }[];
   perLirToman: number;
-  categoryLabel: string;
+  cargoFeeEstimateTL: number;
 }) {
   const { add, has } = useCart();
-  const images = product.images?.length ? product.images : product.image ? [product.image] : [];
+  const gallery = images.length ? images : product.image ? [product.image] : [];
   const [activeImg, setActiveImg] = useState(0);
   const singleVariant = product.variants.length === 1 ? product.variants[0] : null;
   const [size, setSize] = useState<string | null>(singleVariant ? singleVariant.size : null);
@@ -25,20 +29,21 @@ export default function TrendyolDetail({
     () => product.variants.find((v) => v.size === size) || null,
     [product.variants, size]
   );
-  const priceToman = selectedVariant?.priceTL != null ? Math.round(selectedVariant.priceTL * perLirToman) : null;
+  const breakdown = priceBreakdown(selectedVariant, perLirToman, cargoFeeEstimateTL);
   const alreadyInCart = size ? has(product.id, size) : false;
 
   function handleAdd() {
     if (!selectedVariant || !selectedVariant.inStock) return;
     add({
       productId: product.id,
-      name: product.name,
-      nameFa: product.nameFa,
+      name: product.nameTr,
+      nameFa: product.nameFa || undefined,
       brand: product.brand,
       image: product.image,
       sourceUrl: product.sourceUrl,
       size: selectedVariant.size,
       priceTL: selectedVariant.priceTL || 0,
+      freeCargo: selectedVariant.freeCargo,
     });
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2200);
@@ -49,18 +54,22 @@ export default function TrendyolDetail({
       {/* گالری */}
       <div className="reveal">
         <div className="aspect-[3/4] overflow-hidden rounded-2xl bg-cream ring-1 ring-navy/8">
-          {images.length ? (
+          {gallery.length ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={images[activeImg]} alt={product.nameFa || product.name} className="h-full w-full object-cover" />
+            <img
+              src={gallery[activeImg]}
+              alt={product.nameFa || product.nameTr}
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="flex h-full items-center justify-center text-navy/15">
               <span className="font-display text-4xl">🌙</span>
             </div>
           )}
         </div>
-        {images.length > 1 && (
+        {gallery.length > 1 && (
           <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1">
-            {images.map((img, i) => (
+            {gallery.map((img, i) => (
               <button
                 key={img}
                 onClick={() => setActiveImg(i)}
@@ -83,16 +92,18 @@ export default function TrendyolDetail({
           <span className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-navy/70 ring-1 ring-navy/10">
             {product.brand}
           </span>
-          <span className="rounded-full bg-gold/10 px-3 py-1 text-[11px] font-medium text-gold">{categoryLabel}</span>
+          <span className="rounded-full bg-gold/10 px-3 py-1 text-[11px] font-medium text-gold">
+            {product.categoryFa}
+          </span>
           <span className="rounded-full bg-navy/85 px-3 py-1 text-[10.5px] font-medium text-cream">دادهٔ زنده</span>
         </div>
 
         <h1 className="mt-4 font-display text-2xl font-semibold leading-9 text-navy">
-          {product.nameFa || product.name}
+          {product.nameFa || product.nameTr}
         </h1>
         {product.nameFa && (
           <p className="mt-1 text-[12px] text-navy/40" dir="ltr">
-            {product.name}
+            {product.nameTr}
           </p>
         )}
 
@@ -125,18 +136,41 @@ export default function TrendyolDetail({
           </div>
         </div>
 
-        {/* قیمت + افزودن به سبد */}
-        <div className="mt-6 flex items-center justify-between rounded-2xl border border-gold/20 bg-gold/5 px-5 py-4">
-          <div>
-            <div className="text-[11px] text-navy/45">قیمتِ سایزِ انتخابی</div>
-            <div className="font-display text-xl font-bold text-gold tabular-nums">
-              {priceToman != null ? formatToman(priceToman) : "سایز را انتخاب کن"}
-            </div>
-          </div>
+        {/* شکافِ شفافِ قیمت (کالا + کارگو) */}
+        <div className="mt-6 rounded-2xl border border-gold/20 bg-gold/5 px-5 py-4">
+          {breakdown.itemToman != null ? (
+            <>
+              <div className="flex items-center justify-between text-[13px] text-navy/60">
+                <span>قیمتِ کالا</span>
+                <span className="tabular-nums text-navy/75">{formatToman(breakdown.itemToman)}</span>
+              </div>
+              <div className="mt-1.5 flex items-center justify-between text-[13px]">
+                <span className="text-navy/60">هزینهٔ کارگوی داخلِ ترکیه</span>
+                {breakdown.freeCargo ? (
+                  <span className="font-medium text-emerald-600">رایگان</span>
+                ) : (
+                  <span className="tabular-nums text-navy/75">برآوردی · {formatToman(breakdown.cargoToman)}</span>
+                )}
+              </div>
+              <div className="mt-2.5 flex items-center justify-between border-t border-gold/25 pt-2.5">
+                <span className="text-[13px] font-medium text-navy/70">جمعِ نهایی</span>
+                <span className="font-display text-xl font-bold text-gold tabular-nums">
+                  {formatToman(breakdown.totalToman!)}
+                </span>
+              </div>
+              {!breakdown.freeCargo && (
+                <p className="mt-2 text-[11px] leading-5 text-navy/40">
+                  هزینهٔ کارگو تقریبی است؛ رقمِ دقیق موقعِ خرید توسطِ ما نهایی می‌شود.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="text-center text-[13px] text-navy/50">سایز را انتخاب کن تا قیمتِ نهایی دیده شود</div>
+          )}
           <button
             onClick={handleAdd}
             disabled={!selectedVariant || !selectedVariant.inStock}
-            className="btn-gold shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-gold mt-4 w-full disabled:cursor-not-allowed disabled:opacity-40"
           >
             {justAdded ? "افزوده شد ✓" : alreadyInCart ? "دوباره افزودن" : "افزودن به سبد"}
           </button>
@@ -156,11 +190,11 @@ export default function TrendyolDetail({
         </a>
 
         {/* ویژگی‌ها */}
-        {product.attributes?.length ? (
+        {attributes.length ? (
           <div className="mt-8 border-t border-navy/8 pt-6">
             <div className="mb-3 text-[12px] font-semibold uppercase tracking-[0.15em] text-navy/45">ویژگی‌های محصول</div>
             <dl className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2">
-              {product.attributes.map((a) => (
+              {attributes.map((a) => (
                 <div key={a.labelFa} className="flex items-baseline justify-between gap-3 border-b border-navy/6 pb-1.5">
                   <dt className="shrink-0 text-[12.5px] text-navy/45">{a.labelFa}</dt>
                   <dd className="text-left text-[12.5px] font-medium text-navy/80">{a.valueFa}</dd>

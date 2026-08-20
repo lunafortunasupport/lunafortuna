@@ -1,0 +1,53 @@
+# سینکِ دوره‌ایِ کاتالوگِ ترندیول (پیش‌نمایش): محصولاتِ پرطرفدار/پرامتیاز از ترندیول و ترندیول‌میلا
+# را با مرورگرِ واقعی (Playwright) می‌خواند و در MirrorProduct/MirrorVariant در دیتابیسِ Neon
+# به‌روز می‌کند. نتیجه بلافاصله روی /preview/trendyol دیده می‌شود.
+#
+# تنظیمِ لازم (یک‌بار): در GitHub → Settings → Secrets and variables → Actions یک secret به نام
+# DATABASE_URL بساز و رشتهٔ اتصالِ Neon (همان که در Vercel است) را بگذار — اگر برای check-sales.yml
+# قبلاً ساخته‌ای، همان کافی‌ست.
+#
+# نکته: اولین اجرا (کرون یا دستی) باید بعد از این باشد که دیپلویِ Vercel روی این برنچ کامل شده و
+# scripts/vercel-build.js جدولِ MirrorProduct/MirrorVariant و فیلدِ cargoFeeEstimateTL را در Neon
+# ساخته باشد؛ وگرنه این وردفلو با خطای «جدول وجود ندارد» شکست می‌خورد.
+
+name: Sync Trendyol catalog
+
+on:
+  schedule:
+    - cron: "0 */12 * * *" # هر ۱۲ ساعت
+  workflow_dispatch: {} # اجرای دستی از تب Actions
+
+concurrency:
+  group: sync-trendyol
+  cancel-in-progress: true
+
+jobs:
+  sync-trendyol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      # provider را به postgresql سوییچ کن (مثل build) تا کلاینت به Neon وصل شود.
+      - name: Switch Prisma provider to postgresql
+        run: node -e "const fs=require('fs');const p='prisma/schema.prisma';let s=fs.readFileSync(p,'utf8');fs.writeFileSync(p,s.replace('provider = \"sqlite\"','provider = \"postgresql\"'));console.log('provider → postgresql')"
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run catalog sync
+        run: npx tsx scripts/sync-trendyol.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

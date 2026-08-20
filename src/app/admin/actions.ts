@@ -183,6 +183,7 @@ export async function updateSettings(formData: FormData) {
       feeGold: num("feeGold", cur?.feeGold ?? 0.1),
       feeBirthday: num("feeBirthday", cur?.feeBirthday ?? 0.12),
       feeReferral: num("feeReferral", cur?.feeReferral ?? 0.12),
+      cargoFeeEstimateTL: num("cargoFeeEstimateTL", cur?.cargoFeeEstimateTL ?? 150),
       cardNumber: String(formData.get("cardNumber") || ""),
       cardOwner: String(formData.get("cardOwner") || ""),
       cardBank: String(formData.get("cardBank") || ""),

@@ -1,0 +1,363 @@
+// سینکِ کاتالوگِ ترندیول: محصولاتِ پرطرفدار/پرامتیاز از دسته‌های متنوع (ترندیول + ترندیول‌میلا) را
+// می‌خواند و در MirrorProduct/MirrorVariant ذخیره می‌کند. روی GitHub Actions زمان‌بندی می‌شود (هر ۱۲
+// ساعت)، دقیقاً هم‌الگو با scripts/check-sales.mjs.
+//
+//   npx tsx scripts/sync-trendyol.mjs
+//   LIMIT_CATEGORIES=2 LIMIT_PER_CATEGORY=8 npx tsx scripts/sync-trendyol.mjs   ← حالتِ تستِ سریع
+//
+// معماری (دو مرحله — هم «پرطرفدار» باشد هم کم‌ریسک):
+//   ۱) لیستینگ: برای هر دسته، APIِ سرچِ ترندیول (fl=/q=, sst=BEST_SELLER) مستقیم fetch می‌شود
+//      (نه page.goto — خیلی سریع‌تر، ۲۴ محصول در هر درخواست) تا کاندیدهای پرفروش پیدا شوند.
+//   ۲) جزئیات: فقط برای کاندیدهای برگزیده (سقفِ هر دسته) صفحهٔ محصول با Playwright واقعی باز
+//      می‌شود تا سایز/موجودی/کارگو/ویژگی‌ها دقیق گرفته شود (این داده فقط این‌جا هست).
+//
+// ── چرا fetchِ خامِ Node کار نمی‌کند ولی fetchِ داخلِ صفحه (مرورگرِ واقعی) کار می‌کند ──
+// fetch()ِ سادهٔ Node (که Vercel/Next.js هم زیرش همین را دارد) با ۴۰۳ مسدود می‌شود — حتی با
+// User-Agentِ درست — چون مسدودسازی روی امضای TLS/HTTP2 (JA3/JA4) است، نه هدرها. curl با همان
+// هدرها موفق می‌شود؛ یعنی نیاز به یک استکِ TCP/TLSِ واقعی (مرورگر) هست. برای همین همه‌چیز از
+// طریقِ Playwright/Chromiومِ واقعی انجام می‌شود: هم صفحاتِ جزئیات (page.goto) و هم APIِ لیستینگ
+// (page.evaluate(() => fetch(...)))‌ — چون آن fetch هم از داخلِ contextِ مرورگرِ واقعی اجرا می‌شود.
+import { chromium } from "playwright";
+import { PrismaClient } from "@prisma/client";
+import { translateAttributes, trLower, categoryLabelFa } from "./trendyol-fa-dict.mjs";
+
+const prisma = new PrismaClient();
+
+const LIMIT_CATEGORIES = Number(process.env.LIMIT_CATEGORIES) || Infinity;
+const LIMIT_PER_CATEGORY = Number(process.env.LIMIT_PER_CATEGORY) || 60;
+const TOTAL_CAP = Number(process.env.TOTAL_CAP) || 1400;
+const DETAIL_CONCURRENCY = Number(process.env.DETAIL_CONCURRENCY) || 4;
+
+const UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
+// ۴ محصولی که قبلاً دستی و باکیفیت ترجمه شدند — سینک این‌ها را بازنویسی نمی‌کند.
+const MANUAL_OVERRIDES = {
+  1101590393: {
+    nameFa: "بلوزِ سبزِ اورسایز، بافتِ نازک و دورریز",
+    descriptionFa:
+      "بلوزی اورسایزِ سبک با یقه‌گرد و آستینِ خفاشی، از پارچهٔ بافتهٔ نخیِ نازک — برای پوششِ روزمرهٔ راحت و خنک.",
+  },
+  938914429: {
+    nameFa: "بلوزِ ساتنِ مشکی، یقه‌هالتر (مخصوصِ مهمانی)",
+    descriptionFa:
+      "بلوزی شیک از ساتنِ مشکیِ خالدار با یقه‌هالتر و بدونِ آستین — انتخابی مناسب برای مهمانی و مناسبت‌های ویژه.",
+  },
+  994002982: {
+    nameFa: "شلوارِ جینِ سرمه‌ای، کمرِ بلند و پاچه‌گشاد (پالاتزو)",
+    descriptionFa: "شلوارِ جینِ کمربلند با پاچه‌گشادِ پالاتزو و کششِ متوسط — راحت و شیک، برای استفادهٔ روزمره.",
+  },
+  905066889: {
+    nameFa: "پیراهنِ سفیدِ ساده، آستین‌بلند (بیسیک)",
+    descriptionFa:
+      "پیراهنِ کلاسیکِ سفید با یقهٔ پیراهنی و آستینِ بلند، دکمه‌دار و بدونِ طرح — ساده و همیشه‌کاربردی، مناسبِ پوششِ روزمره یا اداری.",
+  },
+};
+
+// دسته‌ها: هرکدام یا `fl` (فیلترِ گردآوریِ ترندیول‌میلا) یا `q` (جست‌وجوی کلیدواژه‌ایِ ترندیولِ عمومی) دارد.
+const CATEGORIES = [
+  // ── ترندیول‌میلا (برندِ اختصاصیِ ترندیول — اولویتِ اول طبقِ خواستهٔ کاربر) ──
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "party-bluzlari", label: "بلوزِ مهمانی" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "maxi-elbiseler", label: "لباسِ مکسی" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "davet-elbiseleri", label: "لباسِ مجلسی" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "midi-elbiseler", label: "لباسِ میدی" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "mini-elbiseler", label: "لباسِ کوتاه" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "keten-elbiseler", label: "لباسِ کتان" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "mini-cantalar-2", label: "کیفِ کوچک" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "sik-gece-cantalari", label: "کیفِ مجلسی" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", fl: "yazlik-pantolonlar", label: "شلوارِ تابستانی" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", q: "bluz", label: "بلوز" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", q: "gömlek", label: "پیراهن" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", q: "kot pantolon", label: "شلوار جین" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", q: "sırt çantası", label: "کوله‌پشتی" },
+  { site: "trendyol-milla", base: "https://www.trendyol-milla.com", q: "ceket", label: "ژاکت" },
+  // ── ترندیولِ عمومی (تنوعِ دسته‌بندیِ بیشتر) ──
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın bluz", label: "بلوز" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın gömlek", label: "پیراهن" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın kot pantolon", label: "شلوار جین" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın sırt çantası", label: "کوله‌پشتی" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın elbise", label: "لباس" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın ceket", label: "ژاکت" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın etek", label: "دامن" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın çanta", label: "کیف" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın tulum", label: "تولوم" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın triko", label: "تریکو" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın ayakkabı", label: "کفش" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın mont", label: "کاپشن" },
+].slice(0, LIMIT_CATEGORIES);
+
+const APIGW = {
+  "trendyol-milla": "https://apigw.trendyol-milla.com/discovery-sfint-search-service/api/search/products/",
+  trendyol: "https://apigw.trendyol.com/discovery-sfint-search-service/api/search/products/",
+};
+const CHANNEL_ID = { "trendyol-milla": 8, trendyol: 1 };
+
+/** یک صفحه از لیستینگ (۲۴ محصول) را با fetchِ داخلِ مرورگرِ واقعی می‌گیرد. */
+async function fetchListingPage(page, cat, pageIndex) {
+  const base = APIGW[cat.site];
+  const params = new URLSearchParams({
+    promotionSearch: "false",
+    channelId: String(CHANNEL_ID[cat.site]),
+    sst: "BEST_SELLER",
+    pi: String(pageIndex),
+    pageSize: "24",
+  });
+  if (cat.fl) params.set("fl", cat.fl);
+  if (cat.q) params.set("q", cat.q);
+  const url = `${base}?${params.toString()}`;
+  return page.evaluate(async (u) => {
+    try {
+      const res = await fetch(u, { credentials: "include", headers: { Accept: "application/json" } });
+      if (!res.ok) return { error: `http ${res.status}` };
+      return await res.json();
+    } catch (e) {
+      return { error: String(e) };
+    }
+  }, url);
+}
+
+/** کاندیدهای یک دسته را جمع می‌کند (تا ۳ صفحه، تا سقفِ LIMIT_PER_CATEGORY). */
+async function collectCandidates(page, cat) {
+  // قبل از fetchِ اپی‌گیت‌وی، یک‌بار روی خودِ سایت باشیم (برای کوکی/کانتکستِ درست).
+  await page.goto(cat.base, { waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => {});
+  const out = [];
+  for (let pi = 1; pi <= 3 && out.length < LIMIT_PER_CATEGORY; pi++) {
+    const json = await fetchListingPage(page, cat, pi);
+    const products = json?.products;
+    if (!Array.isArray(products) || products.length === 0) break;
+    for (const p of products) {
+      if (!p?.id || !p?.url) continue;
+      out.push({
+        sourceId: p.id,
+        sourceSite: cat.site,
+        sourceUrl: new URL(p.url, cat.base).toString(),
+        brand: p.brand || "",
+        categoryTr: p.category?.name || cat.label,
+        ratingScore: p.ratingScore?.averageRating ?? null,
+        favoriteCount: p.ratingScore?.totalCount ?? null,
+      });
+      if (out.length >= LIMIT_PER_CATEGORY) break;
+    }
+  }
+  return out;
+}
+
+/** استخراجِ بلوکِ JSONِ بعد از `window["key"]=` با شمارشِ متعادلِ آکولاد (امن‌تر از regex). */
+function extractWindowJson(html, key) {
+  const marker = `window["${key}"]=`;
+  const idx = html.indexOf(marker);
+  if (idx === -1) return null;
+  let i = idx + marker.length;
+  if (html[i] !== "{") return null;
+  const start = i;
+  let depth = 0,
+    inStr = false,
+    strCh = "",
+    esc = false;
+  for (; i < html.length; i++) {
+    const c = html[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === "\\") esc = true;
+      else if (c === strCh) inStr = false;
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      inStr = true;
+      strCh = c;
+      continue;
+    }
+    if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0) {
+        i++;
+        break;
+      }
+    }
+  }
+  try {
+    return JSON.parse(html.slice(start, i));
+  } catch {
+    return null;
+  }
+}
+
+/** جزئیاتِ یک محصول را با ناوبریِ واقعی می‌گیرد. */
+async function fetchDetail(page, sourceUrl) {
+  const resp = await page.goto(sourceUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+  const status = resp ? resp.status() : 0;
+  if (status === 403 || status === 429 || status === 503) return { error: "blocked" };
+  const html = await page.content();
+  const shared = extractWindowJson(html, "__envoy__SHARED_PROPS");
+  const p = shared?.product;
+  if (!p) return { error: "no-product-json" };
+
+  // نکتهٔ مهم: freeCargo روی خودِ p.variants[] وجود ندارد (فقط size/inStock/price آنجاست).
+  // تنها جایی که freeCargo واقعی هست merchantListing.winnerVariant است — یک بولیِ واحد برای
+  // «سایزِ درحال‌انتخاب». چون آستانهٔ کارگوی رایگان به قیمتِ سبد بستگی دارد نه به تک‌تکِ سایزها،
+  // همین یک مقدار را (به‌صورتِ محافظه‌کارانه) برای همهٔ سایزهای این محصول اعمال می‌کنیم.
+  const winnerFreeCargo = !!p.merchantListing?.winnerVariant?.freeCargo;
+  const rawVariants = (p.variants || []).map((v) => ({
+    size: v.beautifiedValue || v.value || "استاندارد",
+    inStock: !!v.inStock,
+    priceTL: typeof v.price?.value === "number" ? v.price.value : null,
+    freeCargo: winnerFreeCargo,
+  }));
+  // چند محصول (رنگ‌بندی‌های ادغام‌شده و…) یک سایزِ تکراری برمی‌گردانند که با @@unique([productId,size])
+  // تناقض دارد؛ اولین رخدادِ هر سایز نگه داشته می‌شود.
+  const seenSizes = new Set();
+  const variants = rawVariants.filter((v) => {
+    if (seenSizes.has(v.size)) return false;
+    seenSizes.add(v.size);
+    return true;
+  });
+  const prices = variants.map((v) => v.priceTL).filter((n) => n != null);
+
+  return {
+    nameTr: p.name || "",
+    brand: p.brand?.name || "",
+    categoryTr: p.category?.name || p.webCategory?.name || "",
+    image: Array.isArray(p.images) ? p.images.find((u) => !/placeholder/i.test(u)) || p.images[0] || null : null,
+    images: Array.isArray(p.images) ? p.images.filter((u) => !/placeholder/i.test(u)).slice(0, 6) : [],
+    attributes: translateAttributes(p.attributes),
+    variants,
+    minPriceTL: prices.length ? Math.min(...prices) : null,
+  };
+}
+
+async function upsertProduct(c, detail, now) {
+  // ترجمهٔ نامِ کامل هنوز خودکار نیست (جایگزینیِ واژه‌به‌واژه نتیجهٔ نصفه‌کاره/نامفهوم می‌داد —
+  // بدتر از نشان‌دادنِ صادقانهٔ نامِ ترکی). فقط ۴ محصولِ MANUAL_OVERRIDES نامِ فارسیِ باکیفیت دارند؛
+  // بقیه با نامِ ترکی نمایش داده می‌شوند تا ترجمهٔ AI (بعدِ فعال‌سازیِ چت‌بات) این را کامل کند.
+  const override = MANUAL_OVERRIDES[c.sourceId];
+  const nameFa = override?.nameFa || null;
+  const descriptionFa = override?.descriptionFa || null;
+  const categoryTr = detail.categoryTr || c.categoryTr;
+  const searchText = trLower([nameFa, detail.nameTr, detail.brand].filter(Boolean).join(" "));
+
+  const data = {
+    sourceUrl: c.sourceUrl,
+    brand: detail.brand || c.brand,
+    category: categoryTr,
+    categoryFa: categoryLabelFa(categoryTr),
+    nameTr: detail.nameTr,
+    nameFa,
+    descriptionFa,
+    image: detail.image,
+    images: JSON.stringify(detail.images || []),
+    attributes: JSON.stringify(detail.attributes || []),
+    searchText,
+    minPriceTL: detail.minPriceTL,
+    ratingScore: c.ratingScore,
+    favoriteCount: c.favoriteCount,
+    isActive: true,
+    lastSyncedAt: now,
+  };
+
+  const product = await prisma.mirrorProduct.upsert({
+    where: { sourceSite_sourceId: { sourceSite: c.sourceSite, sourceId: c.sourceId } },
+    create: { sourceSite: c.sourceSite, sourceId: c.sourceId, ...data },
+    update: data,
+  });
+
+  // resyncِ واریانت‌ها: حذف و بازساخت داخلِ تراکنش (تعدادِ سایز ممکن است عوض شده باشد).
+  await prisma.$transaction([
+    prisma.mirrorVariant.deleteMany({ where: { productId: product.id } }),
+    prisma.mirrorVariant.createMany({
+      data: (detail.variants || []).map((v) => ({
+        productId: product.id,
+        size: v.size,
+        inStock: v.inStock,
+        priceTL: v.priceTL,
+        freeCargo: v.freeCargo,
+      })),
+    }),
+  ]);
+}
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function main() {
+  console.log(`سینکِ کاتالوگِ ترندیول — ${CATEGORIES.length} دسته، سقفِ هر دسته ${LIMIT_PER_CATEGORY}`);
+  const browser = await chromium.launch({ args: ["--disable-blink-features=AutomationControlled"] });
+  const ctx = await browser.newContext({
+    locale: "tr-TR",
+    viewport: { width: 1366, height: 768 },
+    userAgent: UA,
+  });
+  await ctx.addInitScript(() => Object.defineProperty(navigator, "webdriver", { get: () => undefined }));
+  await ctx.route("**/*", (r) =>
+    ["image", "media", "font"].includes(r.request().resourceType()) ? r.abort() : r.continue()
+  );
+
+  // ── مرحلهٔ ۱: لیستینگ (سریع، fetchِ APIِ داخلِ صفحه) ──
+  const listingPage = await ctx.newPage();
+  const seen = new Map(); // "site:sourceId" → candidate (دیدوپلیکیت بینِ دسته‌ها)
+  for (const cat of CATEGORIES) {
+    if (seen.size >= TOTAL_CAP) break;
+    try {
+      const candidates = await collectCandidates(listingPage, cat);
+      let added = 0;
+      for (const c of candidates) {
+        const key = `${c.sourceSite}:${c.sourceId}`;
+        if (!seen.has(key)) {
+          seen.set(key, c);
+          added++;
+        }
+      }
+      console.log(`  لیستینگ ${cat.site}/${cat.label}: ${candidates.length} کاندید (${added} جدید)`);
+    } catch (e) {
+      console.log(`  لیستینگ ${cat.site}/${cat.label}: خطا — ${String(e).slice(0, 80)}`);
+    }
+  }
+  await listingPage.close();
+  const candidates = [...seen.values()].slice(0, TOTAL_CAP);
+  console.log(`مجموعِ کاندیدهای یکتا: ${candidates.length}`);
+
+  // ── مرحلهٔ ۲: جزئیات (با همزمانیِ محدود، مثلِ check-sales.mjs) ──
+  const now = new Date();
+  let idx = 0,
+    ok = 0,
+    failed = 0;
+  const pages = await Promise.all(Array.from({ length: DETAIL_CONCURRENCY }, () => ctx.newPage()));
+  await Promise.all(
+    pages.map(async (page) => {
+      while (idx < candidates.length) {
+        const c = candidates[idx++];
+        await sleep(200 + Math.random() * 400); // ادبِ درخواست
+        try {
+          const detail = await fetchDetail(page, c.sourceUrl);
+          if (detail.error) {
+            failed++;
+            continue;
+          }
+          await upsertProduct(c, detail, now);
+          ok++;
+          if (ok % 25 === 0) console.log(`  پیشرفت: ${ok}/${candidates.length}`);
+        } catch (e) {
+          failed++;
+          console.log(`  خطا در ${c.sourceUrl.slice(0, 70)}: ${String(e).slice(0, 80)}`);
+        }
+      }
+    })
+  );
+  await browser.close();
+
+  // محصولاتی که این بار دیده نشدند (ولی قبلاً بودند) → غیرفعال (نه حذفِ فیزیکی).
+  const stale = await prisma.mirrorProduct.updateMany({
+    where: { isActive: true, lastSyncedAt: { lt: now } },
+    data: { isActive: false },
+  });
+
+  console.log(`\n✓ تمام شد. موفق: ${ok}، ناموفق: ${failed}، غیرفعال‌شده (دیگر دیده نشد): ${stale.count}`);
+  await prisma.$disconnect();
+}
+
+main().catch(async (e) => {
+  console.error(e);
+  await prisma.$disconnect();
+  process.exit(1);
+});

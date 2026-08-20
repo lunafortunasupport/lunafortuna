@@ -1,20 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSettings, feesFromSettings } from "@/lib/settings";
-import { getSnapshotProduct, CATEGORY_LABELS_FA } from "@/lib/trendyolDemo";
+import { getMirrorProduct, parseImages, parseAttributes } from "@/lib/trendyolCatalog";
 import TrendyolDetail from "@/components/TrendyolDetail";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = getSnapshotProduct(Number(id));
-  return { title: product ? product.nameFa || product.name : "محصول یافت نشد" };
+  const product = await getMirrorProduct(id);
+  return { title: product ? product.nameFa || product.nameTr : "محصول یافت نشد" };
 }
 
 export default async function TrendyolProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = getSnapshotProduct(Number(id));
+  const product = await getMirrorProduct(id);
   if (!product) notFound();
 
   const s = await getSettings();
@@ -31,8 +31,10 @@ export default async function TrendyolProductPage({ params }: { params: Promise<
       </Link>
       <TrendyolDetail
         product={product}
+        images={parseImages(product.images)}
+        attributes={parseAttributes(product.attributes)}
         perLirToman={perLirToman}
-        categoryLabel={CATEGORY_LABELS_FA[product.category] || product.category}
+        cargoFeeEstimateTL={s.cargoFeeEstimateTL}
       />
     </div>
   );

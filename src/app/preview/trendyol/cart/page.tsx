@@ -18,6 +18,7 @@ export default async function TrendyolCartPage() {
       </div>
       <TrendyolCartView
         perLirToman={perLirToman}
+        cargoFeeEstimateTL={s.cargoFeeEstimateTL}
         defaultName={user?.name || ""}
         card={{ number: s.cardNumber, owner: s.cardOwner, bank: s.cardBank }}
         telegramSupport={s.telegramSupport}
