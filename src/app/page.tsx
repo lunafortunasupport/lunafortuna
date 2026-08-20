@@ -8,7 +8,6 @@ import Divider from "@/components/Divider";
 import BrandMarquee from "@/components/BrandMarquee";
 import PopularShowcase from "@/components/PopularShowcase";
 import {
-  queryMirrorProducts,
   getFeaturedBrandStats,
   priceBreakdown,
   saleView,
@@ -46,7 +45,15 @@ export default async function HomePage() {
       take: 12,
       select: { slug: true, name: true, logoUrl: true, saleUrl: true, saleLabel: true },
     }),
-    queryMirrorProducts({ sort: "popular", page: 1 }, perLir),
+    // محبوب‌ترین‌ها: فقط محصولاتی که واقعاً favoriteCount دارند (آمبار از سایتِ خودش پسند
+    // نمی‌دهد). فیلترِ gt:0 هم nullها را حذف می‌کند، پس مرتب‌سازی روی Postgres و SQLite یکسان
+    // می‌ماند (بدونِ این فیلتر، Postgres nullها را «اول» می‌آورد و آمبار جای محبوب‌ها را می‌گیرد).
+    prisma.mirrorProduct.findMany({
+      where: { isActive: true, favoriteCount: { gt: 0 } },
+      orderBy: [{ favoriteCount: "desc" }, { ratingScore: "desc" }],
+      take: 13,
+      include: { variants: true },
+    }),
     getFeaturedBrandStats(),
   ]);
 
@@ -72,7 +79,7 @@ export default async function HomePage() {
       freeCargo: breakdown.freeCargo,
     };
   };
-  const popularItems = popular.items.map(toItem);
+  const popularItems = (popular as MirrorProductWithVariants[]).map(toItem);
   const leadItem = popularItems[0] || null;
   const railItems = popularItems.slice(1);
   const showcaseBrands = featuredStats
