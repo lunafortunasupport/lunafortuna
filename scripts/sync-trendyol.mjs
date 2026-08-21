@@ -418,8 +418,11 @@ async function main() {
   await browser.close();
 
   // محصولاتی که این بار دیده نشدند (ولی قبلاً بودند) → غیرفعال (نه حذفِ فیزیکی).
+  // فقط محصولاتِ همین سینک (trendyol + trendyol-milla) را غیرفعال کن — نه آمبار! آمبار منبعِ
+  // جداست (sync-ambar.mjs) و این اجرا آن را نمی‌بیند؛ بدونِ این scope، sweep کلِ کاتالوگِ آمبار را
+  // اشتباهی غیرفعال می‌کرد.
   const stale = await prisma.mirrorProduct.updateMany({
-    where: { isActive: true, lastSyncedAt: { lt: now } },
+    where: { isActive: true, lastSyncedAt: { lt: now }, sourceSite: { in: ["trendyol", "trendyol-milla"] } },
     data: { isActive: false },
   });
 
