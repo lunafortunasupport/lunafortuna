@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSettings, feesFromSettings } from "@/lib/settings";
-import { queryMirrorProducts, getFacets, getFeaturedBrand, type PriceBucket, type SortOption } from "@/lib/trendyolCatalog";
+import { queryMirrorProducts, getFacets, getFeaturedBrand, getPillar, type PriceBucket, type SortOption } from "@/lib/trendyolCatalog";
 import TrendyolDemoCard from "@/components/TrendyolDemoCard";
 import TrendyolFilters from "@/components/TrendyolFilters";
 
@@ -29,13 +29,15 @@ export default async function TrendyolPreviewPage({
     sort: VALID_SORTS.includes(sp.sort as SortOption) ? (sp.sort as SortOption) : undefined,
     onSale: sp.sale === "1" || undefined,
     featuredBrand: sp.fbrand || undefined,
+    source: sp.source || undefined,
     page: Number(sp.page) || 1,
   };
 
   const [{ items, total, page, pageCount }, facets] = await Promise.all([
     queryMirrorProducts(filters, perLirToman),
-    getFacets(),
+    getFacets(filters.source),
   ]);
+  const activePillar = filters.source ? getPillar(filters.source) : undefined;
   const activeFeaturedBrand = filters.featuredBrand ? getFeaturedBrand(filters.featuredBrand) : undefined;
 
   const qs = (p: number) => {
@@ -48,6 +50,7 @@ export default async function TrendyolPreviewPage({
     if (filters.sort) next.set("sort", filters.sort);
     if (filters.onSale) next.set("sale", "1");
     if (filters.featuredBrand) next.set("fbrand", filters.featuredBrand);
+    if (filters.source) next.set("source", filters.source);
     if (p > 1) next.set("page", String(p));
     const s = next.toString();
     return s ? `/preview/trendyol?${s}` : "/preview/trendyol";
@@ -63,24 +66,26 @@ export default async function TrendyolPreviewPage({
         </div>
         <div className="container-luna relative py-14">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] tracking-widest text-champagne">
-            🧪 پیش‌نمایشِ فنی
+            {activePillar ? activePillar.nameEn : "کاتالوگِ ترکیه"}
           </span>
-          <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">کاتالوگِ ترندیول، به فارسی و تومان</h1>
+          <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">
+            {activePillar ? `${activePillar.nameFa}، به فارسی و تومان` : "کاتالوگِ ترکیه، به فارسی و تومان"}
+          </h1>
           <p className="mt-3 max-w-2xl text-[13.5px] leading-7 text-cream/70">
-            این صفحه برای بررسیِ داخلی است (از منو لینک نشده). محصولات یک <b className="text-champagne">عکسِ‌لحظه‌ایِ واقعی</b>{" "}
-            از ترندیول‌اند (نه ساختگی) و هر ۱۲ ساعت به‌روزرسانی می‌شوند — قیمت با نرخِ روز به تومان، به‌علاوهٔ برآوردِ
-            هزینهٔ کارگوی داخلِ ترکیه وقتی رایگان نباشد. سرچ کن، فیلتر کن، سایز را انتخاب و به سبد اضافه کن.
+            {activePillar ? activePillar.blurbFa + " " : "منتخب‌ها و پرفروش‌های ترکیه، یک‌جا و به فارسی. "}
+            قیمت‌ها با <b className="text-champagne">نرخِ روز به تومان</b> محاسبه می‌شوند (به‌علاوهٔ برآوردِ هزینهٔ کارگوی
+            داخلِ ترکیه وقتی رایگان نباشد). سرچ کن، فیلتر کن، سایز را انتخاب و به سبد اضافه کن.
           </p>
         </div>
       </div>
 
       <TrendyolFilters facets={facets} total={total} />
 
-      {activeFeaturedBrand && (
+      {(activePillar || activeFeaturedBrand) && (
         <div className="container-luna pt-6">
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-gold/25 bg-gold/8 px-4 py-3">
             <span className="text-[12.5px] text-navy/70">
-              نمایشِ محصولاتِ <b className="text-navy">{activeFeaturedBrand.nameFa}</b>
+              نمایشِ محصولاتِ <b className="text-navy">{(activePillar || activeFeaturedBrand)!.nameFa}</b>
             </span>
             <Link href="/preview/trendyol/brands" className="text-[12px] font-medium text-gold hover:underline">
               ← بازگشت به همهٔ برندها

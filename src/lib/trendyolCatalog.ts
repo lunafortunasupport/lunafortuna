@@ -20,6 +20,23 @@ export interface CatalogFilters {
   page?: number;
   featuredBrand?: string;
   onSale?: boolean;
+  source?: string; // ستونِ اصلی: trendyol | trendyol-milla | ambar
+}
+
+// سه ستونِ اصلیِ کاتالوگ (بر اساسِ sourceSite). ترندیول = ملتی‌برند (همهٔ برندها).
+export interface Pillar {
+  slug: string; // = sourceSite
+  nameFa: string;
+  nameEn: string;
+  blurbFa: string;
+}
+export const PILLARS: Pillar[] = [
+  { slug: "trendyol", nameFa: "ترندیول", nameEn: "Trendyol", blurbFa: "ملتی‌برندِ بزرگِ ترکیه — پرفروش‌ترین‌ها و تخفیف‌دارها از ده‌ها برند." },
+  { slug: "trendyol-milla", nameFa: "ترندیول‌میلا", nameEn: "TRENDYOLMİLLA", blurbFa: "برندِ اختصاصیِ زنانهٔ ترندیول — پوشاکِ روزمره تا مجلسی." },
+  { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان." },
+];
+export function getPillar(slug: string): Pillar | undefined {
+  return PILLARS.find((p) => p.slug === slug);
 }
 
 export interface FeaturedBrand {
@@ -63,12 +80,18 @@ const PRICE_BUCKETS_TOMAN: Record<PriceBucket, [number, number | null]> = {
 
 export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: number) {
   const where: Record<string, unknown> = { isActive: true };
+  if (filters.source) where.sourceSite = filters.source;
   if (filters.category) where.category = filters.category;
   if (filters.brand) where.brand = filters.brand;
   if (filters.featuredBrand) where.featuredBrand = filters.featuredBrand;
   if (filters.onSale) where.onSale = true;
   if (filters.size) where.variants = { some: { size: filters.size, inStock: true } };
-  if (filters.q) where.searchText = { contains: trLower(filters.q) };
+  // جستجو: هم متنِ ترکیِ ذخیره‌شده (نام + برند) و هم دستهٔ فارسی (categoryFa) — تا سرچِ فارسیِ
+  // نوعِ محصول («کیف»، «لباس»، «شلوار») هم نتیجه بدهد، نه فقط کلیدواژهٔ ترکی/برندِ لاتین.
+  if (filters.q) {
+    const ql = trLower(filters.q);
+    where.OR = [{ searchText: { contains: ql } }, { categoryFa: { contains: filters.q } }];
+  }
   if (filters.price) {
     const [minToman, maxToman] = PRICE_BUCKETS_TOMAN[filters.price];
     const minTL = minToman / perLirToman;
@@ -117,13 +140,15 @@ export interface CatalogFacets {
   sizes: string[];
 }
 
-/** فیلترهای قابل‌انتخاب، مشتق از محصولاتِ فعالِ فعلی (نه یک لیستِ ثابت). */
-export async function getFacets(): Promise<CatalogFacets> {
+/** فیلترهای قابل‌انتخاب، مشتق از محصولاتِ فعالِ فعلی (نه یک لیستِ ثابت). به منبع (ستون) محدود
+ * می‌شود تا مثلاً در ستونِ ترندیول فقط برند/دسته‌های ترندیول نشان داده شوند. */
+export async function getFacets(source?: string): Promise<CatalogFacets> {
+  const baseWhere = source ? { isActive: true, sourceSite: source } : { isActive: true };
   const [categoryRows, brandRows, sizeRows] = await Promise.all([
-    prisma.mirrorProduct.groupBy({ by: ["category", "categoryFa"], where: { isActive: true }, _count: { _all: true } }),
-    prisma.mirrorProduct.groupBy({ by: ["brand"], where: { isActive: true }, _count: { _all: true } }),
+    prisma.mirrorProduct.groupBy({ by: ["category", "categoryFa"], where: baseWhere, _count: { _all: true } }),
+    prisma.mirrorProduct.groupBy({ by: ["brand"], where: baseWhere, _count: { _all: true } }),
     prisma.mirrorVariant.findMany({
-      where: { inStock: true, product: { isActive: true } },
+      where: { inStock: true, product: baseWhere },
       select: { size: true },
       distinct: ["size"],
     }),
@@ -220,6 +245,33 @@ export async function getFeaturedBrandStats(): Promise<FeaturedBrandStat[]> {
         }),
       ]);
       return { ...b, count, sampleImages: samples.map((s) => s.image!).filter(Boolean) };
+    })
+  );
+  return stats;
+}
+
+export interface PillarStat extends Pillar {
+  count: number;
+  brandCount: number; // چند برندِ متمایز زیرِ این ستون هست (برای ترندیول یعنی «۱۰۰+ برند»)
+  sampleImages: string[];
+}
+
+/** آمارِ سه ستونِ اصلی (بر اساسِ sourceSite) — برای صفحهٔ برندها، mega-menu و صفحهٔ اصلی. */
+export async function getPillarStats(): Promise<PillarStat[]> {
+  const stats = await Promise.all(
+    PILLARS.map(async (p) => {
+      const where = { isActive: true, sourceSite: p.slug };
+      const [count, brands, samples] = await Promise.all([
+        prisma.mirrorProduct.count({ where }),
+        prisma.mirrorProduct.findMany({ where, select: { brand: true }, distinct: ["brand"] }),
+        prisma.mirrorProduct.findMany({
+          where: { ...where, image: { not: null } },
+          orderBy: [{ favoriteCount: "desc" }],
+          take: 3,
+          select: { image: true },
+        }),
+      ]);
+      return { ...p, count, brandCount: brands.length, sampleImages: samples.map((s) => s.image!).filter(Boolean) };
     })
   );
   return stats;

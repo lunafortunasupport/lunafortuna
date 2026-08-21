@@ -8,7 +8,7 @@ import Divider from "@/components/Divider";
 import BrandMarquee from "@/components/BrandMarquee";
 import PopularShowcase from "@/components/PopularShowcase";
 import {
-  getFeaturedBrandStats,
+  getPillarStats,
   priceBreakdown,
   saleView,
   type MirrorProductWithVariants,
@@ -54,7 +54,7 @@ export default async function HomePage() {
       take: 13,
       include: { variants: true },
     }),
-    getFeaturedBrandStats(),
+    getPillarStats(),
   ]);
 
   // محبوب‌ترین‌ها → دادهٔ سادهٔ سریالایزبل برای کامپوننتِ کلاینت (قیمت‌ها همین‌جا حساب می‌شوند).
@@ -85,6 +85,7 @@ export default async function HomePage() {
   const showcaseBrands = featuredStats
     .filter((b) => b.count > 0)
     .map((b) => ({ slug: b.slug, nameFa: b.nameFa, nameEn: b.nameEn, count: b.count, image: b.sampleImages[0] || null }));
+  // نکته: featuredStats حالا سه ستونِ منبع است (getPillarStats)، پس showcaseBrands = ترندیول/میلا/آمبار.
 
   const tiles = [
     { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", group: "clothing" },

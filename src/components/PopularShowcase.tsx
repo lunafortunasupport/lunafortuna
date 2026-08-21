@@ -220,7 +220,7 @@ export default function PopularShowcase({
       {brands.length > 0 && (
         <div className="mt-14 border-t border-navy/10 pt-10">
           <div className="mb-6 flex items-end justify-between gap-4">
-            <h3 className="font-display text-lg font-black text-navy md:text-xl">برندهای منتخبِ ترکیه</h3>
+            <h3 className="font-display text-lg font-black text-navy md:text-xl">سه دنیای خریدِ ترکیه</h3>
             <Link href="/preview/trendyol/brands" className="text-[13px] text-gold hover:text-navy">
               همهٔ برندها ←
             </Link>
@@ -229,7 +229,7 @@ export default function PopularShowcase({
             {brands.map((b) => (
               <Link
                 key={b.slug}
-                href={`/preview/trendyol?fbrand=${b.slug}`}
+                href={`/preview/trendyol?source=${b.slug}`}
                 className="group relative flex flex-col overflow-hidden rounded-xl border border-navy/8 bg-white transition-all hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-cream">

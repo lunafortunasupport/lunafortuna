@@ -1,14 +1,12 @@
 import Link from "next/link";
-import { getFeaturedBrandStats } from "@/lib/trendyolCatalog";
+import { getPillarStats } from "@/lib/trendyolCatalog";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "برندهای منتخب — پیش‌نمایشِ ترندیول" };
+export const metadata = { title: "برندها — کاتالوگِ ترکیه" };
 
-// ویترینِ برندهای منتخب (زیرمجموعه‌های خودِ ترندیول + برندهای ترکِ جداگانه در آینده).
-// فقط برندهایی که همین حالا محصولِ فعال دارند نشان داده می‌شوند — تا وقتی سینک/اسکریپرِ
-// یک برند تمام نشده (مثلِ آمبار)، این صفحه خودش آن را پنهان نگه می‌دارد.
+// سه ستونِ اصلیِ کاتالوگ: ترندیول (ملتی‌برند)، ترندیول‌میلا، آمبار.
 export default async function TrendyolBrandsPage() {
-  const allStats = await getFeaturedBrandStats();
+  const allStats = await getPillarStats();
   const stats = allStats.filter((b) => b.count > 0);
 
   return (
@@ -19,11 +17,11 @@ export default async function TrendyolBrandsPage() {
         </div>
         <div className="container-luna relative py-14">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] tracking-widest text-champagne">
-            🧪 پیش‌نمایشِ فنی
+            کاتالوگِ ترکیه
           </span>
-          <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">برندهای منتخب</h1>
+          <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">برندها</h1>
           <p className="mt-3 max-w-2xl text-[13.5px] leading-7 text-cream/70">
-            زیرمجموعه‌ها و برندهای ویژه‌ای که جدا از کاتالوگِ عمومی معرفی می‌شوند.
+            سه دنیای خرید از ترکیه — ترندیولِ ملتی‌برند با ده‌ها برند، برندِ اختصاصیِ ترندیول‌میلا، و آمبار.
           </p>
         </div>
       </div>
@@ -34,10 +32,10 @@ export default async function TrendyolBrandsPage() {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-navy/5 text-2xl">🏷️</div>
             <h3 className="mt-4 font-display text-lg font-semibold text-navy">هنوز محصولی سینک نشده</h3>
             <p className="mt-1.5 text-[13px] text-navy/50">
-              رباتِ سینکِ ۱۲ساعته اجرا شود تا برندهای منتخب اینجا ظاهر شوند.
+              رباتِ سینک اجرا شود تا محصولات اینجا ظاهر شوند.
             </p>
             <Link href="/preview/trendyol" className="btn-outline mt-5 inline-flex">
-              مشاهدهٔ کاتالوگِ عمومی
+              مشاهدهٔ کاتالوگ
             </Link>
           </div>
         ) : (
@@ -45,7 +43,7 @@ export default async function TrendyolBrandsPage() {
             {stats.map((b) => (
               <Link
                 key={b.slug}
-                href={`/preview/trendyol?fbrand=${b.slug}`}
+                href={`/preview/trendyol?source=${b.slug}`}
                 className="group relative block overflow-hidden rounded-2xl border border-navy/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
               >
                 <div className="relative aspect-[16/9] overflow-hidden bg-cream">
@@ -76,7 +74,14 @@ export default async function TrendyolBrandsPage() {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="font-display text-[15px] font-semibold text-navy">{b.nameFa}</h3>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className="font-display text-[15px] font-semibold text-navy">{b.nameFa}</h3>
+                    {b.brandCount > 1 && (
+                      <span className="shrink-0 rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-medium text-gold">
+                        {b.brandCount.toLocaleString("fa-IR")} برند
+                      </span>
+                    )}
+                  </div>
                   <span className="mt-0.5 block text-[11px] tracking-wide text-navy/35">{b.nameEn}</span>
                   <p className="mt-2 line-clamp-2 text-[12.5px] leading-6 text-navy/55">{b.blurbFa}</p>
                   <span className="mt-3 block text-[11px] text-gold transition-colors group-hover:underline">

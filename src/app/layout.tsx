@@ -11,7 +11,7 @@ import ChatWidget from "@/components/ChatWidget";
 import SmoothScroll from "@/components/SmoothScroll";
 import { prisma } from "@/lib/prisma";
 import { GROUP_LABELS } from "@/lib/util";
-import { getFeaturedBrandStats } from "@/lib/trendyolCatalog";
+import { getPillarStats } from "@/lib/trendyolCatalog";
 
 const vazir = Vazirmatn({
   subsets: ["arabic", "latin"],
@@ -49,12 +49,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       select: { name: true, slug: true, icon: true },
     }),
     prisma.brand.groupBy({ by: ["group"], where: { isActive: true }, _count: true }),
-    getFeaturedBrandStats(),
+    getPillarStats(),
   ]);
   const brandGroups = groupRows
     .filter((g) => GROUP_LABELS[g.group])
     .map((g) => ({ key: g.group, label: GROUP_LABELS[g.group], count: g._count }));
-  // برندهای منتخبِ کاتالوگِ ترکیه برای mega-menu (فقط آن‌هایی که محصولِ فعال دارند).
+  // سه ستونِ کاتالوگِ ترکیه برای mega-menu (فقط آن‌هایی که محصولِ فعال دارند).
   const catalogBrands = featuredStats
     .filter((b) => b.count > 0)
     .map((b) => ({ slug: b.slug, nameFa: b.nameFa, count: b.count }));

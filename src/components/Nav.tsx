@@ -88,16 +88,14 @@ export default function Nav({
             </Dropdown>
             {catalogBrands.length > 0 && (
               <Dropdown label="کاتالوگِ ترکیه" href="/preview/trendyol" active={isActive("/preview/trendyol")} dark={overHero}>
-                <div className="grid w-[540px] max-w-[calc(100vw-2rem)] grid-cols-[1.25fr_1fr] gap-3 p-4">
+                <div className="grid w-[520px] max-w-[calc(100vw-2rem)] grid-cols-2 gap-3 p-4">
                   <div>
                     <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
-                      برندهای منتخب
+                      سه دنیای خرید
                     </div>
-                    <div className="grid grid-cols-2 gap-0.5">
-                      {catalogBrands.map((b) => (
-                        <DropItem key={b.slug} href={`/preview/trendyol?fbrand=${b.slug}`} label={b.nameFa} badge={b.count} />
-                      ))}
-                    </div>
+                    {catalogBrands.map((b) => (
+                      <DropItem key={b.slug} href={`/preview/trendyol?source=${b.slug}`} label={b.nameFa} badge={b.count} />
+                    ))}
                   </div>
                   <div className="border-s border-navy/10 ps-3">
                     <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
