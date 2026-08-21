@@ -4,9 +4,9 @@
 // افزودنِ ملتی‌برندِ جدید (بوینر، سوپراستپ، …) = فقط یک ورودی این‌جا + یک اسکریپرِ سینک.
 // freeThresholdTL: بالای این قیمتِ کالا، کارگوی همان سایت رایگان می‌شود (null = نامشخص/بدونِ رایگان).
 export const SOURCE_CARGO: Record<string, { feeTL: number; freeThresholdTL: number | null }> = {
-  // آمبار: کارگوی «Kolay Gelsin» ۶۹٫۹۰ لیر (تأییدشده روی ambargiyim.com.tr).
-  // آستانهٔ رایگان هنوز از کاربر گرفته نشده → null (کارگو دست‌کم گرفته نمی‌شود).
-  ambar: { feeTL: 69.9, freeThresholdTL: null },
+  // آمبار: کارگوی «Kolay Gelsin» ۶۹٫۹۰ لیر (تأییدشده روی ambargiyim.com.tr)؛ بالای ۱۵۰۰ لیر رایگان.
+  // چون در سبد هر کالا جداگانه سفارش می‌شود، این آستانه per-item درست است.
+  ambar: { feeTL: 69.9, freeThresholdTL: 1500 },
 };
 
 /** از روی لینکِ اصلِ محصول، منبع را تشخیص می‌دهد (برای سبد که sourceSite ذخیره نمی‌کند). */

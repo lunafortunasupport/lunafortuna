@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatToman } from "@/lib/format";
 import { priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
+import { RatingInline } from "@/components/Stars";
 
 // کارتِ کاتالوگِ آینه‌ایِ ترندیول — همان زبانِ بصریِ لوکسِ سایت (نه رنگ‌بندیِ ترندیول)،
 // با دادهٔ واقعیِ سینک‌شده: قیمت، سایز، موجودی و کارگو مستقیم از ترندیول گرفته شده.
@@ -65,6 +66,12 @@ export default function TrendyolDemoCard({
         <h3 className="line-clamp-2 min-h-[2.6em] font-display text-[13px] font-semibold leading-6 text-navy">
           {product.nameFa || product.nameTr}
         </h3>
+
+        {product.ratingScore != null && product.ratingScore > 0 && (
+          <div className="mt-1.5">
+            <RatingInline score={product.ratingScore} count={product.favoriteCount} />
+          </div>
+        )}
 
         {product.variants.length > 0 && (
           <div className="mt-2.5 flex flex-wrap gap-1.5">

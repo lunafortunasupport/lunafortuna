@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { formatToman } from "@/lib/format";
 import { useCart } from "@/lib/trendyolCart";
 import { priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
+import { RatingFull } from "@/components/Stars";
 
 export default function TrendyolDetail({
   product,
@@ -124,6 +125,12 @@ export default function TrendyolDetail({
           </p>
         )}
 
+        {product.ratingScore != null && product.ratingScore > 0 && (
+          <div className="mt-3">
+            <RatingFull score={product.ratingScore} count={product.favoriteCount} />
+          </div>
+        )}
+
         {product.descriptionFa && (
           <p className="mt-4 max-w-lg text-[14px] leading-8 text-navy/65">{product.descriptionFa}</p>
         )}
@@ -211,6 +218,21 @@ export default function TrendyolDetail({
         >
           مشاهدهٔ اصلِ محصول{sourceHost ? ` در ${sourceHost}` : ""} ↗
         </a>
+
+        {/* امضای اعتماد */}
+        <div className="mt-6 grid grid-cols-2 gap-2.5 border-t border-navy/8 pt-6 sm:grid-cols-4">
+          {[
+            ["🔍", "بررسی پیش از ارسال"],
+            ["📸", "عکسِ واقعی برایت"],
+            ["🧾", "قیمتِ شفاف با نرخِ روز"],
+            ["🤝", "همراهی تا تحویل"],
+          ].map(([icon, label]) => (
+            <div key={label} className="flex items-center gap-2 rounded-xl bg-cream/70 px-3 py-2.5">
+              <span className="text-base leading-none">{icon}</span>
+              <span className="text-[11.5px] font-medium leading-tight text-navy/70">{label}</span>
+            </div>
+          ))}
+        </div>
 
         {/* ویژگی‌ها */}
         {attributes.length ? (
