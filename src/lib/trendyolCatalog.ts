@@ -101,17 +101,23 @@ export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: 
     where.minPriceTL = priceFilter;
   }
 
-  let orderBy: Record<string, "asc" | "desc">[] = [{ favoriteCount: "desc" }, { ratingScore: "desc" }];
-  if (filters.sort === "price_asc") orderBy = [{ minPriceTL: "asc" }];
-  else if (filters.sort === "price_desc") orderBy = [{ minPriceTL: "desc" }];
+  // nulls:last → محصولاتِ بدونِ امتیاز/پسند آخر می‌آیند (وگرنه Postgres آن‌ها را «اول» می‌آورد و
+  // پرطرفدارها/ستاره‌دارها ته لیست می‌افتند). روی PostgreSQLِ prod و SQLiteِ dev هر دو پشتیبانی می‌شود.
+  let orderBy: unknown[] = [
+    { favoriteCount: { sort: "desc", nulls: "last" } },
+    { ratingScore: { sort: "desc", nulls: "last" } },
+  ];
+  if (filters.sort === "price_asc") orderBy = [{ minPriceTL: { sort: "asc", nulls: "last" } }];
+  else if (filters.sort === "price_desc") orderBy = [{ minPriceTL: { sort: "desc", nulls: "last" } }];
   else if (filters.sort === "new") orderBy = [{ lastSyncedAt: "desc" }];
-  else if (filters.onSale) orderBy = [{ discountPct: "desc" }];
+  else if (filters.onSale) orderBy = [{ discountPct: { sort: "desc", nulls: "last" } }];
 
   const page = Math.max(1, filters.page || 1);
   const [items, total] = await Promise.all([
     prisma.mirrorProduct.findMany({
       where,
-      orderBy,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      orderBy: orderBy as any,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       include: { variants: true },
