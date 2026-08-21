@@ -110,6 +110,11 @@ model MirrorProduct {
   promoLabel      String?  // نامِ کمپین، مثل «۵۰٪ روی نفرِ سوم»
   // ── برندِ منتخب (ویترینِ جدا) ──
   featuredBrand   String?  // اسلاگ: trendyol-milla | happiness | trendyol-kids | trendyol-shoes | ambar (خالی = عمومی)
+  // ── مخاطب (برای کالکشن‌های مردانه/بچگانه/خانه) ──
+  // نوعِ لباس (category) بینِ زنانه/مردانه/بچگانه مشترک است («Gömlek» چه از کوئریِ «kadın gömlek»
+  // پیدا شود چه «erkek gömlek»)، پس بدونِ این فیلد امکانِ فیلترکردنِ «فقط مردانه» نبود. مقدار از
+  // همان کوئریِ سینک که محصول را پیدا کرده می‌آید (audience در CATEGORIES در sync-trendyol.mjs).
+  audience        String?  // men | kids | home (خالی = زنانه/عمومی)
   isActive      Boolean  @default(true) // false = در آخرین سینک دیده نشد
   lastSyncedAt  DateTime @default(now())
   createdAt     DateTime @default(now())
@@ -123,6 +128,7 @@ model MirrorProduct {
   @@index([isActive])
   @@index([onSale])
   @@index([featuredBrand])
+  @@index([audience])
 }
 
 model MirrorVariant {

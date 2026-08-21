@@ -93,25 +93,27 @@ const CATEGORIES = [
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın ayakkabı", label: "کفش" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın topuklu ayakkabı", label: "کفشِ پاشنه‌دار" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "kadın sneaker", label: "کتانی" },
-  // مردانه
-  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek gömlek", label: "پیراهنِ مردانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek tişört", label: "تی‌شرتِ مردانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek pantolon", label: "شلوارِ مردانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek kot pantolon", label: "شلوار جینِ مردانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek sweatshirt", label: "سویشرتِ مردانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek ceket", label: "کتِ مردانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek mont", label: "کاپشنِ مردانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek ayakkabı", label: "کفشِ مردانه" },
+  // مردانه — audience:"men" چون نوعِ لباس (category خامِ ترکی) بینِ زنانه/مردانه مشترک است
+  // («Gömlek» چه با کوئریِ زنانه چه مردانه پیدا شود همان می‌ماند)؛ بدونِ این تگ کالکشنِ
+  // «دنیای مردانه» هیچ‌وقت نمی‌توانست این محصولات را از محصولاتِ زنانه جدا کند.
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek gömlek", label: "پیراهنِ مردانه", audience: "men" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek tişört", label: "تی‌شرتِ مردانه", audience: "men" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek pantolon", label: "شلوارِ مردانه", audience: "men" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek kot pantolon", label: "شلوار جینِ مردانه", audience: "men" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek sweatshirt", label: "سویشرتِ مردانه", audience: "men" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek ceket", label: "کتِ مردانه", audience: "men" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek mont", label: "کاپشنِ مردانه", audience: "men" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "erkek ayakkabı", label: "کفشِ مردانه", audience: "men" },
   // بچگانه
-  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk elbise", label: "لباسِ بچگانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk tişört", label: "تی‌شرتِ بچگانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk ayakkabı", label: "کفشِ بچگانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "bebek tulum", label: "سرهمیِ نوزاد" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk elbise", label: "لباسِ بچگانه", audience: "kids" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk tişört", label: "تی‌شرتِ بچگانه", audience: "kids" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "çocuk ayakkabı", label: "کفشِ بچگانه", audience: "kids" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "bebek tulum", label: "سرهمیِ نوزاد", audience: "kids" },
   // خانه
-  { site: "trendyol", base: "https://www.trendyol.com", q: "nevresim takımı", label: "روتختی" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "havlu", label: "حوله" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "ev dekorasyon", label: "دکوراسیونِ خانه" },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "mutfak", label: "آشپزخانه" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "nevresim takımı", label: "روتختی", audience: "home" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "havlu", label: "حوله", audience: "home" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "ev dekorasyon", label: "دکوراسیونِ خانه", audience: "home" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "mutfak", label: "آشپزخانه", audience: "home" },
   // ── برندهای منتخب (ویترینِ جدا) — featuredBrand ست می‌شود؛ brandMatch یعنی فقط محصولاتی که
   //    برندشان با این‌ها می‌خواند تگ بخورند (کوئریِ برند گاهی فروشنده‌های دیگر هم برمی‌گرداند). ──
   { site: "trendyol", base: "https://www.trendyol.com", q: "happiness istanbul", label: "Happiness", featuredBrand: "happiness", brandMatch: ["happiness"] },
@@ -186,6 +188,7 @@ async function collectCandidates(page, cat) {
         ratingScore: p.ratingScore?.averageRating ?? null,
         favoriteCount: p.ratingScore?.totalCount ?? null,
         featuredBrand,
+        audience: cat.audience || null,
         onSale,
         originalPriceTL: onSale ? old : null,
         discountPct: onSale ? Math.round(((old - cur) / old) * 100) : null,
@@ -318,6 +321,7 @@ async function upsertProduct(c, detail, now) {
     discountPct: genuineDiscount ? c.discountPct : null,
     promoLabel: genuineDiscount ? c.promoLabel : null,
     featuredBrand: c.featuredBrand ?? null,
+    audience: c.audience ?? null,
     isActive: true,
     lastSyncedAt: now,
   };

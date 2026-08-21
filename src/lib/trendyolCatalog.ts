@@ -23,7 +23,8 @@ export interface CatalogFilters {
   onSale?: boolean;
   source?: string; // ستونِ اصلی: trendyol | trendyol-milla | ambar
   categoryIn?: string[]; // برای کالکشن‌ها: هر کدام از این دسته‌های فارسی (categoryFa)
-  categoryContains?: string; // برای کالکشن‌ها: دسته‌ای که این رشته را در نامش دارد (مثلِ «مردانه»)
+  categoryContains?: string; // برای کالکشن‌ها: دسته‌ای که این رشته را در نامش دارد
+  audience?: string; // برای کالکشن‌ها: men | kids | home (نوعِ لباس بینِ زنانه/مردانه مشترک است، پس این جدا ذخیره می‌شود)
 }
 
 // سه ستونِ اصلیِ کاتالوگ (بر اساسِ sourceSite). ترندیول = ملتی‌برند (همهٔ برندها).
@@ -51,7 +52,7 @@ export interface Collection {
   nameFa: string;
   emoji: string;
   blurbFa: string;
-  filter: { categoryIn?: string[]; categoryContains?: string; onSale?: boolean };
+  filter: { categoryIn?: string[]; categoryContains?: string; audience?: string; onSale?: boolean };
 }
 export const COLLECTIONS: Collection[] = [
   {
@@ -80,21 +81,21 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "دنیای مردانه",
     emoji: "🧔",
     blurbFa: "پیراهن، تی‌شرت، شلوار و کاپشنِ مردانه.",
-    filter: { categoryContains: "مردانه" },
+    filter: { audience: "men" },
   },
   {
     slug: "kids",
     nameFa: "دنیای بچگانه",
     emoji: "🧸",
     blurbFa: "پوشاکِ بچگانه و نوزادی.",
-    filter: { categoryContains: "بچگانه" },
+    filter: { audience: "kids" },
   },
   {
     slug: "home",
     nameFa: "خانه و آشپزخانه",
     emoji: "🏠",
     blurbFa: "روتختی، حوله، دکوراسیون و لوازمِ آشپزخانه.",
-    filter: { categoryIn: ["روتختی", "حوله", "دکوراسیونِ خانه", "آشپزخانه"] },
+    filter: { audience: "home" },
   },
   {
     slug: "sale",
@@ -120,6 +121,7 @@ export async function getCollectionStats(): Promise<CollectionStat[]> {
       const where: Record<string, unknown> = { isActive: true };
       if (c.filter.categoryIn) where.categoryFa = { in: c.filter.categoryIn };
       else if (c.filter.categoryContains) where.categoryFa = { contains: c.filter.categoryContains };
+      if (c.filter.audience) where.audience = c.filter.audience;
       if (c.filter.onSale) where.onSale = true;
       const [count, samples] = await Promise.all([
         prisma.mirrorProduct.count({ where }),
@@ -184,6 +186,7 @@ export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: 
   if (filters.onSale) where.onSale = true;
   if (filters.categoryIn) where.categoryFa = { in: filters.categoryIn };
   else if (filters.categoryContains) where.categoryFa = { contains: filters.categoryContains };
+  if (filters.audience) where.audience = filters.audience;
   if (filters.size) where.variants = { some: { size: filters.size, inStock: true } };
   // جستجو: هم متنِ ترکیِ ذخیره‌شده (نام + برند) و هم دستهٔ فارسی (categoryFa) — تا سرچِ فارسیِ
   // نوعِ محصول («کیف»، «لباس»، «شلوار») هم نتیجه بدهد، نه فقط کلیدواژهٔ ترکی/برندِ لاتین.
