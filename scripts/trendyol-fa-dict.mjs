@@ -43,6 +43,12 @@ export const CATEGORY_LABELS_FA = {
   Yelek: "جلیقه",
   Body: "بادی",
   Takım: "ست",
+  // ── لباسِ‌زیر/راحتی/مایوِ زنانه ──
+  Sütyen: "سوتین",
+  Gecelik: "لباسِ‌خواب",
+  Bikini: "بیکینی",
+  Mayo: "مایو",
+  Külot: "شورتِ‌زیر",
 };
 
 // کلیدهای رایجِ ویژگی (attribute.key.name) → برچسبِ فارسی.

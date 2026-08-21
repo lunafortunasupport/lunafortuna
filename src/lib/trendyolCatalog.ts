@@ -8,6 +8,12 @@ import type { MirrorProduct, MirrorVariant } from "@prisma/client";
 
 export const PAGE_SIZE = 24;
 
+// محصولاتِ «پوشیدهٔ حجاب» (raw category ترکی همیشه با «Tesettür» شروع می‌شود — چه در دیکشنریِ
+// ترجمه باشد چه نه) عمداً و همیشه از کاتالوگِ سایت حذف می‌شوند — تصمیمِ کاربر. یک ثابتِ واحد که در
+// همهٔ کوئری‌های این فایل اعمال می‌شود، تا اگر بعداً هم دوباره سینک شدند، باز هم نمایش داده نشوند.
+const HIDDEN_CATEGORY_PREFIX = "Tesettür";
+const NOT_HIDDEN = { NOT: { category: { startsWith: HIDDEN_CATEGORY_PREFIX } } };
+
 export type SortOption = "popular" | "price_asc" | "price_desc" | "new";
 export type PriceBucket = "under1" | "1to3" | "3to6" | "over6";
 
@@ -25,6 +31,7 @@ export interface CatalogFilters {
   categoryIn?: string[]; // برای کالکشن‌ها: هر کدام از این دسته‌های فارسی (categoryFa)
   categoryContains?: string; // برای کالکشن‌ها: دسته‌ای که این رشته را در نامش دارد
   audience?: string; // برای کالکشن‌ها: men | kids | home (نوعِ لباس بینِ زنانه/مردانه مشترک است، پس این جدا ذخیره می‌شود)
+  audienceNull?: boolean; // کالکشنِ «پوشاکِ زنانه»: صریحاً audience IS NULL (چون audience برای زنانهٔ عمومی خالی می‌ماند)
 }
 
 // سه ستونِ اصلیِ کاتالوگ (بر اساسِ sourceSite). ترندیول = ملتی‌برند (همهٔ برندها).
@@ -52,15 +59,15 @@ export interface Collection {
   nameFa: string;
   emoji: string;
   blurbFa: string;
-  filter: { categoryIn?: string[]; categoryContains?: string; audience?: string; onSale?: boolean };
+  filter: { categoryIn?: string[]; categoryContains?: string; audience?: string; audienceNull?: boolean; onSale?: boolean };
 }
 export const COLLECTIONS: Collection[] = [
   {
-    slug: "modest",
-    nameFa: "پوشیدهٔ شیک",
-    emoji: "🧕",
-    blurbFa: "لباس و دامنِ پوشیده — انتخابِ شیک برای سبکِ باحجاب.",
-    filter: { categoryIn: ["لباسِ پوشیده (حجاب)", "دامنِ پوشیده (حجاب)"] },
+    slug: "women",
+    nameFa: "پوشاکِ زنانه",
+    emoji: "👗",
+    blurbFa: "طیفِ کاملِ پوشاکِ زنانه — از روزمره تا مجلسی، از ده‌ها برند.",
+    filter: { audienceNull: true },
   },
   {
     slug: "evening",
@@ -98,6 +105,13 @@ export const COLLECTIONS: Collection[] = [
     filter: { audience: "home" },
   },
   {
+    slug: "lingerie",
+    nameFa: "لباسِ‌زیر و راحتی",
+    emoji: "💗",
+    blurbFa: "سوتین، لباسِ‌خواب و مایو — از برندهایی مثلِ پنتی.",
+    filter: { audience: "lingerie" },
+  },
+  {
     slug: "sale",
     nameFa: "حراجِ ویژه",
     emoji: "🏷️",
@@ -118,10 +132,11 @@ export interface CollectionStat extends Collection {
 export async function getCollectionStats(): Promise<CollectionStat[]> {
   const stats = await Promise.all(
     COLLECTIONS.map(async (c) => {
-      const where: Record<string, unknown> = { isActive: true };
+      const where: Record<string, unknown> = { isActive: true, ...NOT_HIDDEN };
       if (c.filter.categoryIn) where.categoryFa = { in: c.filter.categoryIn };
       else if (c.filter.categoryContains) where.categoryFa = { contains: c.filter.categoryContains };
-      if (c.filter.audience) where.audience = c.filter.audience;
+      if (c.filter.audienceNull) where.audience = null;
+      else if (c.filter.audience) where.audience = c.filter.audience;
       if (c.filter.onSale) where.onSale = true;
       const [count, samples] = await Promise.all([
         prisma.mirrorProduct.count({ where }),
@@ -149,6 +164,7 @@ export interface FeaturedBrand {
 export const FEATURED_BRANDS: FeaturedBrand[] = [
   { slug: "trendyol-milla", nameFa: "ترندیول‌میلا", nameEn: "TRENDYOLMİLLA", blurbFa: "برندِ اختصاصیِ زنانهٔ ترندیول — پوشاکِ روزمره تا مجلسی." },
   { slug: "happiness", nameFa: "هپینس استانبول", nameEn: "Happiness İstanbul", blurbFa: "استریت‌ویرِ محبوبِ استانبول — راحت، اسپرت، جوان‌پسند." },
+  { slug: "penti", nameFa: "پنتی", nameEn: "Penti", blurbFa: "برندِ محبوبِ ترکیه در لباسِ‌زیر، جوراب و لباسِ‌راحتیِ زنانه." },
   { slug: "trendyol-kids", nameFa: "ترندیول کیدز", nameEn: "TRENDYOLKIDS", blurbFa: "پوشاکِ بچگانهٔ برندِ خودِ ترندیول." },
   { slug: "trendyol-shoes", nameFa: "ترندیول شوز", nameEn: "TRENDYOL SHOES", blurbFa: "کفشِ زنانهٔ برندِ خودِ ترندیول." },
   { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان." },
@@ -178,7 +194,7 @@ const PRICE_BUCKETS_TOMAN: Record<PriceBucket, [number, number | null]> = {
 };
 
 export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: number) {
-  const where: Record<string, unknown> = { isActive: true };
+  const where: Record<string, unknown> = { isActive: true, ...NOT_HIDDEN };
   if (filters.source) where.sourceSite = filters.source;
   if (filters.category) where.category = filters.category;
   if (filters.brand) where.brand = filters.brand;
@@ -186,7 +202,8 @@ export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: 
   if (filters.onSale) where.onSale = true;
   if (filters.categoryIn) where.categoryFa = { in: filters.categoryIn };
   else if (filters.categoryContains) where.categoryFa = { contains: filters.categoryContains };
-  if (filters.audience) where.audience = filters.audience;
+  if (filters.audienceNull) where.audience = null;
+  else if (filters.audience) where.audience = filters.audience;
   if (filters.size) where.variants = { some: { size: filters.size, inStock: true } };
   // جستجو: هم متنِ ترکیِ ذخیره‌شده (نام + برند) و هم دستهٔ فارسی (categoryFa) — تا سرچِ فارسیِ
   // نوعِ محصول («کیف»، «لباس»، «شلوار») هم نتیجه بدهد، نه فقط کلیدواژهٔ ترکی/برندِ لاتین.
@@ -231,6 +248,8 @@ export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: 
 
 export async function getMirrorProduct(id: string): Promise<MirrorProductWithVariants | null> {
   const p = await prisma.mirrorProduct.findUnique({ where: { id }, include: { variants: true } });
+  // حتی با لینکِ مستقیمِ قدیمی هم نشان داده نشود (همان تصمیمِ حذفِ کاملِ محصولاتِ پوشیدهٔ حجاب).
+  if (p && p.category.startsWith(HIDDEN_CATEGORY_PREFIX)) return null;
   return p as MirrorProductWithVariants | null;
 }
 
@@ -251,7 +270,7 @@ export interface CatalogFacets {
 /** فیلترهای قابل‌انتخاب، مشتق از محصولاتِ فعالِ فعلی (نه یک لیستِ ثابت). به منبع (ستون) محدود
  * می‌شود تا مثلاً در ستونِ ترندیول فقط برند/دسته‌های ترندیول نشان داده شوند. */
 export async function getFacets(source?: string): Promise<CatalogFacets> {
-  const baseWhere = source ? { isActive: true, sourceSite: source } : { isActive: true };
+  const baseWhere = source ? { isActive: true, sourceSite: source, ...NOT_HIDDEN } : { isActive: true, ...NOT_HIDDEN };
   const [categoryRows, brandRows, sizeRows] = await Promise.all([
     prisma.mirrorProduct.groupBy({ by: ["category", "categoryFa"], where: baseWhere, _count: { _all: true } }),
     prisma.mirrorProduct.groupBy({ by: ["brand"], where: baseWhere, _count: { _all: true } }),
@@ -346,9 +365,9 @@ export async function getFeaturedBrandStats(): Promise<FeaturedBrandStat[]> {
   const stats = await Promise.all(
     FEATURED_BRANDS.map(async (b) => {
       const [count, samples] = await Promise.all([
-        prisma.mirrorProduct.count({ where: { isActive: true, featuredBrand: b.slug } }),
+        prisma.mirrorProduct.count({ where: { isActive: true, featuredBrand: b.slug, ...NOT_HIDDEN } }),
         prisma.mirrorProduct.findMany({
-          where: { isActive: true, featuredBrand: b.slug, image: { not: null } },
+          where: { isActive: true, featuredBrand: b.slug, image: { not: null }, ...NOT_HIDDEN },
           orderBy: [{ favoriteCount: "desc" }],
           take: 3,
           select: { image: true },
@@ -370,7 +389,7 @@ export interface PillarStat extends Pillar {
 export async function getPillarStats(): Promise<PillarStat[]> {
   const stats = await Promise.all(
     PILLARS.map(async (p) => {
-      const where = { isActive: true, sourceSite: p.slug };
+      const where = { isActive: true, sourceSite: p.slug, ...NOT_HIDDEN };
       const [count, brands, samples] = await Promise.all([
         prisma.mirrorProduct.count({ where }),
         prisma.mirrorProduct.findMany({ where, select: { brand: true }, distinct: ["brand"] }),

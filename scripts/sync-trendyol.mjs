@@ -25,7 +25,7 @@ const prisma = new PrismaClient();
 
 const LIMIT_CATEGORIES = Number(process.env.LIMIT_CATEGORIES) || Infinity;
 const LIMIT_PER_CATEGORY = Number(process.env.LIMIT_PER_CATEGORY) || 60;
-const TOTAL_CAP = Number(process.env.TOTAL_CAP) || 2200;
+const TOTAL_CAP = Number(process.env.TOTAL_CAP) || 2800;
 const DETAIL_CONCURRENCY = Number(process.env.DETAIL_CONCURRENCY) || 4;
 
 const UA =
@@ -114,9 +114,17 @@ const CATEGORIES = [
   { site: "trendyol", base: "https://www.trendyol.com", q: "havlu", label: "حوله", audience: "home" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "ev dekorasyon", label: "دکوراسیونِ خانه", audience: "home" },
   { site: "trendyol", base: "https://www.trendyol.com", q: "mutfak", label: "آشپزخانه", audience: "home" },
+  // لباسِ‌زیر/راحتی/مایوِ زنانه — کالکشنِ زنانه را کامل‌تر می‌کند (جایگزینِ حذفِ محصولاتِ پوشیدهٔ
+  // حجاب). عمداً بعدِ مردانه/بچگانه/خانه آمده تا سقفِ TOTAL_CAP اول آن‌ها را پر کند، نه این‌ها را.
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın sütyen", label: "سوتین", audience: "lingerie" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın iç giyim takım", label: "ست‌ِ لباسِ‌زیر", audience: "lingerie" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın gecelik", label: "لباسِ‌خواب", audience: "lingerie" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın mayo", label: "مایو", audience: "lingerie" },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "kadın bikini", label: "بیکینی", audience: "lingerie" },
   // ── برندهای منتخب (ویترینِ جدا) — featuredBrand ست می‌شود؛ brandMatch یعنی فقط محصولاتی که
   //    برندشان با این‌ها می‌خواند تگ بخورند (کوئریِ برند گاهی فروشنده‌های دیگر هم برمی‌گرداند). ──
   { site: "trendyol", base: "https://www.trendyol.com", q: "happiness istanbul", label: "Happiness", featuredBrand: "happiness", brandMatch: ["happiness"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "penti", label: "Penti", featuredBrand: "penti", brandMatch: ["penti"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "trendyolkids çocuk", label: "بچگانه", featuredBrand: "trendyol-kids", brandMatch: ["trendyolkids", "trendyol kids"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "trendyol shoes kadın", label: "کفش", featuredBrand: "trendyol-shoes", brandMatch: ["trendyol shoes"] },
 ].slice(0, LIMIT_CATEGORIES);

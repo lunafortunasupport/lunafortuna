@@ -45,6 +45,7 @@ export default async function TrendyolPreviewPage({
     categoryIn: activeCollection?.filter.categoryIn,
     categoryContains: activeCollection?.filter.categoryContains,
     audience: activeCollection?.filter.audience,
+    audienceNull: activeCollection?.filter.audienceNull,
     page: Number(sp.page) || 1,
   };
 
