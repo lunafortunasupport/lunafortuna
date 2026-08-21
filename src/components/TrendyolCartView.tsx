@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatToman } from "@/lib/format";
 import { useCart } from "@/lib/trendyolCart";
+import { cargoFeeTL, sourceFromUrl } from "@/lib/cargo";
 
 interface Props {
   perLirToman: number;
@@ -45,13 +46,14 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
-  function itemCargoToman(freeCargo: boolean) {
-    return freeCargo ? 0 : Math.round(cargoFeeEstimateTL * perLirToman);
+  function itemCargoToman(it: { sourceUrl: string; priceTL: number; freeCargo: boolean }) {
+    const feeTL = cargoFeeTL(sourceFromUrl(it.sourceUrl), it.priceTL, it.freeCargo, cargoFeeEstimateTL);
+    return Math.round(feeTL * perLirToman);
   }
 
   const validItems = useMemo(() => items.filter((it) => !invalid.has(`${it.productId}:${it.size}`)), [items, invalid]);
   const totalToman = useMemo(
-    () => validItems.reduce((sum, it) => sum + Math.round(it.priceTL * perLirToman) + itemCargoToman(it.freeCargo), 0),
+    () => validItems.reduce((sum, it) => sum + Math.round(it.priceTL * perLirToman) + itemCargoToman(it), 0),
     [validItems, perLirToman, cargoFeeEstimateTL]
   );
   const canSubmit = contact.trim().length > 2 && validItems.length > 0;
@@ -61,7 +63,7 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
     setStatus("sending");
     try {
       for (const it of validItems) {
-        const cargoTL = it.freeCargo ? 0 : cargoFeeEstimateTL;
+        const cargoTL = cargoFeeTL(sourceFromUrl(it.sourceUrl), it.priceTL, it.freeCargo, cargoFeeEstimateTL);
         const res = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -155,7 +157,7 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
         {items.map((it) => {
           const key = `${it.productId}:${it.size}`;
           const isInvalid = invalid.has(key);
-          const cargoToman = itemCargoToman(it.freeCargo);
+          const cargoToman = itemCargoToman(it);
           return (
             <div
               key={key}
@@ -175,7 +177,7 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
                 <div className="mt-1 text-[12px] text-navy/50">سایز: {it.size}</div>
                 {isInvalid ? (
                   <div className="mt-1 text-[11.5px] font-medium text-red-500">این کالا دیگر موجود نیست</div>
-                ) : !it.freeCargo ? (
+                ) : cargoToman > 0 ? (
                   <div className="mt-1 text-[11px] text-navy/40">+ کارگوی برآوردی: {formatToman(cargoToman)}</div>
                 ) : null}
               </div>

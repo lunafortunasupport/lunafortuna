@@ -3,6 +3,7 @@
 // این فایل فقط کوئری می‌زند، سینک نمی‌کند.
 import { prisma } from "@/lib/prisma";
 import { parseJson } from "@/lib/util";
+import { cargoFeeTL } from "@/lib/cargo";
 import type { MirrorProduct, MirrorVariant } from "@prisma/client";
 
 export const PAGE_SIZE = 24;
@@ -179,14 +180,16 @@ export interface PriceBreakdown {
 export function priceBreakdown(
   variant: { priceTL: number | null; freeCargo: boolean } | null | undefined,
   perLirToman: number,
-  cargoFeeEstimateTL: number
+  cargoFeeEstimateTL: number,
+  sourceSite?: string
 ): PriceBreakdown {
   if (!variant || variant.priceTL == null) {
     return { itemToman: null, cargoToman: 0, totalToman: null, freeCargo: true };
   }
   const itemToman = Math.round(variant.priceTL * perLirToman);
-  const cargoToman = variant.freeCargo ? 0 : Math.round(cargoFeeEstimateTL * perLirToman);
-  return { itemToman, cargoToman, totalToman: itemToman + cargoToman, freeCargo: variant.freeCargo };
+  const feeTL = cargoFeeTL(sourceSite, variant.priceTL, variant.freeCargo, cargoFeeEstimateTL);
+  const cargoToman = Math.round(feeTL * perLirToman);
+  return { itemToman, cargoToman, totalToman: itemToman + cargoToman, freeCargo: feeTL === 0 };
 }
 
 export function parseImages(images: string): string[] {

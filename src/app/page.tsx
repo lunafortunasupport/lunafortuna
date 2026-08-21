@@ -64,7 +64,7 @@ export default async function HomePage() {
       if (!best || (best.priceTL ?? Infinity) > v.priceTL) return v;
       return best;
     }, null);
-    const breakdown = priceBreakdown(cheapest, perLir, s.cargoFeeEstimateTL);
+    const breakdown = priceBreakdown(cheapest, perLir, s.cargoFeeEstimateTL, p.sourceSite);
     const sale = saleView(p, perLir);
     return {
       id: p.id,

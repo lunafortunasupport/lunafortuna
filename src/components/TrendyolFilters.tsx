@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { CatalogFacets } from "@/lib/trendyolCatalog";
 
@@ -167,9 +168,10 @@ export default function TrendyolFilters({ facets, total }: { facets: CatalogFace
         <div className="mt-2.5 text-[11.5px] text-navy/40">{total.toLocaleString("fa-IR")} محصول</div>
       </div>
 
-      {/* ── پنلِ کشویی فیلتر ── */}
-      {open && (
-        <div className="fixed inset-0 z-50">
+      {/* ── پنلِ کشویی فیلتر ── (با Portal مستقیم به body تا از containing-block ناشی از
+          backdrop-blurِ نوار فرار کند؛ وگرنه fixed نسبت به نوار محاسبه می‌شد و کشو کوتاه/خراب می‌شد) */}
+      {open && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[60]">
           <div className="absolute inset-0 bg-navy-ink/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <aside className="absolute inset-y-0 right-0 flex w-[88%] max-w-[380px] flex-col bg-cream shadow-2xl">
             <div className="flex items-center justify-between border-b border-navy/10 px-5 py-4">
@@ -263,7 +265,8 @@ export default function TrendyolFilters({ facets, total }: { facets: CatalogFace
               </button>
             </div>
           </aside>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

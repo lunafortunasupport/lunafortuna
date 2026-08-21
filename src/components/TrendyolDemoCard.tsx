@@ -19,7 +19,7 @@ export default function TrendyolDemoCard({
     if (!best || (best.priceTL ?? Infinity) > v.priceTL) return v;
     return best;
   }, null);
-  const breakdown = priceBreakdown(cheapest, perLirToman, cargoFeeEstimateTL);
+  const breakdown = priceBreakdown(cheapest, perLirToman, cargoFeeEstimateTL, product.sourceSite);
   const sale = saleView(product, perLirToman);
   const inStockCount = product.variants.filter((v) => v.inStock).length;
 
