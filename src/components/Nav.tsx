@@ -20,15 +20,22 @@ interface CatalogBrand {
   nameFa: string;
   count: number;
 }
+interface CatalogCollection {
+  slug: string;
+  nameFa: string;
+  emoji: string;
+}
 
 export default function Nav({
   categories,
   brandGroups,
   catalogBrands,
+  catalogCollections,
 }: {
   categories: Cat[];
   brandGroups: Group[];
   catalogBrands: CatalogBrand[];
+  catalogCollections: CatalogCollection[];
 }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -99,6 +106,12 @@ export default function Nav({
                   </div>
                   <div className="border-s border-navy/10 ps-3">
                     <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+                      کالکشن‌ها
+                    </div>
+                    {catalogCollections.slice(0, 4).map((c) => (
+                      <DropItem key={c.slug} href={`/preview/trendyol?collection=${c.slug}`} label={c.nameFa} icon={c.emoji} />
+                    ))}
+                    <div className="mb-2 mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
                       میان‌بُرها
                     </div>
                     <DropItem href="/preview/trendyol" label="محبوب‌ترین‌ها" icon="❤" />

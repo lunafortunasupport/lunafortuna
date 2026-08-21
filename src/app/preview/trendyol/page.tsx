@@ -1,8 +1,18 @@
 import Link from "next/link";
 import { getSettings, feesFromSettings } from "@/lib/settings";
-import { queryMirrorProducts, getFacets, getFeaturedBrand, getPillar, type PriceBucket, type SortOption } from "@/lib/trendyolCatalog";
+import {
+  queryMirrorProducts,
+  getFacets,
+  getFeaturedBrand,
+  getPillar,
+  getCollection,
+  getCollectionStats,
+  type PriceBucket,
+  type SortOption,
+} from "@/lib/trendyolCatalog";
 import TrendyolDemoCard from "@/components/TrendyolDemoCard";
 import TrendyolFilters from "@/components/TrendyolFilters";
+import CollectionStrip from "@/components/CollectionStrip";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "پیش‌نمایشِ فنی — کاتالوگِ ترندیول" };
@@ -20,6 +30,8 @@ export default async function TrendyolPreviewPage({
   const fees = feesFromSettings(s);
   const perLirToman = Math.round(s.exchangeRate * (1 + fees.normal));
 
+  const activeCollection = sp.collection ? getCollection(sp.collection) : undefined;
+
   const filters = {
     q: sp.q || undefined,
     category: sp.cat || undefined,
@@ -27,15 +39,19 @@ export default async function TrendyolPreviewPage({
     size: sp.size || undefined,
     price: VALID_BUCKETS.includes(sp.price as PriceBucket) ? (sp.price as PriceBucket) : undefined,
     sort: VALID_SORTS.includes(sp.sort as SortOption) ? (sp.sort as SortOption) : undefined,
-    onSale: sp.sale === "1" || undefined,
+    onSale: sp.sale === "1" || activeCollection?.filter.onSale || undefined,
     featuredBrand: sp.fbrand || undefined,
     source: sp.source || undefined,
+    categoryIn: activeCollection?.filter.categoryIn,
+    categoryContains: activeCollection?.filter.categoryContains,
     page: Number(sp.page) || 1,
   };
 
-  const [{ items, total, page, pageCount }, facets] = await Promise.all([
+  const [{ items, total, page, pageCount }, facets, collectionStats] = await Promise.all([
     queryMirrorProducts(filters, perLirToman),
     getFacets(filters.source),
+    // فقط وقتی کالکشنی فعال نیست لازم است (نوار روی خودِ صفحاتِ کالکشن نمایش داده نمی‌شود).
+    activeCollection ? Promise.resolve([]) : getCollectionStats(),
   ]);
   const activePillar = filters.source ? getPillar(filters.source) : undefined;
   const activeFeaturedBrand = filters.featuredBrand ? getFeaturedBrand(filters.featuredBrand) : undefined;
@@ -51,6 +67,7 @@ export default async function TrendyolPreviewPage({
     if (filters.onSale) next.set("sale", "1");
     if (filters.featuredBrand) next.set("fbrand", filters.featuredBrand);
     if (filters.source) next.set("source", filters.source);
+    if (activeCollection) next.set("collection", activeCollection.slug);
     if (p > 1) next.set("page", String(p));
     const s = next.toString();
     return s ? `/preview/trendyol?${s}` : "/preview/trendyol";
@@ -66,13 +83,17 @@ export default async function TrendyolPreviewPage({
         </div>
         <div className="container-luna relative py-14">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] tracking-widest text-champagne">
-            {activePillar ? activePillar.nameEn : "کاتالوگِ ترکیه"}
+            {activeCollection ? `${activeCollection.emoji} کالکشن` : activePillar ? activePillar.nameEn : "کاتالوگِ ترکیه"}
           </span>
           <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">
-            {activePillar ? `${activePillar.nameFa}، به فارسی و تومان` : "کاتالوگِ ترکیه، به فارسی و تومان"}
+            {activeCollection
+              ? activeCollection.nameFa
+              : activePillar
+              ? `${activePillar.nameFa}، به فارسی و تومان`
+              : "کاتالوگِ ترکیه، به فارسی و تومان"}
           </h1>
           <p className="mt-3 max-w-2xl text-[13.5px] leading-7 text-cream/70">
-            {activePillar ? activePillar.blurbFa + " " : "منتخب‌ها و پرفروش‌های ترکیه، یک‌جا و به فارسی. "}
+            {activeCollection ? activeCollection.blurbFa + " " : activePillar ? activePillar.blurbFa + " " : "منتخب‌ها و پرفروش‌های ترکیه، یک‌جا و به فارسی. "}
             قیمت‌ها با <b className="text-champagne">نرخِ روز به تومان</b> محاسبه می‌شوند (به‌علاوهٔ برآوردِ هزینهٔ کارگوی
             داخلِ ترکیه وقتی رایگان نباشد). سرچ کن، فیلتر کن، سایز را انتخاب و به سبد اضافه کن.
           </p>
@@ -81,14 +102,22 @@ export default async function TrendyolPreviewPage({
 
       <TrendyolFilters facets={facets} total={total} />
 
-      {(activePillar || activeFeaturedBrand) && (
+      {!activeCollection && <CollectionStrip collections={collectionStats} />}
+
+      {(activePillar || activeFeaturedBrand || activeCollection) && (
         <div className="container-luna pt-6">
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-gold/25 bg-gold/8 px-4 py-3">
             <span className="text-[12.5px] text-navy/70">
-              نمایشِ محصولاتِ <b className="text-navy">{(activePillar || activeFeaturedBrand)!.nameFa}</b>
+              نمایشِ محصولاتِ{" "}
+              <b className="text-navy">
+                {activeCollection ? activeCollection.nameFa : (activePillar || activeFeaturedBrand)!.nameFa}
+              </b>
             </span>
-            <Link href="/preview/trendyol/brands" className="text-[12px] font-medium text-gold hover:underline">
-              ← بازگشت به همهٔ برندها
+            <Link
+              href={activeCollection ? "/preview/trendyol" : "/preview/trendyol/brands"}
+              className="text-[12px] font-medium text-gold hover:underline"
+            >
+              {activeCollection ? "← بازگشت به کاتالوگِ کامل" : "← بازگشت به همهٔ برندها"}
             </Link>
           </div>
         </div>

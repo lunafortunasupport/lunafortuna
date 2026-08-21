@@ -11,7 +11,7 @@ import ChatWidget from "@/components/ChatWidget";
 import SmoothScroll from "@/components/SmoothScroll";
 import { prisma } from "@/lib/prisma";
 import { GROUP_LABELS } from "@/lib/util";
-import { getPillarStats } from "@/lib/trendyolCatalog";
+import { getPillarStats, getCollectionStats } from "@/lib/trendyolCatalog";
 
 const vazir = Vazirmatn({
   subsets: ["arabic", "latin"],
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [cats, groupRows, featuredStats] = await Promise.all([
+  const [cats, groupRows, featuredStats, collectionStats] = await Promise.all([
     prisma.category.findMany({
       where: { scope: "warehouse" },
       orderBy: { sortOrder: "asc" },
@@ -50,6 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }),
     prisma.brand.groupBy({ by: ["group"], where: { isActive: true }, _count: true }),
     getPillarStats(),
+    getCollectionStats(),
   ]);
   const brandGroups = groupRows
     .filter((g) => GROUP_LABELS[g.group])
@@ -58,6 +59,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const catalogBrands = featuredStats
     .filter((b) => b.count > 0)
     .map((b) => ({ slug: b.slug, nameFa: b.nameFa, count: b.count }));
+  // "sale" از قبل زیرِ «میان‌بُرها» → «تخفیف‌ها» هست، برای عدمِ تکرار در فهرستِ کالکشن‌ها نمی‌آید.
+  const catalogCollections = collectionStats
+    .filter((c) => c.count > 0 && c.slug !== "sale")
+    .map((c) => ({ slug: c.slug, nameFa: c.nameFa, emoji: c.emoji }));
 
   return (
     <html lang="fa" dir="rtl" className={`${vazir.variable} ${estedad.variable}`}>
@@ -65,7 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Reveal />
         <SmoothScroll />
         <CustomCursor />
-        <Nav categories={cats} brandGroups={brandGroups} catalogBrands={catalogBrands} />
+        <Nav categories={cats} brandGroups={brandGroups} catalogBrands={catalogBrands} catalogCollections={catalogCollections} />
         <main>{children}</main>
         <Footer />
         <MobileTabBar />

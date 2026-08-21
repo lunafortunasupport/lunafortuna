@@ -22,6 +22,8 @@ export interface CatalogFilters {
   featuredBrand?: string;
   onSale?: boolean;
   source?: string; // ستونِ اصلی: trendyol | trendyol-milla | ambar
+  categoryIn?: string[]; // برای کالکشن‌ها: هر کدام از این دسته‌های فارسی (categoryFa)
+  categoryContains?: string; // برای کالکشن‌ها: دسته‌ای که این رشته را در نامش دارد (مثلِ «مردانه»)
 }
 
 // سه ستونِ اصلیِ کاتالوگ (بر اساسِ sourceSite). ترندیول = ملتی‌برند (همهٔ برندها).
@@ -38,6 +40,100 @@ export const PILLARS: Pillar[] = [
 ];
 export function getPillar(slug: string): Pillar | undefined {
   return PILLARS.find((p) => p.slug === slug);
+}
+
+// ── کالکشن‌های دست‌چین ──
+// روی دسته‌بندیِ واقعیِ محصولات (categoryFa) تعریف می‌شوند، نه فرضی. هر کالکشن یا یک لیستِ ثابت از
+// دسته‌ها (categoryIn) دارد یا یک زیررشتهٔ مشترک (categoryContains — مثلِ «مردانه» که چند دستهٔ
+// «پیراهنِ مردانه»/«تی‌شرتِ مردانه»/… را یک‌جا می‌گیرد).
+export interface Collection {
+  slug: string;
+  nameFa: string;
+  emoji: string;
+  blurbFa: string;
+  filter: { categoryIn?: string[]; categoryContains?: string; onSale?: boolean };
+}
+export const COLLECTIONS: Collection[] = [
+  {
+    slug: "modest",
+    nameFa: "پوشیدهٔ شیک",
+    emoji: "🧕",
+    blurbFa: "لباس و دامنِ پوشیده — انتخابِ شیک برای سبکِ باحجاب.",
+    filter: { categoryIn: ["لباسِ پوشیده (حجاب)", "دامنِ پوشیده (حجاب)"] },
+  },
+  {
+    slug: "evening",
+    nameFa: "استایلِ مجلسی",
+    emoji: "✨",
+    blurbFa: "برای مهمانی و مناسبت‌های خاص.",
+    filter: { categoryIn: ["لباسِ مجلسی/فارغ‌التحصیلی", "بوستیه"] },
+  },
+  {
+    slug: "basics",
+    nameFa: "بیسیکِ روزمره",
+    emoji: "👕",
+    blurbFa: "بلوز، تی‌شرت و شلوارِ همیشه‌کاربردی.",
+    filter: { categoryIn: ["بلوز", "تی‌شرت", "شلوار", "شلوار جین"] },
+  },
+  {
+    slug: "men",
+    nameFa: "دنیای مردانه",
+    emoji: "🧔",
+    blurbFa: "پیراهن، تی‌شرت، شلوار و کاپشنِ مردانه.",
+    filter: { categoryContains: "مردانه" },
+  },
+  {
+    slug: "kids",
+    nameFa: "دنیای بچگانه",
+    emoji: "🧸",
+    blurbFa: "پوشاکِ بچگانه و نوزادی.",
+    filter: { categoryContains: "بچگانه" },
+  },
+  {
+    slug: "home",
+    nameFa: "خانه و آشپزخانه",
+    emoji: "🏠",
+    blurbFa: "روتختی، حوله، دکوراسیون و لوازمِ آشپزخانه.",
+    filter: { categoryIn: ["روتختی", "حوله", "دکوراسیونِ خانه", "آشپزخانه"] },
+  },
+  {
+    slug: "sale",
+    nameFa: "حراجِ ویژه",
+    emoji: "🏷️",
+    blurbFa: "همین حالا تخفیف خورده‌اند.",
+    filter: { onSale: true },
+  },
+];
+export function getCollection(slug: string): Collection | undefined {
+  return COLLECTIONS.find((c) => c.slug === slug);
+}
+
+export interface CollectionStat extends Collection {
+  count: number;
+  sampleImages: string[];
+}
+
+/** آمارِ کالکشن‌ها — فقط آن‌هایی که همین حالا محصول دارند نشان داده می‌شوند. */
+export async function getCollectionStats(): Promise<CollectionStat[]> {
+  const stats = await Promise.all(
+    COLLECTIONS.map(async (c) => {
+      const where: Record<string, unknown> = { isActive: true };
+      if (c.filter.categoryIn) where.categoryFa = { in: c.filter.categoryIn };
+      else if (c.filter.categoryContains) where.categoryFa = { contains: c.filter.categoryContains };
+      if (c.filter.onSale) where.onSale = true;
+      const [count, samples] = await Promise.all([
+        prisma.mirrorProduct.count({ where }),
+        prisma.mirrorProduct.findMany({
+          where: { ...where, image: { not: null } },
+          orderBy: [{ favoriteCount: { sort: "desc", nulls: "last" } }],
+          take: 3,
+          select: { image: true },
+        }),
+      ]);
+      return { ...c, count, sampleImages: samples.map((s) => s.image!).filter(Boolean) };
+    })
+  );
+  return stats;
 }
 
 export interface FeaturedBrand {
@@ -86,6 +182,8 @@ export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: 
   if (filters.brand) where.brand = filters.brand;
   if (filters.featuredBrand) where.featuredBrand = filters.featuredBrand;
   if (filters.onSale) where.onSale = true;
+  if (filters.categoryIn) where.categoryFa = { in: filters.categoryIn };
+  else if (filters.categoryContains) where.categoryFa = { contains: filters.categoryContains };
   if (filters.size) where.variants = { some: { size: filters.size, inStock: true } };
   // جستجو: هم متنِ ترکیِ ذخیره‌شده (نام + برند) و هم دستهٔ فارسی (categoryFa) — تا سرچِ فارسیِ
   // نوعِ محصول («کیف»، «لباس»، «شلوار») هم نتیجه بدهد، نه فقط کلیدواژهٔ ترکی/برندِ لاتین.
