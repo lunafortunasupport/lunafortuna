@@ -36,13 +36,21 @@ export default function Reveal() {
     document.querySelectorAll(sel).forEach((el) => obs.observe(el));
     revealVisible();
     window.addEventListener("resize", revealVisible, { passive: true });
-    // یک پاسِ تأخیری برای عناصری که دیر به DOM اضافه می‌شوند.
-    const t = setTimeout(revealVisible, 400);
+
+    // چند پاسِ تأخیری + مشاهده‌ی عناصرِ دیرمانده. نکتهٔ مهم: در ناوبریِ SPA (مثلِ کلیک روی
+    // محصول) محتوای صفحهٔ جدید ممکن است بعد از اجرای این افکت mount شود؛ اگر فقط یک پاس داشته
+    // باشیم، آن عناصر با opacity:0 «گیر» می‌کنند و صفحه سفید دیده می‌شود تا رفرش. این پاس‌ها +
+    // observe دوباره تضمین می‌کنند هیچ محتوایی نامرئی نماند.
+    const rescan = () => {
+      document.querySelectorAll(sel).forEach((el) => obs.observe(el));
+      revealVisible();
+    };
+    const timers = [80, 250, 500, 900, 1500].map((ms) => setTimeout(rescan, ms));
 
     return () => {
       obs.disconnect();
       window.removeEventListener("resize", revealVisible);
-      clearTimeout(t);
+      timers.forEach(clearTimeout);
     };
   }, [pathname]);
   return null;

@@ -61,8 +61,10 @@ export default function TrendyolDetail({
 
   return (
     <div className="grid gap-10 lg:grid-cols-2">
-      {/* گالری */}
-      <div className="reveal">
+      {/* گالری — بدونِ کلاسِ reveal: این صفحه به انیمیشنِ ورودی نیاز ندارد و reveal روی
+          ناوبریِ SPA (به‌خاطرِ ری‌رندرِ CartProvider، transition سرِ صفر گیر می‌کرد) محتوا را
+          نامرئی نگه می‌داشت تا رفرش. */}
+      <div>
         <div className="aspect-[3/4] overflow-hidden rounded-2xl bg-cream ring-1 ring-navy/8">
           {gallery.length ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -97,7 +99,7 @@ export default function TrendyolDetail({
       </div>
 
       {/* اطلاعات */}
-      <div className="reveal">
+      <div>
         <div className="flex items-center gap-2.5">
           <span className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-navy/70 ring-1 ring-navy/10">
             {product.brand}
