@@ -115,6 +115,7 @@ export default function Nav({
                       میان‌بُرها
                     </div>
                     <DropItem href="/preview/trendyol" label="محبوب‌ترین‌ها" icon="❤" />
+                    <DropItem href="/preview/trendyol/lookbook" label="لوک‌بوک" icon="📖" />
                     <DropItem href="/preview/trendyol/sale" label="تخفیف‌ها" icon="🏷" />
                     <DropItem href="/preview/trendyol/brands" label="همهٔ برندها" icon="✦" />
                   </div>
@@ -176,6 +177,7 @@ export default function Nav({
       >
         {[
           ["/", "خانه"], ["/shop", "موجودی"], ["/brands", "برندها"], ["/preview/trendyol", "کاتالوگِ ترکیه"],
+          ["/preview/trendyol/lookbook", "لوک‌بوک"],
           ["/order", "ثبت سفارش"], ["/quality", "بررسی کیفیت"], ["/guide", "راهنمای خرید"], ["/about", "دربارهٔ ما"], ["/account", "حساب من"],
         ].map(([href, label]) => (
           <Link

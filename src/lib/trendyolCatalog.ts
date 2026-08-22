@@ -153,6 +153,105 @@ export async function getCollectionStats(): Promise<CollectionStat[]> {
   return stats;
 }
 
+// ── لوک‌بوک / منتخبِ سردبیر ──
+// «داستان»‌های استایلِ دست‌چین با روایتِ مجله‌ای. مثلِ COLLECTIONS در کد تعریف می‌شوند ولی
+// محصولاتشان زنده از کاتالوگِ سینک‌شده می‌آید (فیلترِ categoryFa)، پس همیشه تازه‌اند و لینکِ
+// خرابی ندارند. متنِ سردبیری (title/dek/intro) دستی نوشته می‌شود — همان چیزی که حسِ «مجله» می‌دهد.
+export interface Editorial {
+  slug: string;
+  title: string; // «شبِ مهمانی»
+  dek: string; // یک‌خطیِ گیرا زیرِ عنوان
+  intro: string; // ۲–۳ جملهٔ روایتِ سردبیری
+  heroEmoji: string; // اکسنتِ fallback وقتی عکسِ نمونه نیست
+  theme: "navy" | "gold" | "cream"; // حالِ رنگیِ هیرو
+  filter: { categoryIn?: string[]; audience?: string; audienceNull?: boolean; onSale?: boolean };
+  sort?: SortOption; // پیش‌فرض "popular"
+}
+export const EDITORIALS: Editorial[] = [
+  {
+    slug: "evening",
+    title: "شبِ مهمانی",
+    dek: "برای شب‌هایی که باید بدرخشی.",
+    intro:
+      "از لباسِ بلندِ مجلسی تا بوستیه و پیراهنِ شیک — تکه‌هایی که برای مهمانی، عروسی و مناسبت‌های خاص انتخاب کرده‌ایم. منتخبی از برندهای ترکیه، همه به فارسی و تومان.",
+    heroEmoji: "✨",
+    theme: "navy",
+    filter: { categoryIn: ["لباسِ مجلسی/فارغ‌التحصیلی", "بوستیه", "لباس"] },
+  },
+  {
+    slug: "everyday",
+    title: "راحتِ روزمره",
+    dek: "سادگیِ شیک برای هر روز.",
+    intro:
+      "بلوز، تی‌شرت، پلیور و ژاکتِ کش‌باف — پایه‌های همیشه‌کاربردیِ کمد که به هم می‌آیند و راحتی را قربانیِ استایل نمی‌کنند.",
+    heroEmoji: "👕",
+    theme: "cream",
+    filter: { categoryIn: ["بلوز", "تی‌شرت", "پلیور", "ژاکتِ کش‌باف"] },
+  },
+  {
+    slug: "denim",
+    title: "جین، همیشه جین",
+    dek: "کلاسیکی که هیچ‌وقت از مد نمی‌افتد.",
+    intro:
+      "منتخبی از شلوارهای جین با فیت‌ها و رنگ‌های مختلف — از مام‌استایلِ فاق‌بلند تا پاچه‌گشاد. تکه‌ای که با همه‌چیز ست می‌شود.",
+    heroEmoji: "👖",
+    theme: "navy",
+    filter: { categoryIn: ["شلوار جین"] },
+  },
+  {
+    slug: "bags-shoes",
+    title: "کیف و کفشِ منتخب",
+    dek: "جزئیاتی که استایل را کامل می‌کنند.",
+    intro:
+      "کیفِ دستی و دوشی، کفشِ پاشنه‌دار و کتانی — اکسسوری‌هایی که یک ست را از معمولی به خاص می‌رسانند.",
+    heroEmoji: "👜",
+    theme: "gold",
+    filter: { categoryIn: ["کیف", "کیفِ دوشی", "کیفِ دستی", "کفش", "کفشِ پاشنه‌دار", "کفشِ اسپرت"] },
+  },
+  {
+    slug: "winter",
+    title: "گرمِ زمستان",
+    dek: "لایه‌های گرم و شیکِ فصلِ سرد.",
+    intro:
+      "کاپشن، پالتو، تریکو و ترنچ‌کت — لایه‌هایی که سرما را بیرون نگه می‌دارند و استایل را زنده. منتخبِ زمستانیِ ما از برندهای ترکیه.",
+    heroEmoji: "🧥",
+    theme: "navy",
+    filter: { categoryIn: ["کاپشن", "پالتو", "تریکو", "پلیور", "ترنچ‌کت"] },
+  },
+];
+export function getEditorial(slug: string): Editorial | undefined {
+  return EDITORIALS.find((e) => e.slug === slug);
+}
+
+export interface EditorialStat extends Editorial {
+  count: number;
+  sampleImages: string[];
+}
+
+/** آمارِ لوک‌بوک — فقط لوک‌هایی که همین حالا محصول دارند نمایش داده می‌شوند. */
+export async function getEditorialStats(): Promise<EditorialStat[]> {
+  const stats = await Promise.all(
+    EDITORIALS.map(async (e) => {
+      const where: Record<string, unknown> = { isActive: true, ...NOT_HIDDEN };
+      if (e.filter.categoryIn) where.categoryFa = { in: e.filter.categoryIn };
+      if (e.filter.audienceNull) where.audience = null;
+      else if (e.filter.audience) where.audience = e.filter.audience;
+      if (e.filter.onSale) where.onSale = true;
+      const [count, samples] = await Promise.all([
+        prisma.mirrorProduct.count({ where }),
+        prisma.mirrorProduct.findMany({
+          where: { ...where, image: { not: null } },
+          orderBy: [{ favoriteCount: { sort: "desc", nulls: "last" } }],
+          take: 3,
+          select: { image: true },
+        }),
+      ]);
+      return { ...e, count, sampleImages: samples.map((s) => s.image!).filter(Boolean) };
+    })
+  );
+  return stats;
+}
+
 export interface FeaturedBrand {
   slug: string;
   nameFa: string;

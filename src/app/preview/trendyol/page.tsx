@@ -7,12 +7,14 @@ import {
   getPillar,
   getCollection,
   getCollectionStats,
+  getEditorialStats,
   type PriceBucket,
   type SortOption,
 } from "@/lib/trendyolCatalog";
 import TrendyolDemoCard from "@/components/TrendyolDemoCard";
 import TrendyolFilters from "@/components/TrendyolFilters";
 import CollectionStrip from "@/components/CollectionStrip";
+import EditorialStrip from "@/components/EditorialStrip";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "پیش‌نمایشِ فنی — کاتالوگِ ترندیول" };
@@ -49,11 +51,14 @@ export default async function TrendyolPreviewPage({
     page: Number(sp.page) || 1,
   };
 
-  const [{ items, total, page, pageCount }, facets, collectionStats] = await Promise.all([
+  const isPlainView = !activeCollection && !filters.source && !filters.featuredBrand;
+  const [{ items, total, page, pageCount }, facets, collectionStats, editorialStats] = await Promise.all([
     queryMirrorProducts(filters, perLirToman),
     getFacets(filters.source),
     // فقط وقتی کالکشنی فعال نیست لازم است (نوار روی خودِ صفحاتِ کالکشن نمایش داده نمی‌شود).
     activeCollection ? Promise.resolve([]) : getCollectionStats(),
+    // نوارِ «منتخبِ سردبیر» فقط روی نمای اصلیِ کاتالوگ (نه ستون/برند/کالکشنِ خاص).
+    isPlainView ? getEditorialStats() : Promise.resolve([]),
   ]);
   const activePillar = filters.source ? getPillar(filters.source) : undefined;
   const activeFeaturedBrand = filters.featuredBrand ? getFeaturedBrand(filters.featuredBrand) : undefined;
@@ -105,6 +110,8 @@ export default async function TrendyolPreviewPage({
       <TrendyolFilters facets={facets} total={total} />
 
       {!activeCollection && <CollectionStrip collections={collectionStats} />}
+
+      {isPlainView && <EditorialStrip editorials={editorialStats} />}
 
       {(activePillar || activeFeaturedBrand || activeCollection) && (
         <div className="container-luna pt-6">
