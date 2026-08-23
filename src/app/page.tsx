@@ -8,27 +8,62 @@ import Divider from "@/components/Divider";
 import BrandMarquee from "@/components/BrandMarquee";
 import PopularShowcase from "@/components/PopularShowcase";
 import HeroCarousel, { type HeroSlide } from "@/components/HeroCarousel";
-import {
-  getPillarStats,
-  getCollectionStats,
-  getEditorialStats,
-  priceBreakdown,
-  saleView,
-  type MirrorProductWithVariants,
-} from "@/lib/trendyolCatalog";
+import { getPillarStats, priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
 
-// ترتیبِ دست‌چینِ اسلایدهای خودکارِ هیرو (وقتی بنرِ دستی کم/خالی باشد) — ترکیبی از لوک‌بوکِ
-// سردبیری و کالکشن‌های اصلی تا هیرو همیشه با عکسِ واقعیِ روی‌مدل و لینکِ زنده پر باشد.
-const AUTO_HERO_ORDER: { type: "editorial" | "collection"; slug: string }[] = [
-  { type: "editorial", slug: "evening" },
-  { type: "collection", slug: "women" },
-  { type: "editorial", slug: "denim" },
-  { type: "collection", slug: "men" },
-  { type: "editorial", slug: "bags-shoes" },
-  { type: "collection", slug: "sale" },
+// اسلایدهای پیش‌فرضِ هیرو — عکس‌های ادیتوریال/لایف‌استایلِ باکیفیتِ محلیِ خودِ سایت (همان‌هایی که
+// در بخشِ «دسته‌ها»، «چرا لونافورتونا» و «لحظهٔ ادیتوریال» هم استفاده می‌شوند)، نه عکسِ محصولِ
+// خامِ ترندیول. عکسِ محصول برای کاتالوگِ لیستینگ ساخته شده، نه برای هیرو — کیفیت و کادربندیِ
+// یکدست ندارد (مثلاً crop عجیب یا حتی کالای بی‌ربطِ خانه با بیشترین پسند). دو تای اول
+// (hero-shopping/boutique) در جای دیگری از صفحه استفاده نمی‌شوند؛ سه‌تای بعدی همان عکسِ کاشی‌های
+// «دسته‌ها»ی زیرش‌اند — تکرارِ عمدی و کم‌ریسک (یک عکسِ رخت‌آویز/مدل، نه تصویرِ خاصِ به‌یادماندنی)
+// تا کاروسل واقعاً چندتا اسلایدِ متفاوت داشته باشد.
+const CURATED_HERO_SLIDES: HeroSlide[] = [
+  {
+    id: "hero-main",
+    eyebrow: "آتلیهٔ خرید از ترکیه",
+    title: "خیالت راحت، بقیه‌اش با ما",
+    subtitle: "هر چه از ترکیه در ایران به‌دستت نمی‌رسد — با یک واسطهٔ مطمئن، دانه‌به‌دانه بررسی‌شده.",
+    image: "/images/hero-shopping.jpg",
+    href: "/order",
+    ctaText: "ثبت سفارش",
+  },
+  {
+    id: "hero-catalog",
+    eyebrow: "کاتالوگِ ترکیه",
+    title: "پرفروش‌ها، به فارسی و تومان",
+    subtitle: "منتخب‌ها و حراج‌های ترندیول، بدونِ نیازِ گشتن تو سایتِ ترکی.",
+    image: "/images/boutique.jpg",
+    href: "/catalog",
+    ctaText: "مشاهدهٔ کاتالوگ",
+  },
+  {
+    id: "hero-women",
+    eyebrow: "کالکشن",
+    title: "پوشاکِ زنانه",
+    subtitle: "از روزمره تا مجلسی، از ده‌ها برند.",
+    image: "/images/rack.jpg",
+    href: "/catalog?collection=women",
+    ctaText: "مشاهدهٔ کالکشن",
+  },
+  {
+    id: "hero-men",
+    eyebrow: "کالکشن",
+    title: "دنیای مردانه",
+    subtitle: "پیراهن، تی‌شرت، شلوار و کاپشنِ مردانه.",
+    image: "/images/menswear.jpg",
+    href: "/catalog?collection=men",
+    ctaText: "مشاهدهٔ کالکشن",
+  },
+  {
+    id: "hero-bags",
+    eyebrow: "لوک‌بوک",
+    title: "کیف و کفشِ منتخب",
+    subtitle: "جزئیاتی که استایل را کامل می‌کنند.",
+    image: "/images/quiet-luxury.jpg",
+    href: "/catalog/lookbook/bags-shoes",
+    ctaText: "مشاهدهٔ لوک",
+  },
 ];
-const MIN_HERO_SLIDES = 4;
-const MAX_HERO_SLIDES = 5; // دست‌چینِ سخت‌گیرانه — کیفیت بر تعداد؛ کاروسلِ طولانی حسِ ادیتوریال را می‌شکند.
 
 export const dynamic = "force-dynamic";
 
@@ -47,8 +82,7 @@ export default async function HomePage() {
   const s = await getSettings();
   const perLir = Math.round(s.exchangeRate * (1 + s.feeNormal));
 
-  const [brandCount, directory, sales, popular, featuredStats, heroBanners, collectionStats, editorialStats] =
-    await Promise.all([
+  const [brandCount, directory, sales, popular, featuredStats, heroBanners] = await Promise.all([
       prisma.brand.count({ where: { isActive: true } }),
       prisma.brand.findMany({
         where: { isActive: true },
@@ -77,8 +111,6 @@ export default async function HomePage() {
         where: { isActive: true, placement: "hero" },
         orderBy: { sortOrder: "asc" },
       }),
-      getCollectionStats(),
-      getEditorialStats(),
     ]);
 
   // محبوب‌ترین‌ها → دادهٔ سادهٔ سریالایزبل برای کامپوننتِ کلاینت (قیمت‌ها همین‌جا حساب می‌شوند).
@@ -111,8 +143,9 @@ export default async function HomePage() {
     .map((b) => ({ slug: b.slug, nameFa: b.nameFa, nameEn: b.nameEn, count: b.count, image: b.sampleImages[0] || null }));
   // نکته: featuredStats حالا سه ستونِ منبع است (getPillarStats)، پس showcaseBrands = ترندیول/میلا/آمبار.
 
-  // اسلایدهای هیرو: اول بنرهای دستیِ عسل (اگر بود)، بعد پُرکنندهٔ خودکار از کالکشن/لوک‌بوکِ زنده
-  // (عکسِ واقعیِ روی‌مدل + لینکِ واقعی) تا هیرو هیچ‌وقت خالی یا استاتیک نماند.
+  // اسلایدهای هیرو: بنرهای دستیِ عسل (عکسِ کمپینِ واقعی) اولویتِ اول‌اند؛ وگرنه از مجموعهٔ ثابتِ
+  // عکس‌های ادیتوریالِ باکیفیتِ خودِ سایت استفاده می‌شود — نه عکسِ کاتالوگِ ترندیول (تجربهٔ قبلی
+  // نشان داد که آن عکس‌ها برای هیرو هیچ‌وقت به‌اندازهٔ کافی یکدست/لاکچری نیستند).
   const bannerSlides: HeroSlide[] = heroBanners
     .filter((b) => b.imageUrl)
     .map((b) => ({
@@ -124,54 +157,7 @@ export default async function HomePage() {
       href: b.link || "/catalog",
       ctaText: b.ctaText || "مشاهده",
     }));
-
-  const autoSlides: HeroSlide[] = AUTO_HERO_ORDER.map((ref) => {
-    if (ref.type === "editorial") {
-      const e = editorialStats.find((x) => x.slug === ref.slug);
-      if (!e || e.count === 0 || e.sampleImages.length === 0) return null;
-      return {
-        id: `edit-${e.slug}`,
-        eyebrow: "منتخبِ سردبیر",
-        title: e.title,
-        subtitle: e.dek,
-        image: e.sampleImages[0],
-        href: `/catalog/lookbook/${e.slug}`,
-        ctaText: "مشاهدهٔ لوک",
-      } satisfies HeroSlide;
-    }
-    const c = collectionStats.find((x) => x.slug === ref.slug);
-    if (!c || c.count === 0 || c.sampleImages.length === 0) return null;
-    return {
-      id: `coll-${c.slug}`,
-      eyebrow: c.slug === "sale" ? "حراجِ ویژه" : "کالکشن",
-      title: c.nameFa,
-      subtitle: c.blurbFa,
-      image: c.sampleImages[0],
-      href: `/catalog?collection=${c.slug}`,
-      ctaText: c.slug === "sale" ? "مشاهدهٔ حراج" : "مشاهدهٔ کالکشن",
-    } satisfies HeroSlide;
-  }).filter((x): x is HeroSlide => x !== null);
-
-  let heroSlides: HeroSlide[] =
-    bannerSlides.length >= MIN_HERO_SLIDES
-      ? bannerSlides
-      : [...bannerSlides, ...autoSlides.slice(0, MIN_HERO_SLIDES - bannerSlides.length + 2)];
-  heroSlides = heroSlides.slice(0, MAX_HERO_SLIDES);
-  // ایمنی: اگر کاتالوگ هنوز سینک نشده (dev تازه/خالی) و بنری هم نبود، هیرو هیچ‌وقت خالی نماند.
-  if (heroSlides.length === 0) {
-    heroSlides = [
-      {
-        id: "fallback",
-        eyebrow: "آتلیهٔ خرید از ترکیه",
-        title: "خیالت راحت، بقیه‌اش با ما",
-        subtitle:
-          "هر چه از ترکیه در ایران به‌دستت نمی‌رسد — از پوشاک و کیف و کفش تا لوازم خانه. صادقانه می‌خریم، سایز و کیفیتش را می‌بینیم.",
-        image: "/images/hero-shopping.jpg",
-        href: "/order",
-        ctaText: "ثبت سفارش",
-      },
-    ];
-  }
+  const heroSlides: HeroSlide[] = bannerSlides.length > 0 ? bannerSlides : CURATED_HERO_SLIDES;
 
   // کاشی‌های دسته → مستقیم به کاتالوگِ زندهٔ فارسی (نه فهرستِ لینک‌های برند). همان تمایزِ اصلیِ سایت.
   const tiles = [
