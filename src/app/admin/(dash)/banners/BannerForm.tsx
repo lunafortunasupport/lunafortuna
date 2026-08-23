@@ -47,8 +47,8 @@ export default function BannerForm({ banner }: { banner?: B }) {
         <div className="grid grid-cols-3 gap-4">
           <Field label="محل نمایش">
             <select name="placement" defaultValue={banner?.placement || "promo"} className="inp">
-              <option value="promo">صفحهٔ اصلی</option>
-              <option value="hero">هیرو</option>
+              <option value="hero">اسلایدرِ بالای صفحه (هیرو)</option>
+              <option value="promo">نوارِ تبلیغِ میانی</option>
             </select>
           </Field>
           <Field label="تم رنگی">

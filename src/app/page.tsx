@@ -7,12 +7,27 @@ import Counter from "@/components/Counter";
 import Divider from "@/components/Divider";
 import BrandMarquee from "@/components/BrandMarquee";
 import PopularShowcase from "@/components/PopularShowcase";
+import HeroCarousel, { type HeroSlide } from "@/components/HeroCarousel";
 import {
   getPillarStats,
+  getCollectionStats,
+  getEditorialStats,
   priceBreakdown,
   saleView,
   type MirrorProductWithVariants,
 } from "@/lib/trendyolCatalog";
+
+// ترتیبِ دست‌چینِ اسلایدهای خودکارِ هیرو (وقتی بنرِ دستی کم/خالی باشد) — ترکیبی از لوک‌بوکِ
+// سردبیری و کالکشن‌های اصلی تا هیرو همیشه با عکسِ واقعیِ روی‌مدل و لینکِ زنده پر باشد.
+const AUTO_HERO_ORDER: { type: "editorial" | "collection"; slug: string }[] = [
+  { type: "editorial", slug: "evening" },
+  { type: "collection", slug: "women" },
+  { type: "editorial", slug: "denim" },
+  { type: "collection", slug: "men" },
+  { type: "editorial", slug: "bags-shoes" },
+  { type: "collection", slug: "sale" },
+];
+const MIN_HERO_SLIDES = 4;
 
 export const dynamic = "force-dynamic";
 
@@ -31,31 +46,39 @@ export default async function HomePage() {
   const s = await getSettings();
   const perLir = Math.round(s.exchangeRate * (1 + s.feeNormal));
 
-  const [brandCount, directory, sales, popular, featuredStats] = await Promise.all([
-    prisma.brand.count({ where: { isActive: true } }),
-    prisma.brand.findMany({
-      where: { isActive: true },
-      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
-      take: 48,
-      select: { name: true, slug: true, logoUrl: true },
-    }),
-    prisma.brand.findMany({
-      where: { isActive: true, saleActive: true, saleUrl: { not: null } },
-      orderBy: { sortOrder: "asc" },
-      take: 12,
-      select: { slug: true, name: true, logoUrl: true, saleUrl: true, saleLabel: true },
-    }),
-    // محبوب‌ترین‌ها (ویترینِ صفحهٔ اصلی): مُدمحور — فقط پوشاک/کیف/کفشِ زنانهٔ عمومی
-    // (audience=null)، تا لیدِ صفحه لوازمِ خانه/نظافت (که favoriteCountِ خیلی بالا دارند) نباشد.
-    // فیلترِ gt:0 هم nullهای favoriteCount را حذف می‌کند تا مرتب‌سازی روی Postgres/SQLite یکسان بماند.
-    prisma.mirrorProduct.findMany({
-      where: { isActive: true, favoriteCount: { gt: 0 }, audience: null, category: { not: { startsWith: "Tesettür" } } },
-      orderBy: [{ favoriteCount: "desc" }, { ratingScore: "desc" }],
-      take: 13,
-      include: { variants: true },
-    }),
-    getPillarStats(),
-  ]);
+  const [brandCount, directory, sales, popular, featuredStats, heroBanners, collectionStats, editorialStats] =
+    await Promise.all([
+      prisma.brand.count({ where: { isActive: true } }),
+      prisma.brand.findMany({
+        where: { isActive: true },
+        orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
+        take: 48,
+        select: { name: true, slug: true, logoUrl: true },
+      }),
+      prisma.brand.findMany({
+        where: { isActive: true, saleActive: true, saleUrl: { not: null } },
+        orderBy: { sortOrder: "asc" },
+        take: 12,
+        select: { slug: true, name: true, logoUrl: true, saleUrl: true, saleLabel: true },
+      }),
+      // محبوب‌ترین‌ها (ویترینِ صفحهٔ اصلی): مُدمحور — فقط پوشاک/کیف/کفشِ زنانهٔ عمومی
+      // (audience=null)، تا لیدِ صفحه لوازمِ خانه/نظافت (که favoriteCountِ خیلی بالا دارند) نباشد.
+      // فیلترِ gt:0 هم nullهای favoriteCount را حذف می‌کند تا مرتب‌سازی روی Postgres/SQLite یکسان بماند.
+      prisma.mirrorProduct.findMany({
+        where: { isActive: true, favoriteCount: { gt: 0 }, audience: null, category: { not: { startsWith: "Tesettür" } } },
+        orderBy: [{ favoriteCount: "desc" }, { ratingScore: "desc" }],
+        take: 13,
+        include: { variants: true },
+      }),
+      getPillarStats(),
+      // بنرهای دستیِ هیرو — عسل هر وقت عکسِ کمپین/مدلِ خودِ برند داشت، از /admin/banners اضافه می‌کند.
+      prisma.banner.findMany({
+        where: { isActive: true, placement: "hero" },
+        orderBy: { sortOrder: "asc" },
+      }),
+      getCollectionStats(),
+      getEditorialStats(),
+    ]);
 
   // محبوب‌ترین‌ها → دادهٔ سادهٔ سریالایزبل برای کامپوننتِ کلاینت (قیمت‌ها همین‌جا حساب می‌شوند).
   const toItem = (p: MirrorProductWithVariants) => {
@@ -87,6 +110,67 @@ export default async function HomePage() {
     .map((b) => ({ slug: b.slug, nameFa: b.nameFa, nameEn: b.nameEn, count: b.count, image: b.sampleImages[0] || null }));
   // نکته: featuredStats حالا سه ستونِ منبع است (getPillarStats)، پس showcaseBrands = ترندیول/میلا/آمبار.
 
+  // اسلایدهای هیرو: اول بنرهای دستیِ عسل (اگر بود)، بعد پُرکنندهٔ خودکار از کالکشن/لوک‌بوکِ زنده
+  // (عکسِ واقعیِ روی‌مدل + لینکِ واقعی) تا هیرو هیچ‌وقت خالی یا استاتیک نماند.
+  const bannerSlides: HeroSlide[] = heroBanners
+    .filter((b) => b.imageUrl)
+    .map((b) => ({
+      id: `banner-${b.id}`,
+      eyebrow: "آتلیهٔ خرید از ترکیه",
+      title: b.title || "خیالت راحت، بقیه‌اش با ما",
+      subtitle: b.subtitle,
+      image: b.imageUrl,
+      href: b.link || "/catalog",
+      ctaText: b.ctaText || "مشاهده",
+    }));
+
+  const autoSlides: HeroSlide[] = AUTO_HERO_ORDER.map((ref) => {
+    if (ref.type === "editorial") {
+      const e = editorialStats.find((x) => x.slug === ref.slug);
+      if (!e || e.count === 0 || e.sampleImages.length === 0) return null;
+      return {
+        id: `edit-${e.slug}`,
+        eyebrow: "منتخبِ سردبیر",
+        title: e.title,
+        subtitle: e.dek,
+        image: e.sampleImages[0],
+        href: `/catalog/lookbook/${e.slug}`,
+        ctaText: "مشاهدهٔ لوک",
+      } satisfies HeroSlide;
+    }
+    const c = collectionStats.find((x) => x.slug === ref.slug);
+    if (!c || c.count === 0 || c.sampleImages.length === 0) return null;
+    return {
+      id: `coll-${c.slug}`,
+      eyebrow: c.slug === "sale" ? "حراجِ ویژه" : "کالکشن",
+      title: c.nameFa,
+      subtitle: c.blurbFa,
+      image: c.sampleImages[0],
+      href: `/catalog?collection=${c.slug}`,
+      ctaText: c.slug === "sale" ? "مشاهدهٔ حراج" : "مشاهدهٔ کالکشن",
+    } satisfies HeroSlide;
+  }).filter((x): x is HeroSlide => x !== null);
+
+  let heroSlides: HeroSlide[] =
+    bannerSlides.length >= MIN_HERO_SLIDES
+      ? bannerSlides
+      : [...bannerSlides, ...autoSlides.slice(0, MIN_HERO_SLIDES - bannerSlides.length + 2)];
+  // ایمنی: اگر کاتالوگ هنوز سینک نشده (dev تازه/خالی) و بنری هم نبود، هیرو هیچ‌وقت خالی نماند.
+  if (heroSlides.length === 0) {
+    heroSlides = [
+      {
+        id: "fallback",
+        eyebrow: "آتلیهٔ خرید از ترکیه",
+        title: "خیالت راحت، بقیه‌اش با ما",
+        subtitle:
+          "هر چه از ترکیه در ایران به‌دستت نمی‌رسد — از پوشاک و کیف و کفش تا لوازم خانه. صادقانه می‌خریم، سایز و کیفیتش را می‌بینیم.",
+        image: "/images/hero-shopping.jpg",
+        href: "/order",
+        ctaText: "ثبت سفارش",
+      },
+    ];
+  }
+
   // کاشی‌های دسته → مستقیم به کاتالوگِ زندهٔ فارسی (نه فهرستِ لینک‌های برند). همان تمایزِ اصلیِ سایت.
   const tiles = [
     { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", href: "/catalog?collection=women" },
@@ -97,56 +181,8 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ═══════════ HERO ═══════════ */}
-      <section className="relative min-h-[92vh] w-full overflow-hidden bg-navy-ink text-cream">
-        <Image
-          src="/images/hero-shopping.jpg"
-          alt="خرید از برندهای ترکیه"
-          fill
-          priority
-          sizes="100vw"
-          className="kenburns object-cover object-center opacity-90"
-        />
-        {/* پرده‌ی گرادیانی — سمت راست تیره‌تر برای خوانایی متن (RTL) */}
-        <div className="absolute inset-0 bg-gradient-to-l from-navy-ink/95 via-navy-ink/70 to-navy-ink/25" />
-        <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/80 via-transparent to-navy-ink/40" />
-
-        <div className="container-luna relative flex min-h-[92vh] flex-col justify-center py-28">
-          <div className="max-w-2xl reveal">
-            <div className="rise-up flex items-center gap-3 text-[12px] tracking-[0.32em] text-champagne">
-              <span className="h-px w-10 bg-champagne/60" />
-              آتلیهٔ خرید از ترکیه
-            </div>
-            <h1 className="rise-up mt-7 font-display text-[clamp(44px,8vw,96px)] font-black leading-[1.05]" style={{ transitionDelay: "80ms" }}>
-              خیالت راحت،
-              <span className="mt-1 block text-champagne">بقیه‌اش با ما</span>
-            </h1>
-            <p className="rise-up mt-8 max-w-lg text-[15px] leading-9 text-cream/75" style={{ transitionDelay: "160ms" }}>
-              هر چه از ترکیه در ایران به‌دستت نمی‌رسد — از پوشاک و کیف و کفش تا لوازم خانه. صادقانه
-              می‌خریم، سایز و کیفیتش را می‌بینیم، و مثل یک امانت به دستت می‌رسانیم.
-            </p>
-            <div className="rise-up mt-10 flex flex-wrap items-center gap-6" style={{ transitionDelay: "240ms" }}>
-              <Link href="/order" className="btn bg-champagne px-8 py-3.5 text-navy-ink hover:bg-cream">
-                ثبت سفارش
-              </Link>
-              <Link href="/brands" className="group inline-flex items-center gap-2 text-sm text-cream/80 hover:text-champagne">
-                گشتن میان برندها
-                <span className="transition-transform group-hover:-translate-x-1">←</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* نوار پایینِ ظریف */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-cream/10 bg-navy-ink/40 backdrop-blur-sm">
-          <div className="container-luna flex flex-wrap items-center justify-between gap-4 py-4 text-[12.5px] text-cream/60">
-            <span><Counter to={brandCount} className="font-display font-bold text-champagne" /> برندِ معتبر ترکیه</span>
-            <span className="hidden sm:inline">بررسی کیفیت و سایز پیش از ارسال</span>
-            <span className="hidden md:inline">قیمت شفاف با نرخ لیرِ روز</span>
-            <span>هر لیر ≈ {perLir.toLocaleString("fa-IR")} تومان</span>
-          </div>
-        </div>
-      </section>
+      {/* ═══════════ HERO — اسلایدرِ مزونی ═══════════ */}
+      <HeroCarousel slides={heroSlides} brandCount={brandCount} perLir={perLir} />
 
       {/* ═══════════ مارکیِ برندها (اثباتِ اجتماعی) ═══════════ */}
       <BrandMarquee brands={directory} />
