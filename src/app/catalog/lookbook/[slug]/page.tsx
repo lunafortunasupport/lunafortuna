@@ -70,7 +70,7 @@ export default async function LookbookStoryPage({ params }: { params: Promise<{ 
           <span className="text-[12px] text-navy/45">
             {total.toLocaleString("fa-IR")} محصول در این لوک
           </span>
-          <Link href="/preview/trendyol/lookbook" className="text-[13px] text-gold hover:text-navy">
+          <Link href="/catalog/lookbook" className="text-[13px] text-gold hover:text-navy">
             ← همهٔ لوک‌ها
           </Link>
         </div>
@@ -82,7 +82,7 @@ export default async function LookbookStoryPage({ params }: { params: Promise<{ 
             </div>
             <h3 className="mt-4 font-display text-lg font-semibold text-navy">فعلاً محصولی در این لوک نیست</h3>
             <p className="mt-1.5 text-[13px] text-navy/50">به‌زودی با سینکِ بعدی پر می‌شود.</p>
-            <Link href="/preview/trendyol" className="btn-outline mt-5 inline-flex">
+            <Link href="/catalog" className="btn-outline mt-5 inline-flex">
               مشاهدهٔ کاتالوگ
             </Link>
           </div>
@@ -99,7 +99,7 @@ export default async function LookbookStoryPage({ params }: { params: Promise<{ 
               ))}
             </div>
             <div className="mt-10 text-center">
-              <Link href="/preview/trendyol" className="btn-outline inline-flex">
+              <Link href="/catalog" className="btn-outline inline-flex">
                 کاوش در کاتالوگِ کامل ←
               </Link>
             </div>

@@ -27,7 +27,7 @@ export default function TrendyolDemoCard({
 
   return (
     <Link
-      href={`/preview/trendyol/${product.id}`}
+      href={`/catalog/${product.id}`}
       className="group relative block overflow-hidden rounded-2xl border border-navy/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-cream">

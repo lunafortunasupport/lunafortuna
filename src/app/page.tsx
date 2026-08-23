@@ -89,10 +89,10 @@ export default async function HomePage() {
 
   // کاشی‌های دسته → مستقیم به کاتالوگِ زندهٔ فارسی (نه فهرستِ لینک‌های برند). همان تمایزِ اصلیِ سایت.
   const tiles = [
-    { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", href: "/preview/trendyol?collection=women" },
-    { img: "/images/menswear.jpg", fa: "پوشاک مردانه", en: "Men", href: "/preview/trendyol?collection=men" },
-    { img: "/images/quiet-luxury.jpg", fa: "کیف و کفش", en: "Bags & Shoes", href: "/preview/trendyol/lookbook/bags-shoes" },
-    { img: "/images/window-warm.jpg", fa: "خانه و لوازم", en: "Home", href: "/preview/trendyol?collection=home" },
+    { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", href: "/catalog?collection=women" },
+    { img: "/images/menswear.jpg", fa: "پوشاک مردانه", en: "Men", href: "/catalog?collection=men" },
+    { img: "/images/quiet-luxury.jpg", fa: "کیف و کفش", en: "Bags & Shoes", href: "/catalog/lookbook/bags-shoes" },
+    { img: "/images/window-warm.jpg", fa: "خانه و لوازم", en: "Home", href: "/catalog?collection=home" },
   ];
 
   return (
@@ -161,7 +161,7 @@ export default async function HomePage() {
                 از کجا شروع کنیم؟
               </h2>
             </div>
-            <Link href="/preview/trendyol" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">مشاهدهٔ کاتالوگ ←</Link>
+            <Link href="/catalog" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">مشاهدهٔ کاتالوگ ←</Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {tiles.map((t) => (
@@ -190,7 +190,7 @@ export default async function HomePage() {
                   آنچه خریداران بیشتر پسندیده‌اند
                 </h2>
               </div>
-              <Link href="/preview/trendyol" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">
+              <Link href="/catalog" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">
                 دیدنِ همهٔ محبوب‌ها ←
               </Link>
             </div>

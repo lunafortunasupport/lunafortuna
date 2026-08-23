@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 
 // نوارِ ناوبریِ داخلیِ پیش‌نمایشِ ترندیول (هنوز از منوی اصلیِ سایت لینک نمی‌شود).
 const LINKS = [
-  { href: "/preview/trendyol", label: "همهٔ محصولات", exact: true },
-  { href: "/preview/trendyol/brands", label: "برندها" },
-  { href: "/preview/trendyol/sale", label: "تخفیف‌ها" },
-  { href: "/preview/trendyol/cart", label: "سبدِ خرید" },
+  { href: "/catalog", label: "همهٔ محصولات", exact: true },
+  { href: "/catalog/brands", label: "برندها" },
+  { href: "/catalog/sale", label: "تخفیف‌ها" },
+  { href: "/catalog/cart", label: "سبدِ خرید" },
 ];
 
 export default function TrendyolPreviewNav() {

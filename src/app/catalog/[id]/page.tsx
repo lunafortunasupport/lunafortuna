@@ -24,7 +24,7 @@ export default async function TrendyolProductPage({ params }: { params: Promise<
   return (
     <div className="container-luna py-10">
       <Link
-        href="/preview/trendyol"
+        href="/catalog"
         className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-navy/50 transition-colors hover:text-gold"
       >
         ← بازگشت به کاتالوگ

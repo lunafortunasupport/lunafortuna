@@ -17,7 +17,7 @@ import CollectionStrip from "@/components/CollectionStrip";
 import EditorialStrip from "@/components/EditorialStrip";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "پیش‌نمایشِ فنی — کاتالوگِ ترندیول" };
+export const metadata = { title: "کاتالوگِ ترکیه — به فارسی و تومان" };
 
 const VALID_SORTS: SortOption[] = ["popular", "price_asc", "price_desc", "new"];
 const VALID_BUCKETS: PriceBucket[] = ["under1", "1to3", "3to6", "over6"];
@@ -77,7 +77,7 @@ export default async function TrendyolPreviewPage({
     if (activeCollection) next.set("collection", activeCollection.slug);
     if (p > 1) next.set("page", String(p));
     const s = next.toString();
-    return s ? `/preview/trendyol?${s}` : "/preview/trendyol";
+    return s ? `/catalog?${s}` : "/catalog";
   };
 
   return (
@@ -123,7 +123,7 @@ export default async function TrendyolPreviewPage({
               </b>
             </span>
             <Link
-              href={activeCollection ? "/preview/trendyol" : "/preview/trendyol/brands"}
+              href={activeCollection ? "/catalog" : "/catalog/brands"}
               className="text-[12px] font-medium text-gold hover:underline"
             >
               {activeCollection ? "← بازگشت به کاتالوگِ کامل" : "← بازگشت به همهٔ برندها"}
@@ -138,7 +138,7 @@ export default async function TrendyolPreviewPage({
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-navy/5 text-2xl">🔍</div>
             <h3 className="mt-4 font-display text-lg font-semibold text-navy">چیزی با این فیلترها پیدا نشد</h3>
             <p className="mt-1.5 text-[13px] text-navy/50">فیلترها را کم‌تر کن یا کلیدواژهٔ دیگری امتحان کن.</p>
-            <Link href="/preview/trendyol" className="btn-outline mt-5 inline-flex">
+            <Link href="/catalog" className="btn-outline mt-5 inline-flex">
               پاک‌کردنِ فیلترها
             </Link>
           </div>

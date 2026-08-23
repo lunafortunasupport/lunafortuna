@@ -24,7 +24,7 @@ export default async function AccountFavorites({ userId }: { userId: string }) {
         </h2>
         <p className="text-[13px] text-navy/50">
           هنوز محصولی نپسندیده‌ای. در{" "}
-          <Link href="/preview/trendyol" className="text-gold hover:underline">
+          <Link href="/catalog" className="text-gold hover:underline">
             کاتالوگِ ترکیه
           </Link>{" "}
           روی قلبِ هر محصول بزن تا اینجا ذخیره شود.
@@ -55,7 +55,7 @@ export default async function AccountFavorites({ userId }: { userId: string }) {
             {products.length.toLocaleString("fa-IR")}
           </span>
         </h2>
-        <Link href="/preview/trendyol/wishlist" className="text-[13px] text-gold hover:text-navy">
+        <Link href="/catalog/wishlist" className="text-[13px] text-gold hover:text-navy">
           مشاهدهٔ همه ←
         </Link>
       </div>

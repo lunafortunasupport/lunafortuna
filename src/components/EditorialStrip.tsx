@@ -13,7 +13,7 @@ export default function EditorialStrip({ editorials }: { editorials: EditorialSt
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
             📖 منتخبِ سردبیر
           </span>
-          <Link href="/preview/trendyol/lookbook" className="text-[12px] text-gold hover:text-navy">
+          <Link href="/catalog/lookbook" className="text-[12px] text-gold hover:text-navy">
             همهٔ لوک‌ها ←
           </Link>
         </div>
@@ -21,7 +21,7 @@ export default function EditorialStrip({ editorials }: { editorials: EditorialSt
           {shown.map((e) => (
             <Link
               key={e.slug}
-              href={`/preview/trendyol/lookbook/${e.slug}`}
+              href={`/catalog/lookbook/${e.slug}`}
               className="group relative flex w-52 shrink-0 flex-col overflow-hidden rounded-xl border border-navy/8 transition-all hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-cream">

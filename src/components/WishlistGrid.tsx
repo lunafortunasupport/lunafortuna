@@ -86,7 +86,7 @@ export default function WishlistGrid() {
         <p className="mt-1.5 text-[13px] text-navy/50">
           روی قلبِ هر محصول بزن تا اینجا ذخیره شود و بعداً راحت پیدایش کنی.
         </p>
-        <Link href="/preview/trendyol" className="btn-outline mt-5 inline-flex">
+        <Link href="/catalog" className="btn-outline mt-5 inline-flex">
           کاوش در کاتالوگ
         </Link>
       </div>
@@ -100,7 +100,7 @@ export default function WishlistGrid() {
           key={p.id}
           className="group relative block overflow-hidden rounded-2xl border border-navy/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
         >
-          <Link href={`/preview/trendyol/${p.id}`}>
+          <Link href={`/catalog/${p.id}`}>
             <div className="relative aspect-[3/4] overflow-hidden bg-cream">
               {p.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -133,7 +133,7 @@ export default function WishlistGrid() {
                 {p.categoryFa}
               </span>
             )}
-            <Link href={`/preview/trendyol/${p.id}`}>
+            <Link href={`/catalog/${p.id}`}>
               <h3 className="line-clamp-2 min-h-[2.6em] font-display text-[13px] font-semibold leading-6 text-navy">
                 {p.title}
               </h3>

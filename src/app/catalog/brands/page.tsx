@@ -34,7 +34,7 @@ export default async function TrendyolBrandsPage() {
             <p className="mt-1.5 text-[13px] text-navy/50">
               رباتِ سینک اجرا شود تا محصولات اینجا ظاهر شوند.
             </p>
-            <Link href="/preview/trendyol" className="btn-outline mt-5 inline-flex">
+            <Link href="/catalog" className="btn-outline mt-5 inline-flex">
               مشاهدهٔ کاتالوگ
             </Link>
           </div>
@@ -43,7 +43,7 @@ export default async function TrendyolBrandsPage() {
             {stats.map((b) => (
               <Link
                 key={b.slug}
-                href={`/preview/trendyol?source=${b.slug}`}
+                href={`/catalog?source=${b.slug}`}
                 className="group relative block overflow-hidden rounded-2xl border border-navy/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
               >
                 <div className="relative aspect-[16/9] overflow-hidden bg-cream">

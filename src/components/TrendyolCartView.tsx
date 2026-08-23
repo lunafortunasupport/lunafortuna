@@ -130,7 +130,7 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
         <a href={`https://t.me/${telegramSupport}`} target="_blank" rel="noopener" className="btn-gold mt-4 w-full">
           ارسال رسید در تلگرام
         </a>
-        <Link href="/preview/trendyol" className="mt-3 block text-center text-[13px] text-navy/50 hover:text-gold">
+        <Link href="/catalog" className="mt-3 block text-center text-[13px] text-navy/50 hover:text-gold">
           بازگشت به کاتالوگ
         </Link>
       </div>
@@ -143,7 +143,7 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-navy/5 text-2xl">🛒</div>
         <h3 className="mt-4 font-display text-lg font-semibold text-navy">سبدت خالی است</h3>
         <p className="mt-1.5 text-[13px] text-navy/50">از کاتالوگ چند محصول انتخاب کن تا اینجا نمایش داده شوند.</p>
-        <Link href="/preview/trendyol" className="btn-gold mt-5 inline-flex">
+        <Link href="/catalog" className="btn-gold mt-5 inline-flex">
           رفتن به کاتالوگ
         </Link>
       </div>

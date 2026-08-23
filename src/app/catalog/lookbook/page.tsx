@@ -34,7 +34,7 @@ export default async function LookbookIndexPage() {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-navy/5 text-2xl">📖</div>
             <h3 className="mt-4 font-display text-lg font-semibold text-navy">هنوز لوکی آماده نیست</h3>
             <p className="mt-1.5 text-[13px] text-navy/50">رباتِ سینک اجرا شود تا لوک‌ها پر شوند.</p>
-            <Link href="/preview/trendyol" className="btn-outline mt-5 inline-flex">
+            <Link href="/catalog" className="btn-outline mt-5 inline-flex">
               مشاهدهٔ کاتالوگ
             </Link>
           </div>
@@ -43,7 +43,7 @@ export default async function LookbookIndexPage() {
             {stories.map((e) => (
               <Link
                 key={e.slug}
-                href={`/preview/trendyol/lookbook/${e.slug}`}
+                href={`/catalog/lookbook/${e.slug}`}
                 className="group relative block overflow-hidden rounded-2xl border border-navy/8 bg-navy-ink transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
               >
                 <div className="relative aspect-[3/4] overflow-hidden">

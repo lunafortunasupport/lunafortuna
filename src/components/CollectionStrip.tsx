@@ -15,7 +15,7 @@ export default function CollectionStrip({ collections }: { collections: Collecti
           {shown.map((c) => (
             <Link
               key={c.slug}
-              href={`/preview/trendyol?collection=${c.slug}`}
+              href={`/catalog?collection=${c.slug}`}
               className="group relative flex w-40 shrink-0 flex-col overflow-hidden rounded-xl border border-navy/8 transition-all hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-cream">

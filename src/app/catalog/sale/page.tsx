@@ -19,7 +19,7 @@ export default async function TrendyolSalePage({
 
   const { items, total, pageCount } = await queryMirrorProducts({ onSale: true, page }, perLirToman);
 
-  const qs = (p: number) => (p > 1 ? `/preview/trendyol/sale?page=${p}` : "/preview/trendyol/sale");
+  const qs = (p: number) => (p > 1 ? `/catalog/sale?page=${p}` : "/catalog/sale");
 
   return (
     <div>
@@ -46,7 +46,7 @@ export default async function TrendyolSalePage({
             <p className="mt-1.5 text-[13px] text-navy/50">
               با اجرای بعدیِ رباتِ سینک، محصولاتِ تخفیف‌دار اینجا ظاهر می‌شوند.
             </p>
-            <Link href="/preview/trendyol" className="btn-outline mt-5 inline-flex">
+            <Link href="/catalog" className="btn-outline mt-5 inline-flex">
               مشاهدهٔ کاتالوگِ عمومی
             </Link>
           </div>

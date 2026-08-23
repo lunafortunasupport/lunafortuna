@@ -96,14 +96,14 @@ export default function Nav({
               </div>
             </Dropdown>
             {catalogBrands.length > 0 && (
-              <Dropdown label="کاتالوگِ ترکیه" href="/preview/trendyol" active={isActive("/preview/trendyol")} dark={overHero}>
+              <Dropdown label="کاتالوگِ ترکیه" href="/catalog" active={isActive("/catalog")} dark={overHero}>
                 <div className="grid w-[520px] max-w-[calc(100vw-2rem)] grid-cols-2 gap-3 p-4">
                   <div>
                     <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
                       سه دنیای خرید
                     </div>
                     {catalogBrands.map((b) => (
-                      <DropItem key={b.slug} href={`/preview/trendyol?source=${b.slug}`} label={b.nameFa} badge={b.count} />
+                      <DropItem key={b.slug} href={`/catalog?source=${b.slug}`} label={b.nameFa} badge={b.count} />
                     ))}
                   </div>
                   <div className="border-s border-navy/10 ps-3">
@@ -111,15 +111,15 @@ export default function Nav({
                       کالکشن‌ها
                     </div>
                     {catalogCollections.slice(0, 4).map((c) => (
-                      <DropItem key={c.slug} href={`/preview/trendyol?collection=${c.slug}`} label={c.nameFa} icon={c.emoji} />
+                      <DropItem key={c.slug} href={`/catalog?collection=${c.slug}`} label={c.nameFa} icon={c.emoji} />
                     ))}
                     <div className="mb-2 mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
                       میان‌بُرها
                     </div>
-                    <DropItem href="/preview/trendyol" label="محبوب‌ترین‌ها" icon="❤" />
-                    <DropItem href="/preview/trendyol/lookbook" label="لوک‌بوک" icon="📖" />
-                    <DropItem href="/preview/trendyol/sale" label="تخفیف‌ها" icon="🏷" />
-                    <DropItem href="/preview/trendyol/brands" label="همهٔ برندها" icon="✦" />
+                    <DropItem href="/catalog" label="محبوب‌ترین‌ها" icon="❤" />
+                    <DropItem href="/catalog/lookbook" label="لوک‌بوک" icon="📖" />
+                    <DropItem href="/catalog/sale" label="تخفیف‌ها" icon="🏷" />
+                    <DropItem href="/catalog/brands" label="همهٔ برندها" icon="✦" />
                   </div>
                 </div>
               </Dropdown>
@@ -132,7 +132,7 @@ export default function Nav({
 
           <div className="flex items-center gap-2.5">
             <Link
-              href="/preview/trendyol/wishlist"
+              href="/catalog/wishlist"
               className={`relative hidden h-9 w-9 items-center justify-center rounded-full border text-sm transition sm:flex ${
                 overHero
                   ? "border-cream/30 text-cream/85 hover:border-champagne hover:text-champagne"
@@ -195,8 +195,8 @@ export default function Nav({
         }`}
       >
         {[
-          ["/", "خانه"], ["/shop", "موجودی"], ["/brands", "برندها"], ["/preview/trendyol", "کاتالوگِ ترکیه"],
-          ["/preview/trendyol/lookbook", "لوک‌بوک"], ["/preview/trendyol/wishlist", "علاقه‌مندی‌ها"],
+          ["/", "خانه"], ["/shop", "موجودی"], ["/brands", "برندها"], ["/catalog", "کاتالوگِ ترکیه"],
+          ["/catalog/lookbook", "لوک‌بوک"], ["/catalog/wishlist", "علاقه‌مندی‌ها"],
           ["/order", "ثبت سفارش"], ["/quality", "بررسی کیفیت"], ["/guide", "راهنمای خرید"], ["/about", "دربارهٔ ما"], ["/account", "حساب من"],
         ].map(([href, label]) => (
           <Link

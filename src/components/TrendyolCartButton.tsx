@@ -9,7 +9,7 @@ export default function TrendyolCartButton() {
 
   return (
     <Link
-      href="/preview/trendyol/cart"
+      href="/catalog/cart"
       aria-label={`سبدِ خرید${count > 0 ? ` (${count.toLocaleString("fa-IR")} کالا)` : ""}`}
       className="fixed bottom-[92px] right-5 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-navy text-cream shadow-[0_10px_28px_rgba(21,35,73,0.45)] transition-transform hover:scale-105 active:scale-95 lg:bottom-6"
     >

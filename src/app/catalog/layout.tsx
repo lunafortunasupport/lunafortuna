@@ -2,8 +2,8 @@ import { CartProvider } from "@/lib/trendyolCart";
 import TrendyolCartButton from "@/components/TrendyolCartButton";
 import TrendyolPreviewNav from "@/components/TrendyolPreviewNav";
 
-// سبد فقط دور همین زیرشاخه (پیش‌نمایشِ فنیِ ترندیول) پیچیده می‌شود، نه کلِ سایت —
-// چون این هنوز یک دموی جدا از سیستمِ سفارشِ اصلی است.
+// سبد فقط دور همین زیرشاخه (کاتالوگِ ترکیه) پیچیده می‌شود، نه کلِ سایت —
+// چون کاتالوگ سیستمِ سبد/سفارشِ جدا از سفارشِ لینکیِ اصلی دارد.
 export default function TrendyolPreviewLayout({ children }: { children: React.ReactNode }) {
   return (
     <CartProvider>
