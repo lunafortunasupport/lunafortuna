@@ -4,6 +4,7 @@ import { getUserLevel } from "@/lib/pricing";
 import { updateProfile } from "./actions";
 import ReferralBox from "@/components/ReferralBox";
 import BirthdayPicker from "@/components/BirthdayPicker";
+import AccountFavorites from "@/components/AccountFavorites";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,9 @@ export default async function AccountPage() {
           </div>
         ))}
       </div>
+
+      {/* علاقه‌مندی‌ها */}
+      <AccountFavorites userId={user.id} />
 
       {/* کد معرف */}
       <ReferralBox code={user.referralCode} />
