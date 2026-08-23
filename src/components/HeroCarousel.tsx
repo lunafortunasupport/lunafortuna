@@ -77,23 +77,24 @@ export default function HeroCarousel({
                   !reduceMotion && i === selected ? "kenburns" : ""
                 }`}
               />
-              <div className="absolute inset-0 bg-gradient-to-l from-navy-ink/95 via-navy-ink/70 to-navy-ink/25" />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/80 via-transparent to-navy-ink/40" />
+              {/* یک گرادیانِ عمودیِ ملایم، فقط برای خواناییِ زیرنویس — نه پوششِ کلِ عکس با آبیِ تیره
+                  (اشکالِ نسخهٔ قبل: دو لایه‌ی همزمان کلِ عکس رو کدر می‌کرد). بالای فریم تقریباً تمیز می‌ماند. */}
+              <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/90 via-navy-ink/20 to-transparent" />
 
-              <div className="container-luna relative flex h-full min-h-[92vh] flex-col justify-center py-28">
-                <div className={`max-w-2xl transition-all duration-700 ${i === selected ? "opacity-100" : "opacity-0"}`}>
-                  <div className="flex items-center gap-3 text-[12px] tracking-[0.32em] text-champagne">
-                    <span className="h-px w-10 bg-champagne/60" />
+              <div className="container-luna relative flex h-full min-h-[92vh] flex-col justify-end pb-40 pt-28 md:pb-44">
+                <div className={`max-w-lg transition-all duration-700 ${i === selected ? "opacity-100" : "opacity-0"}`}>
+                  <div className="flex items-center gap-3 text-[11px] tracking-[0.32em] text-champagne">
+                    <span className="h-px w-8 bg-champagne/60" />
                     {s.eyebrow}
                   </div>
-                  <h1 className="mt-7 font-display text-[clamp(40px,7.5vw,88px)] font-black leading-[1.05]">
+                  <h1 className="mt-5 font-display text-[clamp(34px,5.5vw,64px)] font-black leading-[1.08]">
                     {s.title}
                   </h1>
                   {s.subtitle && (
-                    <p className="mt-8 max-w-lg text-[15px] leading-9 text-cream/75">{s.subtitle}</p>
+                    <p className="mt-4 max-w-md text-[14px] leading-8 text-cream/80">{s.subtitle}</p>
                   )}
-                  <div className="mt-10 flex flex-wrap items-center gap-6">
-                    <Link href={s.href} className="btn bg-champagne px-8 py-3.5 text-navy-ink hover:bg-cream">
+                  <div className="mt-8 flex flex-wrap items-center gap-6">
+                    <Link href={s.href} className="btn bg-champagne px-7 py-3 text-navy-ink hover:bg-cream">
                       {s.ctaText}
                     </Link>
                   </div>

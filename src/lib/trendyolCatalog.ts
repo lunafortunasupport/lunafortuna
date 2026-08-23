@@ -138,10 +138,23 @@ export async function getCollectionStats(): Promise<CollectionStat[]> {
       if (c.filter.audienceNull) where.audience = null;
       else if (c.filter.audience) where.audience = c.filter.audience;
       if (c.filter.onSale) where.onSale = true;
+      // عکسِ نمونه (برای بنر/هیرو/کارت استفاده می‌شود) باید همیشه لباس/فشن باشد، نه لوازمِ خانه —
+      // مثلاً «حراجِ ویژه» همهٔ audienceها را می‌گیرد و بدونِ این فیلتر ممکن است عکسِ نمونه‌اش یک
+      // کالای خانه/نظافت با بیشترین پسند باشد (بی‌ربط و نامناسبِ نمایشِ برجسته). فقط وقتی کالکشن
+      // خودش قبلاً audience را مقید نکرده (نه men/kids/lingerie/خودِ home) این فیلتر اضافه می‌شود؛
+      // وگرنه spreadِ ساده جایگزینِ محدودیتِ اصلی می‌شد نه مکمّلش.
+      // نکته: audience برای اکثرِ محصولات null است (یعنی زنانهٔ عمومی)، و SQL با منطقِ سه‌حالته
+      // ردیف‌های audience=NULL را از `{ not: "home" }` هم حذف می‌کند (NULL != 'home' نامشخص است، نه
+      // true) — پس باید صریحاً audience=null را هم با OR برگردانیم، وگرنه دقیقاً همین کالکشنِ سالم
+      // (زنانهٔ عمومی که audience=null دارد) خالی می‌شد.
+      const constrainsAudience = c.filter.audienceNull || c.filter.audience;
+      const sampleWhere: Record<string, unknown> = constrainsAudience
+        ? { ...where, image: { not: null } }
+        : { ...where, image: { not: null }, OR: [{ audience: null }, { audience: { not: "home" } }] };
       const [count, samples] = await Promise.all([
         prisma.mirrorProduct.count({ where }),
         prisma.mirrorProduct.findMany({
-          where: { ...where, image: { not: null } },
+          where: sampleWhere,
           orderBy: [{ favoriteCount: { sort: "desc", nulls: "last" } }],
           take: 3,
           select: { image: true },
@@ -176,7 +189,7 @@ export const EDITORIALS: Editorial[] = [
       "از لباسِ بلندِ مجلسی تا بوستیه و پیراهنِ شیک — تکه‌هایی که برای مهمانی، عروسی و مناسبت‌های خاص انتخاب کرده‌ایم. منتخبی از برندهای ترکیه، همه به فارسی و تومان.",
     heroEmoji: "✨",
     theme: "navy",
-    filter: { categoryIn: ["لباسِ مجلسی/فارغ‌التحصیلی", "بوستیه", "لباس"] },
+    filter: { categoryIn: ["لباسِ مجلسی/فارغ‌التحصیلی", "بوستیه", "لباس"], audienceNull: true },
   },
   {
     slug: "everyday",
@@ -186,7 +199,7 @@ export const EDITORIALS: Editorial[] = [
       "بلوز، تی‌شرت، پلیور و ژاکتِ کش‌باف — پایه‌های همیشه‌کاربردیِ کمد که به هم می‌آیند و راحتی را قربانیِ استایل نمی‌کنند.",
     heroEmoji: "👕",
     theme: "cream",
-    filter: { categoryIn: ["بلوز", "تی‌شرت", "پلیور", "ژاکتِ کش‌باف"] },
+    filter: { categoryIn: ["بلوز", "تی‌شرت", "پلیور", "ژاکتِ کش‌باف"], audienceNull: true },
   },
   {
     slug: "denim",
@@ -196,7 +209,7 @@ export const EDITORIALS: Editorial[] = [
       "منتخبی از شلوارهای جین با فیت‌ها و رنگ‌های مختلف — از مام‌استایلِ فاق‌بلند تا پاچه‌گشاد. تکه‌ای که با همه‌چیز ست می‌شود.",
     heroEmoji: "👖",
     theme: "navy",
-    filter: { categoryIn: ["شلوار جین"] },
+    filter: { categoryIn: ["شلوار جین"], audienceNull: true },
   },
   {
     slug: "bags-shoes",
@@ -206,7 +219,7 @@ export const EDITORIALS: Editorial[] = [
       "کیفِ دستی و دوشی، کفشِ پاشنه‌دار و کتانی — اکسسوری‌هایی که یک ست را از معمولی به خاص می‌رسانند.",
     heroEmoji: "👜",
     theme: "gold",
-    filter: { categoryIn: ["کیف", "کیفِ دوشی", "کیفِ دستی", "کفش", "کفشِ پاشنه‌دار", "کفشِ اسپرت"] },
+    filter: { categoryIn: ["کیف", "کیفِ دوشی", "کیفِ دستی", "کفش", "کفشِ پاشنه‌دار", "کفشِ اسپرت"], audienceNull: true },
   },
   {
     slug: "winter",
@@ -216,7 +229,7 @@ export const EDITORIALS: Editorial[] = [
       "کاپشن، پالتو، تریکو و ترنچ‌کت — لایه‌هایی که سرما را بیرون نگه می‌دارند و استایل را زنده. منتخبِ زمستانیِ ما از برندهای ترکیه.",
     heroEmoji: "🧥",
     theme: "navy",
-    filter: { categoryIn: ["کاپشن", "پالتو", "تریکو", "پلیور", "ترنچ‌کت"] },
+    filter: { categoryIn: ["کاپشن", "پالتو", "تریکو", "پلیور", "ترنچ‌کت"], audienceNull: true },
   },
 ];
 export function getEditorial(slug: string): Editorial | undefined {

@@ -28,6 +28,7 @@ const AUTO_HERO_ORDER: { type: "editorial" | "collection"; slug: string }[] = [
   { type: "collection", slug: "sale" },
 ];
 const MIN_HERO_SLIDES = 4;
+const MAX_HERO_SLIDES = 5; // دست‌چینِ سخت‌گیرانه — کیفیت بر تعداد؛ کاروسلِ طولانی حسِ ادیتوریال را می‌شکند.
 
 export const dynamic = "force-dynamic";
 
@@ -155,6 +156,7 @@ export default async function HomePage() {
     bannerSlides.length >= MIN_HERO_SLIDES
       ? bannerSlides
       : [...bannerSlides, ...autoSlides.slice(0, MIN_HERO_SLIDES - bannerSlides.length + 2)];
+  heroSlides = heroSlides.slice(0, MAX_HERO_SLIDES);
   // ایمنی: اگر کاتالوگ هنوز سینک نشده (dev تازه/خالی) و بنری هم نبود، هیرو هیچ‌وقت خالی نماند.
   if (heroSlides.length === 0) {
     heroSlides = [
@@ -202,8 +204,8 @@ export default async function HomePage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {tiles.map((t) => (
               <Link key={t.fa} href={t.href} className="img-wipe group relative block aspect-[3/4] overflow-hidden rounded-sm bg-navy">
-                <Image src={t.img} alt={t.fa} fill sizes="(max-width:640px) 100vw, 25vw" className="object-cover opacity-85 transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/85 via-navy-ink/10 to-transparent" />
+                <Image src={t.img} alt={t.fa} fill sizes="(max-width:640px) 100vw, 25vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/85 via-navy-ink/15 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-5">
                   <div className="text-[11px] tracking-[0.25em] text-champagne/80">{t.en}</div>
                   <div className="mt-1 font-display text-xl font-bold text-cream">{t.fa}</div>
@@ -274,6 +276,32 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ═══════════ لحظهٔ ادیتوریال (تمام‌عرض) ═══════════ */}
+      {/* بعد از «چرا لونافورتونا» می‌آید تا ریتمِ بصریِ بالای صفحه (هیرو→مارکی→دسته‌ها→محبوب‌ترین‌ها→
+          منیفستِ عکس‌دار→این عکسِ تمام‌عرض) بدونِ وقفه ادامه پیدا کند؛ بخشِ متن‌محورِ «روالِ سفارش»
+          عمداً بعد از این آمده تا حسِ گالری‌گَشتن را وسطِ صفحه نشکند. */}
+      <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-navy-ink text-cream">
+        <Image src="/images/editorial-duomo.jpg" alt="سبکِ خیابانی اروپا" fill sizes="100vw" className="object-cover object-top opacity-70" />
+        <div className="absolute inset-0 bg-gradient-to-l from-navy-ink/90 via-navy-ink/45 to-transparent" />
+        <div className="container-luna relative py-24">
+          <div className="reveal max-w-xl">
+            <div className="rise-up"><span className="text-[12px] tracking-[0.32em] text-champagne">دست‌چینِ برندهای معتبر</span></div>
+            <h2 className="rise-up mt-6 font-display text-[clamp(30px,5vw,60px)] font-black leading-[1.15]" style={{ transitionDelay: "80ms" }}>
+              از ویترین‌های استانبول
+              <br />
+              تا خانهٔ تو
+            </h2>
+            <p className="rise-up mt-7 max-w-md text-[15px] leading-9 text-cream/70" style={{ transitionDelay: "160ms" }}>
+              همان برندهایی که در پاساژها و سایت‌های ترکیه می‌بینی — حالا بدونِ دردسرِ خرید و ارسال،
+              با یک واسطهٔ مطمئن.
+            </p>
+            <Link href="/order" className="rise-up mt-9 inline-flex btn border border-champagne/50 px-8 py-3.5 text-cream hover:bg-champagne hover:text-navy-ink" style={{ transitionDelay: "220ms" }}>
+              همین حالا سفارش بده
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ═══════════ روالِ سفارش ═══════════ */}
       <section className="bg-navy text-cream">
         <div className="container-luna py-24 md:py-28">
@@ -296,29 +324,6 @@ export default async function HomePage() {
                 <p className="rise-up mt-3 text-[13px] leading-8 text-cream/55" style={{ transitionDelay: `${i * 60 + 80}ms` }}>{d}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════ لحظهٔ ادیتوریال (تمام‌عرض) ═══════════ */}
-      <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-navy-ink text-cream">
-        <Image src="/images/editorial-duomo.jpg" alt="سبکِ خیابانی اروپا" fill sizes="100vw" className="object-cover object-top opacity-70" />
-        <div className="absolute inset-0 bg-gradient-to-l from-navy-ink/90 via-navy-ink/45 to-transparent" />
-        <div className="container-luna relative py-24">
-          <div className="reveal max-w-xl">
-            <div className="rise-up"><span className="text-[12px] tracking-[0.32em] text-champagne">دست‌چینِ برندهای معتبر</span></div>
-            <h2 className="rise-up mt-6 font-display text-[clamp(30px,5vw,60px)] font-black leading-[1.15]" style={{ transitionDelay: "80ms" }}>
-              از ویترین‌های استانبول
-              <br />
-              تا خانهٔ تو
-            </h2>
-            <p className="rise-up mt-7 max-w-md text-[15px] leading-9 text-cream/70" style={{ transitionDelay: "160ms" }}>
-              همان برندهایی که در پاساژها و سایت‌های ترکیه می‌بینی — حالا بدونِ دردسرِ خرید و ارسال،
-              با یک واسطهٔ مطمئن.
-            </p>
-            <Link href="/order" className="rise-up mt-9 inline-flex btn border border-champagne/50 px-8 py-3.5 text-cream hover:bg-champagne hover:text-navy-ink" style={{ transitionDelay: "220ms" }}>
-              همین حالا سفارش بده
-            </Link>
           </div>
         </div>
       </section>
