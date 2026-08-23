@@ -5,6 +5,7 @@ import { formatToman } from "@/lib/format";
 import { useCart } from "@/lib/trendyolCart";
 import { priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
 import { RatingFull } from "@/components/Stars";
+import WishlistButton from "@/components/WishlistButton";
 
 export default function TrendyolDetail({
   product,
@@ -204,6 +205,9 @@ export default function TrendyolDetail({
           >
             {justAdded ? "افزوده شد ✓" : alreadyInCart ? "دوباره افزودن" : "افزودن به سبد"}
           </button>
+          <div className="mt-3">
+            <WishlistButton id={product.id} variant="detail" />
+          </div>
         </div>
 
         {selectedVariant && !selectedVariant.inStock && (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Logo from "./Logo";
+import { useWishlist } from "@/lib/wishlist";
 
 interface Cat {
   name: string;
@@ -40,6 +41,7 @@ export default function Nav({
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { count: wishCount } = useWishlist();
 
   const isHome = pathname === "/";
   useEffect(() => {
@@ -130,6 +132,23 @@ export default function Nav({
 
           <div className="flex items-center gap-2.5">
             <Link
+              href="/preview/trendyol/wishlist"
+              className={`relative hidden h-9 w-9 items-center justify-center rounded-full border text-sm transition sm:flex ${
+                overHero
+                  ? "border-cream/30 text-cream/85 hover:border-champagne hover:text-champagne"
+                  : "border-navy/15 text-navy/60 hover:border-gold hover:text-gold"
+              }`}
+              aria-label="علاقه‌مندی‌ها"
+              title="علاقه‌مندی‌ها"
+            >
+              {wishCount > 0 ? "❤" : "♡"}
+              {wishCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#e0526b] px-1 text-[9px] font-bold text-white">
+                  {wishCount.toLocaleString("fa-IR")}
+                </span>
+              )}
+            </Link>
+            <Link
               href="/account"
               className={`hidden h-9 w-9 items-center justify-center rounded-full border text-sm transition sm:flex ${
                 overHero
@@ -139,7 +158,7 @@ export default function Nav({
               aria-label="حساب من"
               title="حساب من"
             >
-              ♡
+              👤
             </Link>
             <Link
               href="/order"
@@ -177,7 +196,7 @@ export default function Nav({
       >
         {[
           ["/", "خانه"], ["/shop", "موجودی"], ["/brands", "برندها"], ["/preview/trendyol", "کاتالوگِ ترکیه"],
-          ["/preview/trendyol/lookbook", "لوک‌بوک"],
+          ["/preview/trendyol/lookbook", "لوک‌بوک"], ["/preview/trendyol/wishlist", "علاقه‌مندی‌ها"],
           ["/order", "ثبت سفارش"], ["/quality", "بررسی کیفیت"], ["/guide", "راهنمای خرید"], ["/about", "دربارهٔ ما"], ["/account", "حساب من"],
         ].map(([href, label]) => (
           <Link

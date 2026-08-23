@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatToman } from "@/lib/format";
 import { priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
 import { RatingInline } from "@/components/Stars";
+import WishlistButton from "@/components/WishlistButton";
 
 // کارتِ کاتالوگِ آینه‌ایِ ترندیول — همان زبانِ بصریِ لوکسِ سایت (نه رنگ‌بندیِ ترندیول)،
 // با دادهٔ واقعیِ سینک‌شده: قیمت، سایز، موجودی و کارگو مستقیم از ترندیول گرفته شده.
@@ -55,6 +56,7 @@ export default function TrendyolDemoCard({
             + هزینهٔ کارگو
           </span>
         ) : null}
+        <WishlistButton id={product.id} />
       </div>
 
       <div className="p-4">
