@@ -45,11 +45,11 @@ export default async function HomePage() {
       take: 12,
       select: { slug: true, name: true, logoUrl: true, saleUrl: true, saleLabel: true },
     }),
-    // محبوب‌ترین‌ها: فقط محصولاتی که واقعاً favoriteCount دارند (آمبار از سایتِ خودش پسند
-    // نمی‌دهد). فیلترِ gt:0 هم nullها را حذف می‌کند، پس مرتب‌سازی روی Postgres و SQLite یکسان
-    // می‌ماند (بدونِ این فیلتر، Postgres nullها را «اول» می‌آورد و آمبار جای محبوب‌ها را می‌گیرد).
+    // محبوب‌ترین‌ها (ویترینِ صفحهٔ اصلی): مُدمحور — فقط پوشاک/کیف/کفشِ زنانهٔ عمومی
+    // (audience=null)، تا لیدِ صفحه لوازمِ خانه/نظافت (که favoriteCountِ خیلی بالا دارند) نباشد.
+    // فیلترِ gt:0 هم nullهای favoriteCount را حذف می‌کند تا مرتب‌سازی روی Postgres/SQLite یکسان بماند.
     prisma.mirrorProduct.findMany({
-      where: { isActive: true, favoriteCount: { gt: 0 } },
+      where: { isActive: true, favoriteCount: { gt: 0 }, audience: null, category: { not: { startsWith: "Tesettür" } } },
       orderBy: [{ favoriteCount: "desc" }, { ratingScore: "desc" }],
       take: 13,
       include: { variants: true },
@@ -87,11 +87,12 @@ export default async function HomePage() {
     .map((b) => ({ slug: b.slug, nameFa: b.nameFa, nameEn: b.nameEn, count: b.count, image: b.sampleImages[0] || null }));
   // نکته: featuredStats حالا سه ستونِ منبع است (getPillarStats)، پس showcaseBrands = ترندیول/میلا/آمبار.
 
+  // کاشی‌های دسته → مستقیم به کاتالوگِ زندهٔ فارسی (نه فهرستِ لینک‌های برند). همان تمایزِ اصلیِ سایت.
   const tiles = [
-    { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", group: "clothing" },
-    { img: "/images/menswear.jpg", fa: "پوشاک مردانه", en: "Men", group: "clothing" },
-    { img: "/images/quiet-luxury.jpg", fa: "کیف و کفش", en: "Bags & Shoes", group: "shoes" },
-    { img: "/images/window-warm.jpg", fa: "خانه و لوازم", en: "Home", group: "home" },
+    { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", href: "/preview/trendyol?collection=women" },
+    { img: "/images/menswear.jpg", fa: "پوشاک مردانه", en: "Men", href: "/preview/trendyol?collection=men" },
+    { img: "/images/quiet-luxury.jpg", fa: "کیف و کفش", en: "Bags & Shoes", href: "/preview/trendyol/lookbook/bags-shoes" },
+    { img: "/images/window-warm.jpg", fa: "خانه و لوازم", en: "Home", href: "/preview/trendyol?collection=home" },
   ];
 
   return (
@@ -150,11 +151,61 @@ export default async function HomePage() {
       {/* ═══════════ مارکیِ برندها (اثباتِ اجتماعی) ═══════════ */}
       <BrandMarquee brands={directory} />
 
+      {/* ═══════════ دسته‌ها (تصویرمحور) — دروازهٔ ورود به کاتالوگ ═══════════ */}
+      <section className="bg-cream">
+        <div className="container-luna py-24 md:py-28">
+          <div className="reveal mb-12 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
+            <div>
+              <div className="rise-up"><Index n="۰۱" label="دسته‌ها" /></div>
+              <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
+                از کجا شروع کنیم؟
+              </h2>
+            </div>
+            <Link href="/preview/trendyol" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">مشاهدهٔ کاتالوگ ←</Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {tiles.map((t) => (
+              <Link key={t.fa} href={t.href} className="img-wipe group relative block aspect-[3/4] overflow-hidden rounded-sm bg-navy">
+                <Image src={t.img} alt={t.fa} fill sizes="(max-width:640px) 100vw, 25vw" className="object-cover opacity-85 transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/85 via-navy-ink/10 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-5">
+                  <div className="text-[11px] tracking-[0.25em] text-champagne/80">{t.en}</div>
+                  <div className="mt-1 font-display text-xl font-bold text-cream">{t.fa}</div>
+                  <span className="mt-2.5 block h-px w-8 bg-champagne transition-all duration-300 group-hover:w-16" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ محبوب‌ترین‌های ترکیه (کاتالوگِ زنده) ═══════════ */}
+      {leadItem && (
+        <section className="bg-cream">
+          <div className="container-luna pb-24 md:pb-28">
+            <div className="reveal mb-12 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
+              <div>
+                <div className="rise-up"><Index n="۰۲" label="محبوب‌ترین‌های ترکیه" /></div>
+                <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
+                  آنچه خریداران بیشتر پسندیده‌اند
+                </h2>
+              </div>
+              <Link href="/preview/trendyol" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">
+                دیدنِ همهٔ محبوب‌ها ←
+              </Link>
+            </div>
+            <div className="reveal">
+              <PopularShowcase lead={leadItem} rail={railItems} brands={showcaseBrands} />
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ═══════════ مانیفست ═══════════ */}
       <section className="bg-cream">
         <div className="container-luna grid items-center gap-14 py-24 md:grid-cols-2 md:py-32">
           <div className="reveal order-2 md:order-1">
-            <div className="rise-up"><Index n="۰۱" label="چرا لونافورتونا" /></div>
+            <div className="rise-up"><Index n="۰۳" label="چرا لونافورتونا" /></div>
             <h2 className="rise-up mt-7 font-display text-[clamp(30px,4.4vw,52px)] font-black leading-[1.2] text-navy" style={{ transitionDelay: "80ms" }}>
               هر چیزی از ترکیه،
               <br />
@@ -191,7 +242,7 @@ export default async function HomePage() {
       <section className="bg-navy text-cream">
         <div className="container-luna py-24 md:py-28">
           <div className="reveal mx-auto max-w-2xl text-center">
-            <div className="rise-up flex justify-center"><Index n="۰۲" label="روالِ سفارش" /></div>
+            <div className="rise-up flex justify-center"><Index n="۰۴" label="روالِ سفارش" /></div>
             <h2 className="rise-up mt-6 font-display text-[clamp(28px,4vw,46px)] font-black" style={{ transitionDelay: "80ms" }}>
               از یک پیام تا دمِ در
             </h2>
@@ -212,56 +263,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ═══════════ دسته‌ها (تصویرمحور) ═══════════ */}
-      <section className="bg-cream">
-        <div className="container-luna py-24 md:py-28">
-          <div className="reveal mb-12 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
-            <div>
-              <div className="rise-up"><Index n="۰۳" label="دسته‌ها" /></div>
-              <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
-                از کجا شروع کنیم؟
-              </h2>
-            </div>
-            <Link href="/brands" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">همهٔ برندها ←</Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {tiles.map((t) => (
-              <Link key={t.fa} href={`/brands?group=${t.group}`} className="img-wipe group relative block aspect-[3/4] overflow-hidden rounded-sm bg-navy">
-                <Image src={t.img} alt={t.fa} fill sizes="(max-width:640px) 100vw, 25vw" className="object-cover opacity-85 transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/85 via-navy-ink/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-5">
-                  <div className="text-[11px] tracking-[0.25em] text-champagne/80">{t.en}</div>
-                  <div className="mt-1 font-display text-xl font-bold text-cream">{t.fa}</div>
-                  <span className="mt-2.5 block h-px w-8 bg-champagne transition-all duration-300 group-hover:w-16" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════ محبوب‌ترین‌های ترکیه (کاتالوگِ زنده) ═══════════ */}
-      {leadItem && (
-        <section className="bg-cream">
-          <div className="container-luna py-24 md:py-28">
-            <div className="reveal mb-12 flex items-end justify-between gap-6 border-b border-navy/10 pb-8">
-              <div>
-                <div className="rise-up"><Index n="۰۴" label="محبوب‌ترین‌های ترکیه" /></div>
-                <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
-                  آنچه خریداران بیشتر پسندیده‌اند
-                </h2>
-              </div>
-              <Link href="/preview/trendyol" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">
-                دیدنِ همهٔ محبوب‌ها ←
-              </Link>
-            </div>
-            <div className="reveal">
-              <PopularShowcase lead={leadItem} rail={railItems} brands={showcaseBrands} />
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ═══════════ لحظهٔ ادیتوریال (تمام‌عرض) ═══════════ */}
       <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-navy-ink text-cream">
