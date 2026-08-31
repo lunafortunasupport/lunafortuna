@@ -402,7 +402,9 @@ async function main() {
   const listingPage = await ctx.newPage();
   const seen = new Map(); // "site:sourceId" → candidate (دیدوپلیکیت بینِ دسته‌ها)
   for (const cat of CATEGORIES) {
-    if (seen.size >= TOTAL_CAP) break;
+    // برندهای منتخب از سقفِ کلی معاف‌اند تا همیشه سینک شوند (وگرنه چون آخرِ لیست‌اند، سقفِ
+    // فایرهوزِ عمومی قبل از رسیدن به آن‌ها پُر می‌شود و اصلاً کوئری نمی‌شوند). سقف فقط عمومی را محدود می‌کند.
+    if (!cat.featuredBrand && seen.size >= TOTAL_CAP) continue;
     try {
       const candidates = await collectCandidates(listingPage, cat);
       let added = 0;
@@ -423,8 +425,16 @@ async function main() {
     }
   }
   await listingPage.close();
-  const candidates = [...seen.values()].slice(0, TOTAL_CAP);
-  console.log(`مجموعِ کاندیدهای یکتا: ${candidates.length}`);
+  // سقف فقط روی محصولاتِ عمومی اعمال می‌شود؛ همهٔ محصولاتِ برندهای منتخب حفظ می‌شوند
+  // (حتی اگر بعد از پُرشدنِ سقف اضافه شده باشند)، وگرنه slice آن‌ها را که آخرند می‌بُرد.
+  const seenVals = [...seen.values()];
+  const candidates = [
+    ...seenVals.filter((c) => !c.featuredBrand).slice(0, TOTAL_CAP),
+    ...seenVals.filter((c) => c.featuredBrand),
+  ];
+  console.log(
+    `مجموعِ کاندیدهای یکتا: ${candidates.length} (${candidates.filter((c) => c.featuredBrand).length} برندِ منتخب)`
+  );
 
   // ── مرحلهٔ ۲: جزئیات (با همزمانیِ محدود، مثلِ check-sales.mjs) ──
   const now = new Date();
