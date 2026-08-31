@@ -115,24 +115,21 @@ export default function WishlistGrid() {
                   <span className="font-display text-3xl">🌙</span>
                 </div>
               )}
-              <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-medium tracking-wide text-navy shadow-sm">
-                {p.brand}
-              </span>
-              {p.discountPct ? (
-                <span className="absolute left-3 top-3 rounded-full bg-[#b8442f] px-2.5 py-1 text-[10px] font-bold tracking-wide text-white shadow-sm tabular-nums">
-                  {p.discountPct.toLocaleString("fa-IR")}٪ تخفیف
-                </span>
-              ) : null}
               <WishlistButton id={p.id} />
             </div>
           </Link>
 
           <div className="p-4">
-            {p.categoryFa && (
-              <span className="mb-1.5 inline-block text-[10px] font-medium tracking-wide text-gold">
-                {p.categoryFa}
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <span className="truncate text-[10px] font-medium tracking-wide text-navy/50">
+                {p.brand}
               </span>
-            )}
+              {p.categoryFa && (
+                <span className="shrink-0 text-[10px] font-medium tracking-wide text-gold">
+                  {p.categoryFa}
+                </span>
+              )}
+            </div>
             <Link href={`/catalog/${p.id}`}>
               <h3 className="line-clamp-2 min-h-[2.6em] font-display text-[13px] font-semibold leading-6 text-navy">
                 {p.title}
@@ -148,6 +145,11 @@ export default function WishlistGrid() {
                     {formatToman(p.originalToman)}
                   </span>
                 )}
+                {p.discountPct ? (
+                  <span className="text-[10px] font-bold text-[#b8442f] tabular-nums">
+                    {p.discountPct.toLocaleString("fa-IR")}٪−
+                  </span>
+                ) : null}
               </span>
               {p.inStock ? (
                 <span className="inline-flex items-center gap-1 text-[10.5px] text-navy/40">

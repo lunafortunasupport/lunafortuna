@@ -115,20 +115,16 @@ export default function PopularShowcase({
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/92 via-navy-ink/25 to-transparent" />
 
-            {typeof lead.favoriteCount === "number" && lead.favoriteCount > 0 && (
-              <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11.5px] font-bold text-navy shadow-sm">
-                <span className="text-[#e0526b]">❤</span>
-                {lead.favoriteCount.toLocaleString("fa-IR")} پسند
-              </span>
-            )}
-            {lead.discountPct ? (
-              <span className="absolute left-4 top-4 rounded-full bg-[#b8442f] px-3 py-1.5 text-[11.5px] font-bold text-white shadow-sm tabular-nums">
-                {lead.discountPct.toLocaleString("fa-IR")}٪ تخفیف
-              </span>
-            ) : null}
-
             <div className="absolute inset-x-0 bottom-0 p-6 md:p-7">
-              <span className="text-[11px] tracking-[0.28em] text-champagne">{lead.brand}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] tracking-[0.28em] text-champagne">{lead.brand}</span>
+                {typeof lead.favoriteCount === "number" && lead.favoriteCount > 0 && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-cream/70">
+                    <span className="text-[#e0526b]">❤</span>
+                    {lead.favoriteCount.toLocaleString("fa-IR")} پسند
+                  </span>
+                )}
+              </div>
               <h3 className="mt-2 font-display text-xl font-black leading-8 text-cream md:text-2xl">
                 {lead.title}
               </h3>
@@ -141,6 +137,11 @@ export default function PopularShowcase({
                     {formatToman(lead.originalToman)}
                   </span>
                 )}
+                {lead.discountPct ? (
+                  <span className="text-[12px] font-bold text-[#e8836f] tabular-nums">
+                    {lead.discountPct.toLocaleString("fa-IR")}٪−
+                  </span>
+                ) : null}
               </div>
               <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-bold text-cream transition-transform group-hover:-translate-x-1">
                 مشاهدهٔ محصول <span>←</span>
@@ -174,20 +175,17 @@ export default function PopularShowcase({
                         <span className="font-display text-3xl">🌙</span>
                       </div>
                     )}
-                    {typeof p.favoriteCount === "number" && p.favoriteCount > 0 && (
-                      <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-bold text-navy shadow-sm">
-                        <span className="text-[#e0526b]">❤</span>
-                        {p.favoriteCount.toLocaleString("fa-IR")}
-                      </span>
-                    )}
-                    {p.discountPct ? (
-                      <span className="absolute left-2.5 top-2.5 rounded-full bg-[#b8442f] px-2 py-0.5 text-[10px] font-bold text-white tabular-nums">
-                        {p.discountPct.toLocaleString("fa-IR")}٪
-                      </span>
-                    ) : null}
                   </div>
                   <div className="mt-2.5">
-                    <span className="text-[10px] tracking-wide text-gold">{p.brand}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-[10px] tracking-wide text-gold">{p.brand}</span>
+                      {typeof p.favoriteCount === "number" && p.favoriteCount > 0 && (
+                        <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold text-navy/45">
+                          <span className="text-[#e0526b]">❤</span>
+                          {p.favoriteCount.toLocaleString("fa-IR")}
+                        </span>
+                      )}
+                    </div>
                     <h4 className="mt-0.5 line-clamp-1 font-display text-[13px] font-bold text-navy">{p.title}</h4>
                     <div className="mt-1 flex items-baseline gap-1.5">
                       <span className="font-display text-[14px] font-bold text-navy tabular-nums">
@@ -198,6 +196,11 @@ export default function PopularShowcase({
                           {formatToman(p.originalToman)}
                         </span>
                       )}
+                      {p.discountPct ? (
+                        <span className="text-[10px] font-bold text-[#b8442f] tabular-nums">
+                          {p.discountPct.toLocaleString("fa-IR")}٪−
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </Link>

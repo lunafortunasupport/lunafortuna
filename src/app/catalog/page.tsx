@@ -90,17 +90,25 @@ export default async function TrendyolPreviewPage({
         </div>
         <div className="container-luna relative py-14">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] tracking-widest text-champagne">
-            {activeCollection ? `${activeCollection.emoji} کالکشن` : activePillar ? activePillar.nameEn : "کاتالوگِ ترکیه"}
+            {activeCollection
+              ? `${activeCollection.emoji} کالکشن`
+              : activeFeaturedBrand
+              ? activeFeaturedBrand.nameEn
+              : activePillar
+              ? activePillar.nameEn
+              : "کاتالوگِ ترکیه"}
           </span>
           <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">
             {activeCollection
               ? activeCollection.nameFa
+              : activeFeaturedBrand
+              ? `${activeFeaturedBrand.nameFa}، به فارسی و تومان`
               : activePillar
               ? `${activePillar.nameFa}، به فارسی و تومان`
               : "کاتالوگِ ترکیه، به فارسی و تومان"}
           </h1>
           <p className="mt-3 max-w-2xl text-[13.5px] leading-7 text-cream/70">
-            {activeCollection ? activeCollection.blurbFa + " " : activePillar ? activePillar.blurbFa + " " : "منتخب‌ها و پرفروش‌های ترکیه، یک‌جا و به فارسی. "}
+            {activeCollection ? activeCollection.blurbFa + " " : activeFeaturedBrand ? activeFeaturedBrand.blurbFa + " " : activePillar ? activePillar.blurbFa + " " : "منتخب‌ها و پرفروش‌های ترکیه، یک‌جا و به فارسی. "}
             قیمت‌ها با <b className="text-champagne">نرخِ روز به تومان</b> محاسبه می‌شوند (به‌علاوهٔ برآوردِ هزینهٔ کارگوی
             داخلِ ترکیه وقتی رایگان نباشد). سرچ کن، فیلتر کن، سایز را انتخاب و به سبد اضافه کن.
           </p>

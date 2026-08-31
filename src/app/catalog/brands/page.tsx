@@ -1,13 +1,17 @@
 import Link from "next/link";
-import { getPillarStats } from "@/lib/trendyolCatalog";
+import { getPillarStats, getFeaturedBrandStats } from "@/lib/trendyolCatalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "برندها — کاتالوگِ ترکیه" };
 
+// برندهایی که ستونِ اصلی (پیلر) هستند و در گالریِ «برندهای محبوب» تکرار نشوند.
+const PILLAR_FEATURED = new Set(["trendyol-milla", "ambar"]);
+
 // سه ستونِ اصلیِ کاتالوگ: ترندیول (ملتی‌برند)، ترندیول‌میلا، آمبار.
 export default async function TrendyolBrandsPage() {
-  const allStats = await getPillarStats();
+  const [allStats, allFeatured] = await Promise.all([getPillarStats(), getFeaturedBrandStats()]);
   const stats = allStats.filter((b) => b.count > 0);
+  const featured = allFeatured.filter((b) => b.count > 0 && !PILLAR_FEATURED.has(b.slug));
 
   return (
     <div>
@@ -90,6 +94,61 @@ export default async function TrendyolBrandsPage() {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+
+        {/* ── برندهای محبوب (هرکدام ویترینِ جدا) ── */}
+        {featured.length > 0 && (
+          <div className="mt-16 border-t border-navy/10 pt-12">
+            <div className="mb-2 flex items-end justify-between gap-4">
+              <h2 className="font-display text-2xl font-semibold text-navy md:text-3xl">برندهای محبوب</h2>
+            </div>
+            <p className="mb-7 max-w-2xl text-[13.5px] leading-7 text-navy/55">
+              برندهای پرطرفدارِ ترکیه — هرکدام صفحهٔ جدا؛ فقط محصولاتِ همان برند را ببینید.
+            </p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {featured.map((b) => (
+                <Link
+                  key={b.slug}
+                  href={`/catalog?fbrand=${b.slug}`}
+                  className="group relative block overflow-hidden rounded-2xl border border-navy/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-cream">
+                    {b.sampleImages.length > 0 ? (
+                      <div className="grid h-full grid-cols-3 gap-0.5">
+                        {[0, 1, 2].map((i) => (
+                          <div key={i} className="relative overflow-hidden bg-navy/5">
+                            {b.sampleImages[i] ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={b.sampleImages[i]}
+                                alt=""
+                                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                                loading="lazy"
+                              />
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-navy/15">
+                        <span className="font-display text-2xl">🌙</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3.5">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h3 className="font-display text-[14px] font-semibold text-navy">{b.nameFa}</h3>
+                      <span className="shrink-0 text-[10px] text-navy/35">{b.count.toLocaleString("fa-IR")} محصول</span>
+                    </div>
+                    <span className="mt-0.5 block text-[10.5px] tracking-wide text-navy/35">{b.nameEn}</span>
+                    <span className="mt-2.5 block text-[11px] text-gold transition-colors group-hover:underline">
+                      مشاهدهٔ محصولات ←
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>

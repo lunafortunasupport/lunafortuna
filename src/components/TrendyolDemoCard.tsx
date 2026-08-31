@@ -44,27 +44,20 @@ export default function TrendyolDemoCard({
             <span className="font-display text-3xl">🌙</span>
           </div>
         )}
-        <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-medium tracking-wide text-navy shadow-sm">
-          {product.brand}
-        </span>
-        {sale.onSale && sale.discountPct ? (
-          <span className="absolute left-3 top-3 rounded-full bg-[#b8442f] px-2.5 py-1 text-[10px] font-bold tracking-wide text-white shadow-sm tabular-nums">
-            {sale.discountPct.toLocaleString("fa-IR")}٪ تخفیف
-          </span>
-        ) : !breakdown.freeCargo ? (
-          <span className="absolute left-3 top-3 rounded-full bg-navy/85 px-2.5 py-1 text-[9.5px] font-medium tracking-wide text-cream backdrop-blur-sm">
-            + هزینهٔ کارگو
-          </span>
-        ) : null}
         <WishlistButton id={product.id} />
       </div>
 
       <div className="p-4">
-        {product.categoryFa && (
-          <span className="mb-1.5 inline-block text-[10px] font-medium tracking-wide text-gold">
-            {product.categoryFa}
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <span className="truncate text-[10px] font-medium tracking-wide text-navy/50">
+            {product.brand}
           </span>
-        )}
+          {product.categoryFa && (
+            <span className="shrink-0 text-[10px] font-medium tracking-wide text-gold">
+              {product.categoryFa}
+            </span>
+          )}
+        </div>
         <h3 className="line-clamp-2 min-h-[2.6em] font-display text-[13px] font-semibold leading-6 text-navy">
           {product.nameFa || product.nameTr}
         </h3>
@@ -100,6 +93,11 @@ export default function TrendyolDemoCard({
                 {formatToman(sale.originalToman)}
               </span>
             )}
+            {sale.onSale && sale.discountPct ? (
+              <span className="text-[10px] font-bold text-[#b8442f] tabular-nums">
+                {sale.discountPct.toLocaleString("fa-IR")}٪−
+              </span>
+            ) : null}
           </span>
           {inStockCount > 0 ? (
             <span className="inline-flex items-center gap-1 text-[10.5px] text-navy/40">
@@ -110,6 +108,10 @@ export default function TrendyolDemoCard({
             <span className="text-[10.5px] text-red-500">ناموجود</span>
           )}
         </div>
+
+        {!breakdown.freeCargo && (
+          <span className="mt-1.5 block text-[10px] text-navy/35">+ هزینهٔ کارگو</span>
+        )}
 
         <span className="mt-3 block text-center text-[11px] text-navy/35 transition-colors group-hover:text-gold">
           مشاهدهٔ جزئیات و انتخابِ سایز

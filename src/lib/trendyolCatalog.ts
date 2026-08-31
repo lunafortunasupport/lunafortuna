@@ -275,8 +275,16 @@ export interface FeaturedBrand {
 // منبعِ واحدِ برندهای منتخب — ترتیب همان ترتیبِ نمایش در صفحهٔ برندها.
 export const FEATURED_BRANDS: FeaturedBrand[] = [
   { slug: "trendyol-milla", nameFa: "ترندیول‌میلا", nameEn: "TRENDYOLMİLLA", blurbFa: "برندِ اختصاصیِ زنانهٔ ترندیول — پوشاکِ روزمره تا مجلسی." },
+  { slug: "mango", nameFa: "مانگو", nameEn: "MANGO", blurbFa: "برندِ اسپانیاییِ محبوب — پوشاکِ شیک و مینیمالِ زنانه و مردانه." },
+  { slug: "koton", nameFa: "کوتون", nameEn: "Koton", blurbFa: "برندِ پرطرفدارِ ترکیه — مُد روز با قیمتِ مناسب." },
+  { slug: "defacto", nameFa: "دیفکتو", nameEn: "DeFacto", blurbFa: "پوشاکِ روزمرهٔ خانواده — زنانه، مردانه و بچگانه." },
+  { slug: "mavi", nameFa: "ماوی", nameEn: "Mavi", blurbFa: "برندِ مشهورِ جین و دنیمِ ترکیه." },
+  { slug: "ltb", nameFa: "ال‌تی‌بی", nameEn: "LTB", blurbFa: "جین و پوشاکِ جوان‌پسندِ Little Big." },
+  { slug: "us-polo", nameFa: "یو‌اس پولو", nameEn: "U.S. Polo Assn.", blurbFa: "پوشاکِ کلاسیک و اسپرتِ برندِ آمریکاییِ محبوب." },
   { slug: "happiness", nameFa: "هپینس استانبول", nameEn: "Happiness İstanbul", blurbFa: "استریت‌ویرِ محبوبِ استانبول — راحت، اسپرت، جوان‌پسند." },
   { slug: "penti", nameFa: "پنتی", nameEn: "Penti", blurbFa: "برندِ محبوبِ ترکیه در لباسِ‌زیر، جوراب و لباسِ‌راحتیِ زنانه." },
+  { slug: "suwen", nameFa: "سووِن", nameEn: "Suwen", blurbFa: "لباسِ‌زیر، لباسِ‌خواب و لباسِ‌راحتیِ زنانه." },
+  { slug: "dagi", nameFa: "داغی", nameEn: "Dagi", blurbFa: "لباسِ‌راحتی و خانگیِ زنانه و مردانه." },
   { slug: "trendyol-kids", nameFa: "ترندیول کیدز", nameEn: "TRENDYOLKIDS", blurbFa: "پوشاکِ بچگانهٔ برندِ خودِ ترندیول." },
   { slug: "trendyol-shoes", nameFa: "ترندیول شوز", nameEn: "TRENDYOL SHOES", blurbFa: "کفشِ زنانهٔ برندِ خودِ ترندیول." },
   { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان." },

@@ -11,7 +11,7 @@ import ChatWidget from "@/components/ChatWidget";
 import SmoothScroll from "@/components/SmoothScroll";
 import { prisma } from "@/lib/prisma";
 import { GROUP_LABELS } from "@/lib/util";
-import { getPillarStats, getCollectionStats } from "@/lib/trendyolCatalog";
+import { getPillarStats, getCollectionStats, getFeaturedBrandStats } from "@/lib/trendyolCatalog";
 
 const vazir = Vazirmatn({
   subsets: ["arabic", "latin"],
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [cats, groupRows, featuredStats, collectionStats] = await Promise.all([
+  const [cats, groupRows, featuredStats, collectionStats, brandStats] = await Promise.all([
     prisma.category.findMany({
       where: { scope: "warehouse" },
       orderBy: { sortOrder: "asc" },
@@ -51,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     prisma.brand.groupBy({ by: ["group"], where: { isActive: true }, _count: true }),
     getPillarStats(),
     getCollectionStats(),
+    getFeaturedBrandStats(),
   ]);
   const brandGroups = groupRows
     .filter((g) => GROUP_LABELS[g.group])
@@ -63,6 +64,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const catalogCollections = collectionStats
     .filter((c) => c.count > 0 && c.slug !== "sale")
     .map((c) => ({ slug: c.slug, nameFa: c.nameFa, emoji: c.emoji }));
+  // برندهای محبوبِ منتخب برای mega-menu (بجز آن‌هایی که خودشان ستونِ اصلی‌اند).
+  const PILLAR_FEATURED = new Set(["trendyol-milla", "ambar"]);
+  const catalogFeatured = brandStats
+    .filter((b) => b.count > 0 && !PILLAR_FEATURED.has(b.slug))
+    .map((b) => ({ slug: b.slug, nameFa: b.nameFa, count: b.count }));
 
   return (
     <html lang="fa" dir="rtl" className={`${vazir.variable} ${estedad.variable}`}>
@@ -70,7 +76,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Reveal />
         <SmoothScroll />
         <CustomCursor />
-        <Nav categories={cats} brandGroups={brandGroups} catalogBrands={catalogBrands} catalogCollections={catalogCollections} />
+        <Nav categories={cats} brandGroups={brandGroups} catalogBrands={catalogBrands} catalogCollections={catalogCollections} catalogFeatured={catalogFeatured} />
         <main>{children}</main>
         <Footer />
         <MobileTabBar />

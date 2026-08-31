@@ -38,11 +38,6 @@ export default function ProductCard({ product }: { product: ProductLite }) {
         {/* گرادیانِ ظریف پایینِ تصویر برای خواناییِ برچسب‌ها */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        {product.brandName && (
-          <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-medium tracking-wide text-navy shadow-sm">
-            {product.brandName}
-          </span>
-        )}
         {soldOut && (
           <span className="absolute inset-x-0 bottom-0 bg-navy/85 py-1.5 text-center text-[11px] tracking-wide text-cream backdrop-blur-sm">
             ناموجود
@@ -52,6 +47,11 @@ export default function ProductCard({ product }: { product: ProductLite }) {
         <span className="pointer-events-none absolute -left-8 -top-8 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(201,169,106,0.22),transparent_65%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       </div>
       <div className="p-4">
+        {product.brandName && (
+          <span className="mb-1.5 block truncate text-[10px] font-medium tracking-wide text-navy/50">
+            {product.brandName}
+          </span>
+        )}
         <h3 className="line-clamp-1 font-display text-[13.5px] font-semibold text-navy transition-colors group-hover:text-gold">
           {product.title}
         </h3>

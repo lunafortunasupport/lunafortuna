@@ -127,6 +127,32 @@ const CATEGORIES = [
   { site: "trendyol", base: "https://www.trendyol.com", q: "penti", label: "Penti", featuredBrand: "penti", brandMatch: ["penti"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "trendyolkids çocuk", label: "بچگانه", featuredBrand: "trendyol-kids", brandMatch: ["trendyolkids", "trendyol kids"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "trendyol shoes kadın", label: "کفش", featuredBrand: "trendyol-shoes", brandMatch: ["trendyol shoes"] },
+  // ── برندهای محبوبِ ترندیول (هرکدام ویترینِ جدا؛ چند کوئری برای تنوعِ محصول) ──
+  // مانگو
+  { site: "trendyol", base: "https://www.trendyol.com", q: "mango kadın", label: "مانگو زنانه", featuredBrand: "mango", brandMatch: ["mango"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "mango elbise", label: "مانگو لباس", featuredBrand: "mango", brandMatch: ["mango"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "mango erkek", label: "مانگو مردانه", featuredBrand: "mango", brandMatch: ["mango"] },
+  // کوتون
+  { site: "trendyol", base: "https://www.trendyol.com", q: "koton kadın", label: "کوتون زنانه", featuredBrand: "koton", brandMatch: ["koton"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "koton elbise", label: "کوتون لباس", featuredBrand: "koton", brandMatch: ["koton"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "koton erkek", label: "کوتون مردانه", featuredBrand: "koton", brandMatch: ["koton"] },
+  // دیفکتو
+  { site: "trendyol", base: "https://www.trendyol.com", q: "defacto kadın", label: "دیفکتو زنانه", featuredBrand: "defacto", brandMatch: ["defacto", "de facto"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "defacto erkek", label: "دیفکتو مردانه", featuredBrand: "defacto", brandMatch: ["defacto", "de facto"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "defacto çocuk", label: "دیفکتو بچگانه", featuredBrand: "defacto", brandMatch: ["defacto", "de facto"] },
+  // ماوی
+  { site: "trendyol", base: "https://www.trendyol.com", q: "mavi kadın", label: "ماوی زنانه", featuredBrand: "mavi", brandMatch: ["mavi"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "mavi jean", label: "ماوی جین", featuredBrand: "mavi", brandMatch: ["mavi"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "mavi erkek", label: "ماوی مردانه", featuredBrand: "mavi", brandMatch: ["mavi"] },
+  // ال‌تی‌بی
+  { site: "trendyol", base: "https://www.trendyol.com", q: "ltb kadın", label: "LTB زنانه", featuredBrand: "ltb", brandMatch: ["ltb"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "ltb jean", label: "LTB جین", featuredBrand: "ltb", brandMatch: ["ltb"] },
+  // یو‌اس پولو
+  { site: "trendyol", base: "https://www.trendyol.com", q: "u.s. polo assn kadın", label: "US Polo زنانه", featuredBrand: "us-polo", brandMatch: ["u.s. polo", "us polo", "u.s. polo assn"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "u.s. polo assn erkek", label: "US Polo مردانه", featuredBrand: "us-polo", brandMatch: ["u.s. polo", "us polo", "u.s. polo assn"] },
+  // لباسِ‌زیر/راحتی — سووِن و داغی
+  { site: "trendyol", base: "https://www.trendyol.com", q: "suwen", label: "Suwen", featuredBrand: "suwen", brandMatch: ["suwen"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "dagi", label: "Dagi", featuredBrand: "dagi", brandMatch: ["dagi", "dağı"] },
 ].slice(0, LIMIT_CATEGORIES);
 
 // همهٔ ورودی‌های ترندیول‌میلا برندِ منتخبِ trendyol-milla هستند.

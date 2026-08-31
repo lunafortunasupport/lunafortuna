@@ -32,11 +32,13 @@ export default function Nav({
   brandGroups,
   catalogBrands,
   catalogCollections,
+  catalogFeatured,
 }: {
   categories: Cat[];
   brandGroups: Group[];
   catalogBrands: CatalogBrand[];
   catalogCollections: CatalogCollection[];
+  catalogFeatured: CatalogBrand[];
 }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -97,7 +99,7 @@ export default function Nav({
             </Dropdown>
             {catalogBrands.length > 0 && (
               <Dropdown label="کاتالوگِ ترکیه" href="/catalog" active={isActive("/catalog")} dark={overHero}>
-                <div className="grid w-[520px] max-w-[calc(100vw-2rem)] grid-cols-2 gap-3 p-4">
+                <div className={`grid ${catalogFeatured.length > 0 ? "w-[720px] grid-cols-3" : "w-[520px] grid-cols-2"} max-w-[calc(100vw-2rem)] gap-3 p-4`}>
                   <div>
                     <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
                       سه دنیای خرید
@@ -106,6 +108,16 @@ export default function Nav({
                       <DropItem key={b.slug} href={`/catalog?source=${b.slug}`} label={b.nameFa} badge={b.count} />
                     ))}
                   </div>
+                  {catalogFeatured.length > 0 && (
+                    <div className="border-s border-navy/10 ps-3">
+                      <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+                        برندهای محبوب
+                      </div>
+                      {catalogFeatured.slice(0, 8).map((b) => (
+                        <DropItem key={b.slug} href={`/catalog?fbrand=${b.slug}`} label={b.nameFa} badge={b.count} />
+                      ))}
+                    </div>
+                  )}
                   <div className="border-s border-navy/10 ps-3">
                     <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
                       کالکشن‌ها
