@@ -159,9 +159,34 @@ model User {
   referredBy    String? // کد معرفِ دعوت‌کننده
   referralUsed  Boolean   @default(false) // آیا تخفیف خرید اولِ خودش (به‌عنوان دعوت‌شده) مصرف شده؟
   referralRewardPending Boolean @default(false) // آیا پاداش معرف (برای خرید بعدی) در انتظار استفاده است؟
+  // ── نوتیفیکیشنِ علاقه‌مندی (opt-in) ── خبردادن وقتی محصولِ لیستِ آرزو حراج/موجود شد.
+  wishlistNotify      Boolean @default(false) // کاربر خواسته خبر بدهیم؟ (پیش‌فرض: نه — opt-in)
+  wishlistNotifyAsked Boolean @default(false) // یک‌بار پرسیده‌ایم؟ (تا دوباره سراغش نرویم)
   createdAt     DateTime  @default(now())
   orders        Order[]
   favorites     Favorite[]
+  cartItems     CartItem[]
+}
+
+// ── سبدِ خریدِ کاربرِ واردشده — تا بین دستگاه‌ها همگام بماند (مهمان‌ها در localStorage).
+// اسنپ‌شاتِ نمایشی ذخیره می‌شود؛ قیمتِ نهایی موقعِ تسویه با نرخِ روز دوباره حساب/بازبینی می‌شود.
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String // = MirrorProduct.id (بدون FK چون کاتالوگ با سینک بازساخته می‌شود)
+  size      String
+  name      String
+  nameFa    String?
+  brand     String
+  image     String?
+  sourceUrl String
+  priceTL   Float
+  freeCargo Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId, size])
+  @@index([userId])
 }
 
 // ── علاقه‌مندی‌های کاربر (لیستِ آرزو) — به کاربر گره خورده تا در پروفایل و بین دستگاه‌ها بماند.

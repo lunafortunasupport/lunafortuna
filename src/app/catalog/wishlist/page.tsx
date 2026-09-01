@@ -1,4 +1,5 @@
 import WishlistGrid from "@/components/WishlistGrid";
+import WishlistNotifyPrompt from "@/components/WishlistNotifyPrompt";
 
 export const metadata = { title: "علاقه‌مندی‌های من — فروشگاهِ ترکیه" };
 
@@ -23,6 +24,7 @@ export default function WishlistPage() {
       </div>
 
       <div className="container-luna py-10">
+        <WishlistNotifyPrompt />
         <WishlistGrid />
       </div>
     </div>

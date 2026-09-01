@@ -5,6 +5,7 @@ import { updateProfile } from "./actions";
 import ReferralBox from "@/components/ReferralBox";
 import BirthdayPicker from "@/components/BirthdayPicker";
 import AccountFavorites from "@/components/AccountFavorites";
+import WishlistNotifyToggle from "@/components/WishlistNotifyToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,9 @@ export default async function AccountPage() {
 
       {/* علاقه‌مندی‌ها */}
       <AccountFavorites userId={user.id} />
+
+      {/* خبرِ حراجِ علاقه‌مندی‌ها (روشن/خاموش) */}
+      <WishlistNotifyToggle />
 
       {/* کد معرف */}
       <ReferralBox code={user.referralCode} />
