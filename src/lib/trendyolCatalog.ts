@@ -40,11 +40,12 @@ export interface Pillar {
   nameFa: string;
   nameEn: string;
   blurbFa: string;
+  cover?: string; // عکسِ کاورِ کیوریت‌شده (مدلِ برند) برای کاشیِ بزرگِ «سه دنیای خرید»
 }
 export const PILLARS: Pillar[] = [
-  { slug: "trendyol", nameFa: "ترندیول", nameEn: "Trendyol", blurbFa: "ملتی‌برندِ بزرگِ ترکیه — پرفروش‌ترین‌ها و تخفیف‌دارها از ده‌ها برند." },
-  { slug: "trendyol-milla", nameFa: "ترندیول‌میلا", nameEn: "TRENDYOLMİLLA", blurbFa: "برندِ اختصاصیِ زنانهٔ ترندیول — پوشاکِ روزمره تا مجلسی." },
-  { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان." },
+  { slug: "trendyol", nameFa: "ترندیول", nameEn: "Trendyol", blurbFa: "ملتی‌برندِ بزرگِ ترکیه — پرفروش‌ترین‌ها و تخفیف‌دارها از ده‌ها برند.", cover: "/images/pillar-trendyol.jpg" },
+  { slug: "trendyol-milla", nameFa: "ترندیول‌میلا", nameEn: "TRENDYOLMİLLA", blurbFa: "برندِ اختصاصیِ زنانهٔ ترندیول — پوشاکِ روزمره تا مجلسی.", cover: "/images/pillar-milla.jpg" },
+  { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان.", cover: "/images/pillar-ambar.jpg" },
 ];
 export function getPillar(slug: string): Pillar | undefined {
   return PILLARS.find((p) => p.slug === slug);

@@ -43,57 +43,68 @@ export default async function TrendyolBrandsPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {stats.map((b) => (
-              <Link
-                key={b.slug}
-                href={`/catalog?source=${b.slug}`}
-                className="group relative block overflow-hidden rounded-2xl border border-navy/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
-              >
-                <div className="relative aspect-[16/9] overflow-hidden bg-cream">
-                  {b.sampleImages.length > 0 ? (
-                    <div className="grid h-full grid-cols-3 gap-0.5">
+          <div>
+            <div className="mb-7">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">سه دنیای خرید</div>
+              <h2 className="mt-2 font-display text-[26px] font-black leading-tight text-navy md:text-[34px]">
+                از کجا شروع کنیم؟
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {stats.map((b) => (
+                <Link
+                  key={b.slug}
+                  href={`/catalog?source=${b.slug}`}
+                  className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-navy shadow-card ring-1 ring-navy/10 transition-all duration-300 hover:-translate-y-1 hover:ring-gold/40"
+                >
+                  {b.cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={b.cover}
+                      alt={b.nameFa}
+                      className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+                      loading="lazy"
+                    />
+                  ) : b.sampleImages.length > 0 ? (
+                    <div className="absolute inset-0 grid grid-cols-3 gap-0.5">
                       {[0, 1, 2].map((i) => (
-                        <div key={i} className="relative overflow-hidden bg-navy/5">
+                        <div key={i} className="relative overflow-hidden bg-white/5">
                           {b.sampleImages[i] ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={b.sampleImages[i]}
-                              alt=""
-                              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                              loading="lazy"
-                            />
+                            <img src={b.sampleImages[i]} alt="" className="h-full w-full object-cover" loading="lazy" />
                           ) : null}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="flex h-full items-center justify-center text-navy/15">
+                    <div className="flex h-full items-center justify-center text-cream/15">
                       <span className="font-display text-3xl">🌙</span>
                     </div>
                   )}
-                  <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-medium tracking-wide text-navy shadow-sm">
-                    {b.count.toLocaleString("fa-IR")} محصول
-                  </span>
-                </div>
 
-                <div className="p-4">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <h3 className="font-display text-[15px] font-semibold text-navy">{b.nameFa}</h3>
+                  <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/92 via-navy-ink/30 to-transparent" />
+
+                  <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/12 px-3 py-1 text-[11px] font-medium text-cream backdrop-blur-sm">
+                    {b.count.toLocaleString("fa-IR")} محصول
                     {b.brandCount > 1 && (
-                      <span className="shrink-0 rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-medium text-gold">
+                      <>
+                        <span className="opacity-40">·</span>
                         {b.brandCount.toLocaleString("fa-IR")} برند
-                      </span>
+                      </>
                     )}
-                  </div>
-                  <span className="mt-0.5 block text-[11px] tracking-wide text-navy/35">{b.nameEn}</span>
-                  <p className="mt-2 line-clamp-2 text-[12.5px] leading-6 text-navy/55">{b.blurbFa}</p>
-                  <span className="mt-3 block text-[11px] text-gold transition-colors group-hover:underline">
-                    مشاهدهٔ محصولات ←
                   </span>
-                </div>
-              </Link>
-            ))}
+
+                  <div className="absolute inset-x-0 bottom-0 p-6">
+                    <div className="text-[11px] tracking-[0.28em] text-champagne">{b.nameEn}</div>
+                    <h3 className="mt-2 font-display text-[26px] font-black leading-8 text-cream">{b.nameFa}</h3>
+                    <p className="mt-2.5 line-clamp-2 max-w-[17rem] text-[12.5px] leading-6 text-cream/70">{b.blurbFa}</p>
+                    <span className="mt-4 inline-flex items-center gap-2 text-[13px] font-bold text-cream transition-transform group-hover:-translate-x-1">
+                      مشاهدهٔ محصولات <span>←</span>
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
