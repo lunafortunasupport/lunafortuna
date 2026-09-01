@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatToman, formatLir } from "@/lib/format";
 import { statusLabels } from "@/lib/guideData";
+import ReceiptUpload from "@/components/ReceiptUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,16 @@ export default async function MyOrders() {
                 </div>
                 <div className="text-[11px] text-navy/40">{new Date(o.createdAt).toLocaleString("fa-IR")}</div>
               </div>
+              {o.status === "pending" && !o.receiptUrl && (
+                <div className="mt-3 border-t border-navy/8 pt-3">
+                  <ReceiptUpload orderId={o.id} compact />
+                </div>
+              )}
+              {o.receiptUrl && o.status === "pending" && (
+                <div className="mt-3 flex items-center gap-1.5 border-t border-navy/8 pt-3 text-[12px] text-navy/50">
+                  <span>📎</span> رسید ارسال شد — در انتظارِ بررسی
+                </div>
+              )}
             </div>
           ))}
         </div>

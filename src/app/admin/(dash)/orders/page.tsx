@@ -31,6 +31,11 @@ export default async function AdminOrders() {
                     <span className="rounded-full bg-gold/10 px-2.5 py-0.5 text-[11px] text-gold">
                       {statusLabels[o.status] || o.status}
                     </span>
+                    {o.receiptUrl && o.status === "pending" && (
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                        📎 فیش رسید — بررسی نشده
+                      </span>
+                    )}
                   </div>
                   <div className="mt-2 space-y-0.5 text-[13px] text-navy/70">
                     {o.customerName && <div>👤 {o.customerName}</div>}
@@ -54,6 +59,18 @@ export default async function AdminOrders() {
                       {new Date(o.createdAt).toLocaleString("fa-IR")}
                     </div>
                   </div>
+                  {o.receiptUrl && (
+                    <a
+                      href={`/api/admin/receipt/${o.id}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="mt-3 inline-flex items-center gap-2 rounded-xl border border-navy/10 p-1.5 hover:border-gold/40"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/api/admin/receipt/${o.id}`} alt="رسید" className="h-16 w-16 rounded-lg object-cover" />
+                      <span className="pl-2 text-[12px] text-gold">مشاهدهٔ رسید در اندازهٔ کامل ↗</span>
+                    </a>
+                  )}
                 </div>
 
                 <form action={updateOrderStatus} className="flex shrink-0 items-center gap-2">

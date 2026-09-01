@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { formatToman } from "@/lib/format";
+import ReceiptUpload from "@/components/ReceiptUpload";
 
 interface Props {
   perLirToman: number;
@@ -17,7 +18,9 @@ export default function OrderForm({ perLirToman, card, telegramSupport }: Props)
   const [desc, setDesc] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [shortId, setShortId] = useState("");
+  const [orderId, setOrderId] = useState("");
   const [copied, setCopied] = useState(false);
+  const [receiptDone, setReceiptDone] = useState(false);
 
   const finalToman = useMemo(() => {
     const n = parseFloat(lir.replace(/[^0-9.]/g, ""));
@@ -45,6 +48,7 @@ export default function OrderForm({ perLirToman, card, telegramSupport }: Props)
       const data = await res.json();
       if (res.ok) {
         setShortId(data.shortId);
+        setOrderId(data.id);
         setStatus("done");
       } else setStatus("error");
     } catch {
@@ -98,11 +102,30 @@ export default function OrderForm({ perLirToman, card, telegramSupport }: Props)
         </div>
 
         <p className="mt-4 text-[13px] leading-6 text-navy/60">
-          پس از واریز، تصویر رسید را در تلگرام برای ما بفرست تا سفارشت را تأیید کنیم. خیالت راحت، بقیه‌اش با ما 🌙
+          پس از واریز، تصویرِ رسید را همین‌جا آپلود کن یا در تلگرام بفرست — هر کدام راحت‌تری. به‌محضِ
+          بررسی، سفارشت تأیید و پروسهٔ خرید شروع می‌شود.
         </p>
-        <a href={`https://t.me/${telegramSupport}`} target="_blank" rel="noopener" className="btn-gold mt-4 w-full">
-          ارسال رسید در تلگرام
-        </a>
+
+        <div className="mt-4">
+          <ReceiptUpload orderId={orderId} onDone={() => setReceiptDone(true)} />
+        </div>
+        {!receiptDone && (
+          <>
+            <div className="mt-3 flex items-center gap-3 text-[11px] text-navy/35">
+              <span className="h-px flex-1 bg-navy/10" />
+              یا
+              <span className="h-px flex-1 bg-navy/10" />
+            </div>
+            <a
+              href={`https://t.me/${telegramSupport}`}
+              target="_blank"
+              rel="noopener"
+              className="btn-outline mt-3 w-full"
+            >
+              ارسال رسید در تلگرام
+            </a>
+          </>
+        )}
       </div>
     );
   }

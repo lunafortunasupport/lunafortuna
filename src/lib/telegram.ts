@@ -52,3 +52,22 @@ export async function sendAdminPhoto(photoUrl: string, caption: string): Promise
     return false;
   }
 }
+
+/** ارسالِ عکسِ رسید مستقیم از بایت‌ها (نه URL) — چون فایل‌های رسید در Blobِ private ذخیره
+ * می‌شوند و Telegram نمی‌تواند URLِ private را خودش fetch کند؛ همان بایت‌هایی که کاربر آپلود
+ * کرده مستقیم به Telegram (multipart) فرستاده می‌شود. */
+export async function sendAdminPhotoBuffer(buf: Buffer, filename: string, caption: string): Promise<boolean> {
+  if (!telegramConfigured()) return false;
+  try {
+    const form = new FormData();
+    form.set("chat_id", ADMIN_CHAT_ID!);
+    form.set("caption", caption);
+    form.set("parse_mode", "HTML");
+    form.set("photo", new Blob([new Uint8Array(buf)]), filename);
+    const res = await fetch(API("sendPhoto"), { method: "POST", body: form });
+    return res.ok;
+  } catch (e) {
+    console.error("[telegram] sendPhotoBuffer error", e);
+    return false;
+  }
+}
