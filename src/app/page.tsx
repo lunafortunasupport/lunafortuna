@@ -29,40 +29,22 @@ const CURATED_HERO_SLIDES: HeroSlide[] = [
     ctaText: "ثبت سفارش",
   },
   {
-    id: "hero-catalog",
-    eyebrow: "کاتالوگِ ترکیه",
-    title: "پرفروش‌ها، به فارسی و تومان",
-    subtitle: "منتخب‌ها و حراج‌های ترندیول، بدونِ نیازِ گشتن تو سایتِ ترکی.",
+    id: "hero-brands",
+    eyebrow: "برندهای مطرح",
+    title: "برندهایی که می‌شناسی، به فارسی و تومان",
+    subtitle: "مانگو، کوتون، دیفکتو، ماوی و… — پرطرفدارترین برندهای ترکیه، هرکدام یک ویترینِ جدا.",
     image: "/images/hero-catalog.jpg",
-    href: "/catalog",
-    ctaText: "مشاهدهٔ کاتالوگ",
+    href: "/catalog/brands",
+    ctaText: "دیدنِ برندها",
   },
   {
-    id: "hero-women",
-    eyebrow: "کالکشن",
-    title: "پوشاکِ زنانه",
-    subtitle: "از روزمره تا مجلسی، از ده‌ها برند.",
-    image: "/images/hero-women.jpg",
-    href: "/catalog?collection=women",
+    id: "hero-evening",
+    eyebrow: "کالکشنِ فصل",
+    title: "استایلِ مجلسی",
+    subtitle: "برای مهمانی و مناسبت‌های خاص — منتخبی از لباس‌های شب.",
+    image: "/images/evening.jpg",
+    href: "/catalog?collection=evening",
     ctaText: "مشاهدهٔ کالکشن",
-  },
-  {
-    id: "hero-men",
-    eyebrow: "کالکشن",
-    title: "دنیای مردانه",
-    subtitle: "پیراهن، تی‌شرت، شلوار و کاپشنِ مردانه.",
-    image: "/images/hero-men.jpg",
-    href: "/catalog?collection=men",
-    ctaText: "مشاهدهٔ کالکشن",
-  },
-  {
-    id: "hero-bags",
-    eyebrow: "لوک‌بوک",
-    title: "کیف و کفشِ منتخب",
-    subtitle: "جزئیاتی که استایل را کامل می‌کنند.",
-    image: "/images/bags.jpg",
-    href: "/catalog/lookbook/bags-shoes",
-    ctaText: "مشاهدهٔ لوک",
   },
 ];
 
@@ -221,14 +203,14 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="reveal">
-              <PopularShowcase lead={leadItem} rail={railItems} brands={showcaseBrands} />
+              <PopularShowcase lead={leadItem} rail={railItems} />
             </div>
           </div>
         </section>
       )}
 
       {/* ═══════════ برندهای محبوب (هوکِ ورود به ویترینِ برندها) ═══════════ */}
-      <FeaturedBrandsBand brands={brandBandStats} />
+      <FeaturedBrandsBand brands={brandBandStats} pillars={showcaseBrands} />
 
       {/* ═══════════ مانیفست ═══════════ */}
       <section className="bg-cream">

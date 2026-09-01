@@ -32,11 +32,9 @@ export interface ShowcaseBrand {
 export default function PopularShowcase({
   lead,
   rail,
-  brands,
 }: {
   lead: PopularItem | null;
   rail: PopularItem[];
-  brands: ShowcaseBrand[];
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     direction: "rtl",
@@ -220,54 +218,6 @@ export default function PopularShowcase({
         </div>
       </div>
 
-      {/* ── نوارِ برندهای منتخب ── */}
-      {brands.length > 0 && (
-        <div className="mt-14 border-t border-navy/10 pt-10">
-          <div className="mb-6 flex items-end justify-between gap-4">
-            <h3 className="font-display text-lg font-black text-navy md:text-xl">سه دنیای خریدِ ترکیه</h3>
-            <Link href="/catalog/brands" className="text-[13px] text-gold hover:text-navy">
-              همهٔ برندها ←
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            {brands.map((b) => (
-              <Link
-                key={b.slug}
-                href={`/catalog?source=${b.slug}`}
-                className="group relative flex flex-col overflow-hidden rounded-xl border border-navy/8 bg-white transition-all hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
-              >
-                <div className="relative aspect-[3/4] overflow-hidden bg-cream">
-                  {b.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={b.image}
-                      alt=""
-                      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-navy/15">
-                      <span className="font-display text-2xl">🌙</span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-3">
-                  <div className="flex items-center gap-1.5">
-                    {b.logo && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={b.logo} alt="" className="h-5 w-5 shrink-0 rounded object-contain ring-1 ring-navy/10" loading="lazy" />
-                    )}
-                    <div className="truncate font-display text-[13px] font-bold text-navy">{b.nameFa}</div>
-                  </div>
-                  <div className="mt-0.5 text-[10.5px] text-navy/40">
-                    {b.count.toLocaleString("fa-IR")} محصول
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
