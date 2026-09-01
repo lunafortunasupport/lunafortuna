@@ -236,6 +236,9 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
         <p className="relative mt-3 text-center text-[11px] leading-5 text-navy/35">
           به‌ازای هر کالا یک سفارش با لینکِ اصلِ محصول و هزینهٔ کارگو برای ما ثبت می‌شود تا موجودی/قیمت را تأیید کنیم.
         </p>
+        <p className="relative mt-2 rounded-lg bg-gold/8 px-3 py-2 text-center text-[11px] leading-5 text-navy/50">
+          هزینهٔ ارسالِ داخلِ ایران (باربری تا تهران + پیک یا پستِ درِ منزل) پس از رسیدنِ سفارش به ایران محاسبه و جداگانه به شما اعلام می‌شود.
+        </p>
 
         <style jsx>{`
           :global(.inp) {

@@ -40,9 +40,9 @@ const Icons = {
 
 const TABS: { href: string; label: string; icon: keyof typeof Icons }[] = [
   { href: "/", label: "خانه", icon: "home" },
-  { href: "/shop", label: "موجودی", icon: "shop" },
+  { href: "/catalog", label: "فروشگاه", icon: "shop" },
   { href: "/order", label: "سفارش", icon: "order" },
-  { href: "/brands", label: "برندها", icon: "brands" },
+  { href: "/catalog/brands", label: "برندها", icon: "brands" },
   { href: "/account", label: "حساب", icon: "account" },
 ];
 

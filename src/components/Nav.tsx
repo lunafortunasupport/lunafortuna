@@ -81,19 +81,12 @@ export default function Nav({
 
           <div className="hidden items-center gap-0.5 lg:flex">
             <Link href="/" className={linkCls("/")}>خانه</Link>
-            <Dropdown label="موجودی" href="/shop" active={isActive("/shop")} dark={overHero}>
+            {/* «موجودی» (/shop) موقتاً مخفی است تا انبار پر شود — تصمیمِ کاربر. */}
+            <Dropdown label="برندها" href="/catalog/brands" active={isActive("/catalog/brands")} dark={overHero}>
               <div className="grid w-56 gap-0.5 p-2">
-                <DropItem href="/shop" label="همهٔ موجودی" icon="🛍" />
-                {categories.map((c) => (
-                  <DropItem key={c.slug} href={`/shop?cat=${c.slug}`} label={c.name} icon={c.icon || "•"} />
-                ))}
-              </div>
-            </Dropdown>
-            <Dropdown label="برندها" href="/brands" active={isActive("/brands")} dark={overHero}>
-              <div className="grid w-56 gap-0.5 p-2">
-                <DropItem href="/brands" label="همهٔ برندها" icon="✦" />
-                {brandGroups.map((g) => (
-                  <DropItem key={g.key} href={`/brands?group=${g.key}`} label={g.label} badge={g.count} />
+                <DropItem href="/catalog/brands" label="همهٔ برندها" icon="✦" />
+                {catalogFeatured.slice(0, 8).map((b) => (
+                  <DropItem key={b.slug} href={`/catalog?fbrand=${b.slug}`} label={b.nameFa} badge={b.count} />
                 ))}
               </div>
             </Dropdown>
@@ -202,19 +195,19 @@ export default function Nav({
 
       {/* منوی موبایل — تیرهٔ لوکس */}
       <div
-        className={`fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 overflow-y-auto bg-navy-ink/97 py-20 backdrop-blur-xl transition-all lg:hidden ${
+        className={`fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 overflow-y-auto bg-navy-ink py-20 transition-all lg:hidden ${
           open ? "visible opacity-100" : "invisible opacity-0"
         }`}
       >
         {[
-          ["/", "خانه"], ["/shop", "موجودی"], ["/brands", "برندها"], ["/catalog", "کاتالوگِ ترکیه"],
+          ["/", "خانه"], ["/catalog", "فروشگاهِ ترکیه"], ["/catalog/brands", "برندها"],
           ["/catalog/lookbook", "لوک‌بوک"], ["/catalog/wishlist", "علاقه‌مندی‌ها"],
           ["/order", "ثبت سفارش"], ["/quality", "بررسی کیفیت"], ["/guide", "راهنمای خرید"], ["/about", "دربارهٔ ما"], ["/account", "حساب من"],
         ].map(([href, label]) => (
           <Link
             key={href}
             href={href}
-            className={`font-display text-3xl font-bold ${isActive(href) ? "text-champagne" : "text-cream/75"}`}
+            className={`font-display text-3xl font-bold ${isActive(href) ? "text-champagne" : "text-cream/90"}`}
           >
             {label}
           </Link>
