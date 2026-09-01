@@ -14,6 +14,28 @@ export const PAGE_SIZE = 24;
 const HIDDEN_CATEGORY_PREFIX = "Tesettür";
 const NOT_HIDDEN = { NOT: { category: { startsWith: HIDDEN_CATEGORY_PREFIX } } };
 
+// لوگوی برند = فاویکونِ دامنهٔ رسمیِ برند (همان روشِ seed برای دایرکتوریِ برندها). کنارِ نامِ
+// برند در ویترین‌ها نشان داده می‌شود. فقط برندهایی که دامنهٔ مطمئن دارند؛ بقیه بدونِ لوگو.
+const favicon = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+const BRAND_DOMAINS: Record<string, string> = {
+  trendyol: "trendyol.com",
+  "trendyol-milla": "trendyol.com",
+  "trendyol-kids": "trendyol.com",
+  "trendyol-shoes": "trendyol.com",
+  mango: "mango.com",
+  koton: "koton.com",
+  defacto: "defacto.com.tr",
+  mavi: "mavi.com",
+  ltb: "ltbjeans.com",
+  "us-polo": "uspoloassn.com",
+  penti: "penti.com",
+  happiness: "happinessistanbul.com",
+  suwen: "suwen.com",
+  dagi: "dagi.com.tr",
+};
+export const brandLogo = (slug: string): string | null =>
+  BRAND_DOMAINS[slug] ? favicon(BRAND_DOMAINS[slug]) : null;
+
 export type SortOption = "popular" | "price_asc" | "price_desc" | "new";
 export type PriceBucket = "under1" | "1to3" | "3to6" | "over6";
 
@@ -490,6 +512,7 @@ export function saleView(p: MirrorProduct, perLirToman: number): SaleView {
 export interface FeaturedBrandStat extends FeaturedBrand {
   count: number;
   sampleImages: string[];
+  logo: string | null;
 }
 
 /** برای صفحهٔ ایندکسِ برندها: تعدادِ محصولِ فعال + چند عکسِ نمونه per برندِ منتخب. */
@@ -505,7 +528,7 @@ export async function getFeaturedBrandStats(): Promise<FeaturedBrandStat[]> {
           select: { image: true },
         }),
       ]);
-      return { ...b, count, sampleImages: samples.map((s) => s.image!).filter(Boolean) };
+      return { ...b, count, sampleImages: samples.map((s) => s.image!).filter(Boolean), logo: brandLogo(b.slug) };
     })
   );
   return stats;
@@ -515,6 +538,7 @@ export interface PillarStat extends Pillar {
   count: number;
   brandCount: number; // چند برندِ متمایز زیرِ این ستون هست (برای ترندیول یعنی «۱۰۰+ برند»)
   sampleImages: string[];
+  logo: string | null;
 }
 
 /** آمارِ سه ستونِ اصلی (بر اساسِ sourceSite) — برای صفحهٔ برندها، mega-menu و صفحهٔ اصلی. */
@@ -532,7 +556,7 @@ export async function getPillarStats(): Promise<PillarStat[]> {
           select: { image: true },
         }),
       ]);
-      return { ...p, count, brandCount: brands.length, sampleImages: samples.map((s) => s.image!).filter(Boolean) };
+      return { ...p, count, brandCount: brands.length, sampleImages: samples.map((s) => s.image!).filter(Boolean), logo: brandLogo(p.slug) };
     })
   );
   return stats;

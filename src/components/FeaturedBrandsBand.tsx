@@ -68,10 +68,16 @@ export default function FeaturedBrandsBand({ brands }: { brands: FeaturedBrandSt
                   </div>
                 )}
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy-ink/85 via-navy-ink/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-2 p-3.5">
-                  <div className="min-w-0">
-                    <div className="truncate font-display text-[15px] font-bold text-cream">{b.nameFa}</div>
-                    <div className="truncate text-[10px] tracking-[0.18em] text-champagne/70">{b.nameEn}</div>
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 p-3.5">
+                  <div className="flex min-w-0 items-center gap-2">
+                    {b.logo && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={b.logo} alt="" className="h-6 w-6 shrink-0 rounded-md bg-white/95 p-0.5 object-contain" loading="lazy" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="truncate font-display text-[15px] font-bold text-cream">{b.nameFa}</div>
+                      <div className="truncate text-[10px] tracking-[0.18em] text-champagne/70">{b.nameEn}</div>
+                    </div>
                   </div>
                   <span className="shrink-0 text-[10px] text-cream/45">{b.count.toLocaleString("fa-IR")} محصول</span>
                 </div>

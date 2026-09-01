@@ -142,7 +142,7 @@ export default async function HomePage() {
   const railItems = popularItems.slice(1);
   const showcaseBrands = featuredStats
     .filter((b) => b.count > 0)
-    .map((b) => ({ slug: b.slug, nameFa: b.nameFa, nameEn: b.nameEn, count: b.count, image: b.cover || b.sampleImages[0] || null }));
+    .map((b) => ({ slug: b.slug, nameFa: b.nameFa, nameEn: b.nameEn, count: b.count, image: b.cover || b.sampleImages[0] || null, logo: b.logo }));
   // نکته: featuredStats حالا سه ستونِ منبع است (getPillarStats)، پس showcaseBrands = ترندیول/میلا/آمبار.
 
   // اسلایدهای هیرو: بنرهای دستیِ عسل (عکسِ کمپینِ واقعی) اولویتِ اول‌اند؛ وگرنه از مجموعهٔ ثابتِ

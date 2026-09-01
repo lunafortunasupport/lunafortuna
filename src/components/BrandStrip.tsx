@@ -53,10 +53,16 @@ export default function BrandStrip({ brands }: { brands: FeaturedBrandStat[] }) 
                 )}
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy-ink/15 to-transparent" />
               </div>
-              <div className="flex items-baseline justify-between gap-2 px-3 py-2.5">
-                <div className="min-w-0">
-                  <div className="truncate font-display text-[13.5px] font-semibold text-navy">{b.nameFa}</div>
-                  <div className="truncate text-[10px] tracking-wide text-navy/35">{b.nameEn}</div>
+              <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+                <div className="flex min-w-0 items-center gap-2">
+                  {b.logo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.logo} alt="" className="h-5 w-5 shrink-0 rounded object-contain ring-1 ring-navy/10" loading="lazy" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate font-display text-[13.5px] font-semibold text-navy">{b.nameFa}</div>
+                    <div className="truncate text-[10px] tracking-wide text-navy/35">{b.nameEn}</div>
+                  </div>
                 </div>
                 <span className="shrink-0 text-[10px] text-navy/35">{b.count.toLocaleString("fa-IR")} محصول</span>
               </div>

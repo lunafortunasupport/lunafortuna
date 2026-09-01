@@ -96,7 +96,13 @@ export default async function TrendyolBrandsPage() {
 
                   <div className="absolute inset-x-0 bottom-0 p-6">
                     <div className="text-[11px] tracking-[0.28em] text-champagne">{b.nameEn}</div>
-                    <h3 className="mt-2 font-display text-[26px] font-black leading-8 text-cream">{b.nameFa}</h3>
+                    <div className="mt-2 flex items-center gap-2.5">
+                      {b.logo && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={b.logo} alt="" className="h-7 w-7 shrink-0 rounded-md bg-white/95 p-0.5 object-contain" loading="lazy" />
+                      )}
+                      <h3 className="font-display text-[26px] font-black leading-8 text-cream">{b.nameFa}</h3>
+                    </div>
                     <p className="mt-2.5 line-clamp-2 max-w-[17rem] text-[12.5px] leading-6 text-cream/70">{b.blurbFa}</p>
                     <span className="mt-4 inline-flex items-center gap-2 text-[13px] font-bold text-cream transition-transform group-hover:-translate-x-1">
                       مشاهدهٔ محصولات <span>←</span>
@@ -148,8 +154,14 @@ export default async function TrendyolBrandsPage() {
                     )}
                   </div>
                   <div className="p-3.5">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <h3 className="font-display text-[14px] font-semibold text-navy">{b.nameFa}</h3>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        {b.logo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={b.logo} alt="" className="h-6 w-6 shrink-0 rounded-md object-contain ring-1 ring-navy/10" loading="lazy" />
+                        )}
+                        <h3 className="truncate font-display text-[14px] font-semibold text-navy">{b.nameFa}</h3>
+                      </div>
                       <span className="shrink-0 text-[10px] text-navy/35">{b.count.toLocaleString("fa-IR")} محصول</span>
                     </div>
                     <span className="mt-0.5 block text-[10.5px] tracking-wide text-navy/35">{b.nameEn}</span>

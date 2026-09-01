@@ -26,6 +26,7 @@ export interface ShowcaseBrand {
   nameEn: string;
   count: number;
   image: string | null;
+  logo: string | null;
 }
 
 export default function PopularShowcase({
@@ -251,7 +252,13 @@ export default function PopularShowcase({
                   )}
                 </div>
                 <div className="p-3">
-                  <div className="font-display text-[13px] font-bold text-navy">{b.nameFa}</div>
+                  <div className="flex items-center gap-1.5">
+                    {b.logo && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={b.logo} alt="" className="h-5 w-5 shrink-0 rounded object-contain ring-1 ring-navy/10" loading="lazy" />
+                    )}
+                    <div className="truncate font-display text-[13px] font-bold text-navy">{b.nameFa}</div>
+                  </div>
                   <div className="mt-0.5 text-[10.5px] text-navy/40">
                     {b.count.toLocaleString("fa-IR")} محصول
                   </div>
