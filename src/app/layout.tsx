@@ -31,14 +31,40 @@ const estedad = localFont({
   display: "swap",
 });
 
+const SITE_URL = "https://lunafortuna.store";
+const SITE_DESC =
+  "واسطهٔ مطمئن خرید از ترکیه برای ایران؛ از پوشاک و کیف و کفش تا لوازم خانه. قیمت شفاف، بررسی کیفیت و سایز پیش از ارسال.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "LunaFortuna — خیالت راحت، بقیه‌اش با ما",
     template: "%s | LunaFortuna",
   },
-  description:
-    "واسطهٔ مطمئن خرید از ترکیه برای ایران؛ از پوشاک و کیف و کفش تا لوازم خانه. قیمت شفاف، بررسی کیفیت و سایز پیش از ارسال.",
-  keywords: ["خرید از ترکیه", "لونافورتونا", "برندهای ترکیه", "خرید واسطه‌ای"],
+  description: SITE_DESC,
+  keywords: ["خرید از ترکیه", "لونافورتونا", "برندهای ترکیه", "خرید واسطه‌ای", "مانگو", "کوتون", "دیفکتو"],
+  applicationName: "LunaFortuna",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "LunaFortuna",
+    locale: "fa_IR",
+    url: SITE_URL,
+    title: "LunaFortuna — خیالت راحت، بقیه‌اش با ما",
+    description: SITE_DESC,
+    images: [{ url: "/images/hero-shopping.jpg", width: 1400, alt: "LunaFortuna — خرید از ترکیه" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LunaFortuna — خیالت راحت، بقیه‌اش با ما",
+    description: SITE_DESC,
+    images: ["/images/hero-shopping.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -70,9 +96,40 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     .filter((b) => b.count > 0 && !PILLAR_FEATURED.has(b.slug))
     .map((b) => ({ slug: b.slug, nameFa: b.nameFa, count: b.count }));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${SITE_URL}/#organization`,
+        name: "LunaFortuna",
+        url: SITE_URL,
+        logo: `${SITE_URL}/icon.png`,
+        description: SITE_DESC,
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: "LunaFortuna",
+        inLanguage: "fa-IR",
+        publisher: { "@id": `${SITE_URL}/#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/catalog?q={search_term_string}` },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <html lang="fa" dir="rtl" className={`${vazir.variable} ${estedad.variable}`}>
       <body className="font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Reveal />
         <SmoothScroll />
         <CustomCursor />

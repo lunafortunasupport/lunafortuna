@@ -195,7 +195,7 @@ export default async function HomePage() {
               <div>
                 <div className="rise-up"><Index n="۰۲" label="محبوب‌ترین‌های ترکیه" /></div>
                 <h2 className="rise-up mt-5 font-display text-[clamp(28px,4vw,46px)] font-black text-navy" style={{ transitionDelay: "60ms" }}>
-                  آنچه خریداران بیشتر پسندیده‌اند
+                  چیزهایی که بیشتر پسندیده‌اند
                 </h2>
               </div>
               <Link href="/catalog" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">
