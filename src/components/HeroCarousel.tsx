@@ -73,7 +73,7 @@ export default function HeroCarousel({
               <img
                 src={s.image}
                 alt=""
-                className={`absolute inset-0 h-full w-full object-cover object-center ${
+                className={`absolute inset-0 h-full w-full object-cover object-top ${
                   !reduceMotion && i === selected ? "kenburns" : ""
                 }`}
               />

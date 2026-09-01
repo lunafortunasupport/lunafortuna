@@ -33,7 +33,7 @@ const CURATED_HERO_SLIDES: HeroSlide[] = [
     eyebrow: "کاتالوگِ ترکیه",
     title: "پرفروش‌ها، به فارسی و تومان",
     subtitle: "منتخب‌ها و حراج‌های ترندیول، بدونِ نیازِ گشتن تو سایتِ ترکی.",
-    image: "/images/boutique.jpg",
+    image: "/images/hero-catalog.jpg",
     href: "/catalog",
     ctaText: "مشاهدهٔ کاتالوگ",
   },
@@ -42,7 +42,7 @@ const CURATED_HERO_SLIDES: HeroSlide[] = [
     eyebrow: "کالکشن",
     title: "پوشاکِ زنانه",
     subtitle: "از روزمره تا مجلسی، از ده‌ها برند.",
-    image: "/images/rack.jpg",
+    image: "/images/hero-women.jpg",
     href: "/catalog?collection=women",
     ctaText: "مشاهدهٔ کالکشن",
   },
@@ -51,7 +51,7 @@ const CURATED_HERO_SLIDES: HeroSlide[] = [
     eyebrow: "کالکشن",
     title: "دنیای مردانه",
     subtitle: "پیراهن، تی‌شرت، شلوار و کاپشنِ مردانه.",
-    image: "/images/menswear.jpg",
+    image: "/images/hero-men.jpg",
     href: "/catalog?collection=men",
     ctaText: "مشاهدهٔ کالکشن",
   },
@@ -60,7 +60,7 @@ const CURATED_HERO_SLIDES: HeroSlide[] = [
     eyebrow: "لوک‌بوک",
     title: "کیف و کفشِ منتخب",
     subtitle: "جزئیاتی که استایل را کامل می‌کنند.",
-    image: "/images/quiet-luxury.jpg",
+    image: "/images/bags.jpg",
     href: "/catalog/lookbook/bags-shoes",
     ctaText: "مشاهدهٔ لوک",
   },
@@ -163,10 +163,10 @@ export default async function HomePage() {
 
   // کاشی‌های دسته → مستقیم به کاتالوگِ زندهٔ فارسی (نه فهرستِ لینک‌های برند). همان تمایزِ اصلیِ سایت.
   const tiles = [
-    { img: "/images/rack.jpg", fa: "پوشاک زنانه", en: "Women", href: "/catalog?collection=women" },
-    { img: "/images/menswear.jpg", fa: "پوشاک مردانه", en: "Men", href: "/catalog?collection=men" },
-    { img: "/images/quiet-luxury.jpg", fa: "کیف و کفش", en: "Bags & Shoes", href: "/catalog/lookbook/bags-shoes" },
-    { img: "/images/window-warm.jpg", fa: "خانه و لوازم", en: "Home", href: "/catalog?collection=home" },
+    { img: "/images/women.jpg", fa: "پوشاک زنانه", en: "Women", href: "/catalog?collection=women" },
+    { img: "/images/men.jpg", fa: "پوشاک مردانه", en: "Men", href: "/catalog?collection=men" },
+    { img: "/images/bags.jpg", fa: "کیف و کفش", en: "Bags & Shoes", href: "/catalog/lookbook/bags-shoes" },
+    { img: "/images/home.jpg", fa: "خانه و لوازم", en: "Home", href: "/catalog?collection=home" },
   ];
 
   return (
@@ -192,7 +192,7 @@ export default async function HomePage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {tiles.map((t) => (
               <Link key={t.fa} href={t.href} className="img-wipe group relative block aspect-[3/4] overflow-hidden rounded-sm bg-navy">
-                <Image src={t.img} alt={t.fa} fill sizes="(max-width:640px) 100vw, 25vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <Image src={t.img} alt={t.fa} fill sizes="(max-width:640px) 100vw, 25vw" className="object-cover object-top transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-ink/85 via-navy-ink/15 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-5">
                   <div className="text-[11px] tracking-[0.25em] text-champagne/80">{t.en}</div>
