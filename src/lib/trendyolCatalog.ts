@@ -59,6 +59,9 @@ export interface Collection {
   nameFa: string;
   emoji: string;
   blurbFa: string;
+  // عکسِ کاورِ کیوریت‌شدهٔ ثابت (لوکال در public/images) — مرتبط و باکیفیت، جایگزینِ عکسِ محصولِ
+  // اتفاقی. اگر نباشد، به sampleImage (عکسِ پرپسندِ همان کالکشن) برمی‌گردیم.
+  cover?: string;
   filter: { categoryIn?: string[]; categoryContains?: string; audience?: string; audienceNull?: boolean; onSale?: boolean };
 }
 export const COLLECTIONS: Collection[] = [
@@ -67,6 +70,7 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "پوشاکِ زنانه",
     emoji: "👗",
     blurbFa: "طیفِ کاملِ پوشاکِ زنانه — از روزمره تا مجلسی، از ده‌ها برند.",
+    cover: "/images/rack.jpg",
     filter: { audienceNull: true },
   },
   {
@@ -88,6 +92,7 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "دنیای مردانه",
     emoji: "🧔",
     blurbFa: "پیراهن، تی‌شرت، شلوار و کاپشنِ مردانه.",
+    cover: "/images/menswear.jpg",
     filter: { audience: "men" },
   },
   {
@@ -102,6 +107,7 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "خانه و آشپزخانه",
     emoji: "🏠",
     blurbFa: "روتختی، حوله، دکوراسیون و لوازمِ آشپزخانه.",
+    cover: "/images/window-warm.jpg",
     filter: { audience: "home" },
   },
   {

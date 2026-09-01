@@ -19,10 +19,10 @@ export default function CollectionStrip({ collections }: { collections: Collecti
               className="group relative flex w-40 shrink-0 flex-col overflow-hidden rounded-xl border border-navy/8 transition-all hover:-translate-y-1 hover:border-gold/35 hover:shadow-card"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-cream">
-                {c.sampleImages.length > 0 ? (
+                {c.cover || c.sampleImages.length > 0 ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={c.sampleImages[0]}
+                    src={c.cover || c.sampleImages[0]}
                     alt=""
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
