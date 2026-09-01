@@ -87,7 +87,7 @@ export default function WishlistGrid() {
           روی قلبِ هر محصول بزن تا اینجا ذخیره شود و بعداً راحت پیدایش کنی.
         </p>
         <Link href="/catalog" className="btn-outline mt-5 inline-flex">
-          کاوش در کاتالوگ
+          کاوش در فروشگاه
         </Link>
       </div>
     );

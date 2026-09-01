@@ -169,7 +169,7 @@ export default async function HomePage() {
                 از کجا شروع کنیم؟
               </h2>
             </div>
-            <Link href="/catalog" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">مشاهدهٔ کاتالوگ ←</Link>
+            <Link href="/catalog" className="hidden shrink-0 text-sm text-gold hover:text-navy sm:inline">مشاهدهٔ فروشگاه ←</Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {tiles.map((t) => (

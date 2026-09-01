@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getPillarStats, getFeaturedBrandStats } from "@/lib/trendyolCatalog";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "برندها — کاتالوگِ ترکیه" };
+export const metadata = { title: "برندها — فروشگاهِ ترکیه" };
 
 // برندهایی که ستونِ اصلی (پیلر) هستند و در گالریِ «برندهای محبوب» تکرار نشوند.
 const PILLAR_FEATURED = new Set(["trendyol-milla", "ambar"]);
@@ -21,7 +21,7 @@ export default async function TrendyolBrandsPage() {
         </div>
         <div className="container-luna relative py-14">
           <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] tracking-widest text-champagne">
-            کاتالوگِ ترکیه
+            فروشگاهِ ترکیه
           </span>
           <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">برندها</h1>
           <p className="mt-3 max-w-2xl text-[13.5px] leading-7 text-cream/70">
@@ -39,7 +39,7 @@ export default async function TrendyolBrandsPage() {
               رباتِ سینک اجرا شود تا محصولات اینجا ظاهر شوند.
             </p>
             <Link href="/catalog" className="btn-outline mt-5 inline-flex">
-              مشاهدهٔ کاتالوگ
+              مشاهدهٔ فروشگاه
             </Link>
           </div>
         ) : (

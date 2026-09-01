@@ -35,7 +35,7 @@ export default async function LookbookIndexPage() {
             <h3 className="mt-4 font-display text-lg font-semibold text-navy">هنوز لوکی آماده نیست</h3>
             <p className="mt-1.5 text-[13px] text-navy/50">رباتِ سینک اجرا شود تا لوک‌ها پر شوند.</p>
             <Link href="/catalog" className="btn-outline mt-5 inline-flex">
-              مشاهدهٔ کاتالوگ
+              مشاهدهٔ فروشگاه
             </Link>
           </div>
         ) : (

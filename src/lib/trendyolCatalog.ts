@@ -14,9 +14,11 @@ export const PAGE_SIZE = 24;
 const HIDDEN_CATEGORY_PREFIX = "Tesettür";
 const NOT_HIDDEN = { NOT: { category: { startsWith: HIDDEN_CATEGORY_PREFIX } } };
 
-// لوگوی برند = فاویکونِ دامنهٔ رسمیِ برند (همان روشِ seed برای دایرکتوریِ برندها). کنارِ نامِ
-// برند در ویترین‌ها نشان داده می‌شود. فقط برندهایی که دامنهٔ مطمئن دارند؛ بقیه بدونِ لوگو.
-const favicon = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+// لوگوی برند = از سرویسِ unavatar.io که لوگو/آیکونِ رسمیِ دامنه را از چند منبع (سرویس‌های
+// لوگو + فاویکونِ خودِ سایت) جمع می‌کند و تصویری بزرگ‌تر و تمیزتر از فاویکونِ گوگل می‌دهد.
+// کنارِ نامِ برند در ویترین‌ها نمایش داده می‌شود. فقط برندهایی که دامنهٔ مطمئن دارند.
+// (Clearbit تعطیل شد؛ unavatar جایگزینِ زندهٔ رایگان و بدونِ توکن است و خودش به فاویکون fallback می‌کند.)
+const brandIcon = (domain: string) => `https://unavatar.io/${domain}`;
 const BRAND_DOMAINS: Record<string, string> = {
   trendyol: "trendyol.com",
   "trendyol-milla": "trendyol.com",
@@ -34,7 +36,7 @@ const BRAND_DOMAINS: Record<string, string> = {
   dagi: "dagi.com.tr",
 };
 export const brandLogo = (slug: string): string | null =>
-  BRAND_DOMAINS[slug] ? favicon(BRAND_DOMAINS[slug]) : null;
+  BRAND_DOMAINS[slug] ? brandIcon(BRAND_DOMAINS[slug]) : null;
 
 export type SortOption = "popular" | "price_asc" | "price_desc" | "new";
 export type PriceBucket = "under1" | "1to3" | "3to6" | "over6";
@@ -340,6 +342,22 @@ function trLower(s: string): string {
     .toLocaleLowerCase("tr-TR");
 }
 
+/** توکن‌سازیِ عبارتِ سرچ برای تطبیقِ چندکلمه‌ای و مقاوم به شکلِ نگارش:
+ *  - lowercaseِ امنِ ترکی (elbise/Elbi̇se)،
+ *  - یکسان‌سازیِ حروفِ عربی↔فارسی (ي→ی، ك→ک، ة→ه) تا تایپِ عربی هم نتیجه بدهد،
+ *  - نیم‌فاصله (ZWNJ) و فاصله جداکنندهٔ توکن‌اند، پس «دکمه دار» و «دکمه‌دار» هر دو می‌خورند.
+ *  هر توکن باید در searchText یا categoryFa باشد (AND روی توکن‌ها) — نه لزوماً کنارِ هم. */
+function searchTokens(q: string): string[] {
+  return trLower(q)
+    .replace(/ي/g, "ی") // ي → ی
+    .replace(/ك/g, "ک") // ك → ک
+    .replace(/ة/g, "ه") // ة → ه
+    .replace(/[‌‏‎]/g, " ") // ZWNJ/RLM/LRM → فاصله
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
+}
+
 const PRICE_BUCKETS_TOMAN: Record<PriceBucket, [number, number | null]> = {
   under1: [0, 1_000_000],
   "1to3": [1_000_000, 3_000_000],
@@ -362,8 +380,13 @@ export async function queryMirrorProducts(filters: CatalogFilters, perLirToman: 
   // جستجو: هم متنِ ترکیِ ذخیره‌شده (نام + برند) و هم دستهٔ فارسی (categoryFa) — تا سرچِ فارسیِ
   // نوعِ محصول («کیف»، «لباس»، «شلوار») هم نتیجه بدهد، نه فقط کلیدواژهٔ ترکی/برندِ لاتین.
   if (filters.q) {
-    const ql = trLower(filters.q);
-    where.OR = [{ searchText: { contains: ql } }, { categoryFa: { contains: filters.q } }];
+    const tokens = searchTokens(filters.q);
+    if (tokens.length > 0) {
+      // هر توکن باید جایی (نام/برندِ لاتین در searchText یا دستهٔ فارسی) باشد — ترتیب مهم نیست.
+      where.AND = tokens.map((t) => ({
+        OR: [{ searchText: { contains: t } }, { categoryFa: { contains: t } }],
+      }));
+    }
   }
   if (filters.price) {
     const [minToman, maxToman] = PRICE_BUCKETS_TOMAN[filters.price];

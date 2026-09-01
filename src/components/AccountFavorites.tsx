@@ -25,7 +25,7 @@ export default async function AccountFavorites({ userId }: { userId: string }) {
         <p className="text-[13px] text-navy/50">
           هنوز محصولی نپسندیده‌ای. در{" "}
           <Link href="/catalog" className="text-gold hover:underline">
-            کاتالوگِ ترکیه
+            فروشگاهِ ترکیه
           </Link>{" "}
           روی قلبِ هر محصول بزن تا اینجا ذخیره شود.
         </p>

@@ -19,7 +19,7 @@ import BrandStrip from "@/components/BrandStrip";
 import EditorialStrip from "@/components/EditorialStrip";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "کاتالوگِ ترکیه — به فارسی و تومان" };
+export const metadata = { title: "فروشگاهِ ترکیه — به فارسی و تومان" };
 
 const VALID_SORTS: SortOption[] = ["popular", "price_asc", "price_desc", "new"];
 const VALID_BUCKETS: PriceBucket[] = ["under1", "1to3", "3to6", "over6"];
@@ -100,7 +100,7 @@ export default async function TrendyolPreviewPage({
               ? activeFeaturedBrand.nameEn
               : activePillar
               ? activePillar.nameEn
-              : "کاتالوگِ ترکیه"}
+              : "فروشگاهِ ترکیه"}
           </span>
           <h1 className="mt-4 font-display text-3xl font-semibold md:text-4xl">
             {activeCollection
@@ -109,7 +109,7 @@ export default async function TrendyolPreviewPage({
               ? `${activeFeaturedBrand.nameFa}، به فارسی و تومان`
               : activePillar
               ? `${activePillar.nameFa}، به فارسی و تومان`
-              : "کاتالوگِ ترکیه، به فارسی و تومان"}
+              : "فروشگاهِ ترکیه، به فارسی و تومان"}
           </h1>
           <p className="mt-3 max-w-2xl text-[13.5px] leading-7 text-cream/70">
             {activeCollection ? activeCollection.blurbFa + " " : activeFeaturedBrand ? activeFeaturedBrand.blurbFa + " " : activePillar ? activePillar.blurbFa + " " : "منتخب‌ها و پرفروش‌های ترکیه، یک‌جا و به فارسی. "}
@@ -140,7 +140,7 @@ export default async function TrendyolPreviewPage({
               href={activeCollection ? "/catalog" : "/catalog/brands"}
               className="text-[12px] font-medium text-gold hover:underline"
             >
-              {activeCollection ? "← بازگشت به کاتالوگِ کامل" : "← بازگشت به همهٔ برندها"}
+              {activeCollection ? "← بازگشت به فروشگاهِ کامل" : "← بازگشت به همهٔ برندها"}
             </Link>
           </div>
         </div>

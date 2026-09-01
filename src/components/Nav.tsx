@@ -91,7 +91,7 @@ export default function Nav({
               </div>
             </Dropdown>
             {catalogBrands.length > 0 && (
-              <Dropdown label="کاتالوگِ ترکیه" href="/catalog" active={isActive("/catalog")} dark={overHero}>
+              <Dropdown label="فروشگاهِ ترکیه" href="/catalog" active={isActive("/catalog")} dark={overHero}>
                 <div className={`grid ${catalogFeatured.length > 0 ? "w-[720px] grid-cols-3" : "w-[520px] grid-cols-2"} max-w-[calc(100vw-2rem)] gap-3 p-4`}>
                   <div>
                     <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">

@@ -1,6 +1,6 @@
 import WishlistGrid from "@/components/WishlistGrid";
 
-export const metadata = { title: "علاقه‌مندی‌های من — کاتالوگِ ترکیه" };
+export const metadata = { title: "علاقه‌مندی‌های من — فروشگاهِ ترکیه" };
 
 // صفحهٔ علاقه‌مندی‌ها — لیست سمتِ کلاینت (localStorage) خوانده و دادهٔ زندهٔ قیمت از API گرفته می‌شود.
 export default function WishlistPage() {

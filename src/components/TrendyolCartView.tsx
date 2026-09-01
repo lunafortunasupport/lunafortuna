@@ -131,7 +131,7 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
           ارسال رسید در تلگرام
         </a>
         <Link href="/catalog" className="mt-3 block text-center text-[13px] text-navy/50 hover:text-gold">
-          بازگشت به کاتالوگ
+          بازگشت به فروشگاه
         </Link>
       </div>
     );
@@ -142,9 +142,9 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
       <div className="card-soft mx-auto max-w-md p-10 text-center shadow-card">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-navy/5 text-2xl">🛒</div>
         <h3 className="mt-4 font-display text-lg font-semibold text-navy">سبدت خالی است</h3>
-        <p className="mt-1.5 text-[13px] text-navy/50">از کاتالوگ چند محصول انتخاب کن تا اینجا نمایش داده شوند.</p>
+        <p className="mt-1.5 text-[13px] text-navy/50">از فروشگاه چند محصول انتخاب کن تا اینجا نمایش داده شوند.</p>
         <Link href="/catalog" className="btn-gold mt-5 inline-flex">
-          رفتن به کاتالوگ
+          رفتن به فروشگاه
         </Link>
       </div>
     );

@@ -27,7 +27,7 @@ export default async function TrendyolProductPage({ params }: { params: Promise<
         href="/catalog"
         className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-navy/50 transition-colors hover:text-gold"
       >
-        ← بازگشت به کاتالوگ
+        ← بازگشت به فروشگاه
       </Link>
       <TrendyolDetail
         product={product}

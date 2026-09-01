@@ -47,7 +47,7 @@ export default async function TrendyolSalePage({
               با اجرای بعدیِ رباتِ سینک، محصولاتِ تخفیف‌دار اینجا ظاهر می‌شوند.
             </p>
             <Link href="/catalog" className="btn-outline mt-5 inline-flex">
-              مشاهدهٔ کاتالوگِ عمومی
+              مشاهدهٔ فروشگاه
             </Link>
           </div>
         ) : (

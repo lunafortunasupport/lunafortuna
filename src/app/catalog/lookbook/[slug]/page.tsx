@@ -83,7 +83,7 @@ export default async function LookbookStoryPage({ params }: { params: Promise<{ 
             <h3 className="mt-4 font-display text-lg font-semibold text-navy">فعلاً محصولی در این لوک نیست</h3>
             <p className="mt-1.5 text-[13px] text-navy/50">به‌زودی با سینکِ بعدی پر می‌شود.</p>
             <Link href="/catalog" className="btn-outline mt-5 inline-flex">
-              مشاهدهٔ کاتالوگ
+              مشاهدهٔ فروشگاه
             </Link>
           </div>
         ) : (
@@ -100,7 +100,7 @@ export default async function LookbookStoryPage({ params }: { params: Promise<{ 
             </div>
             <div className="mt-10 text-center">
               <Link href="/catalog" className="btn-outline inline-flex">
-                کاوش در کاتالوگِ کامل ←
+                کاوش در فروشگاهِ کامل ←
               </Link>
             </div>
           </>

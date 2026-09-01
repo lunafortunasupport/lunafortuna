@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import TrendyolCartView from "@/components/TrendyolCartView";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "سبدِ خرید — کاتالوگِ ترندیول" };
+export const metadata = { title: "سبدِ خرید — فروشگاهِ ترکیه" };
 
 export default async function TrendyolCartPage() {
   const [s, user] = await Promise.all([getSettings(), getCurrentUser()]);
