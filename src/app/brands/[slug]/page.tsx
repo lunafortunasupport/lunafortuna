@@ -5,6 +5,7 @@ import { parseJson, GROUP_LABELS } from "@/lib/util";
 import { GENDER_LABELS, subLabel } from "@/lib/linkLabels";
 import Divider from "@/components/Divider";
 import BrandCard from "@/components/BrandCard";
+import { domainLogo, upgradeBrandLogo } from "@/lib/brandLogo";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default async function BrandPage({ params }: { params: { slug: string } }
   const brand = await prisma.brand.findUnique({ where: { slug: params.slug } });
   if (!brand || !brand.isActive) notFound();
 
+  const brandLogoSrc = domainLogo(brand.domain) || upgradeBrandLogo(brand.logoUrl);
   const links = parseJson<Links>(brand.categoryLinks, {});
 
   // گروه‌بندی: کلیدهای سطح اول (w/m/k/home/cats) → زیردسته‌ها
@@ -83,9 +85,9 @@ export default async function BrandPage({ params }: { params: { slug: string } }
 
         <div className="container-luna relative flex flex-col items-start gap-6 py-14 sm:flex-row sm:items-center">
           <div className="rise-up flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-cream shadow-[0_12px_40px_rgba(0,0,0,0.3)]">
-            {brand.logoUrl ? (
+            {brandLogoSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={brand.logoUrl} alt={brand.name} className="h-14 w-14 object-contain" />
+              <img src={brandLogoSrc} alt={brand.name} className="h-14 w-14 object-contain" />
             ) : (
               <span className="font-display text-4xl text-gold">{brand.name.charAt(0)}</span>
             )}
@@ -134,9 +136,9 @@ export default async function BrandPage({ params }: { params: { slug: string } }
               </div>
               <div className="absolute inset-5 animate-spinRev rounded-full border border-gold/15" />
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-cream shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
-                {brand.logoUrl ? (
+                {brandLogoSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={brand.logoUrl} alt={brand.name} className="h-12 w-12 object-contain" />
+                  <img src={brandLogoSrc} alt={brand.name} className="h-12 w-12 object-contain" />
                 ) : (
                   <span className="font-display text-3xl text-gold">{brand.name.charAt(0)}</span>
                 )}

@@ -1,3 +1,5 @@
+import { upgradeBrandLogo } from "@/lib/brandLogo";
+
 export interface SaleLite {
   slug: string;
   name: string;
@@ -37,7 +39,7 @@ export default function SaleStrip({ sales }: { sales: SaleLite[] }) {
             <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-cream">
               {s.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.logoUrl} alt={s.name} className="h-10 w-10 object-contain" />
+                <img src={upgradeBrandLogo(s.logoUrl)!} alt={s.name} className="h-10 w-10 object-contain" />
               ) : (
                 <span className="font-display text-2xl text-gold">{s.name.charAt(0)}</span>
               )}

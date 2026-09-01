@@ -1,3 +1,5 @@
+import { upgradeBrandLogo } from "@/lib/brandLogo";
+
 interface MarqueeBrand {
   slug: string;
   name: string;
@@ -24,7 +26,7 @@ export default function BrandMarquee({ brands }: { brands: MarqueeBrand[] }) {
           <div key={`${b.slug}-${i}`} className="flex shrink-0 items-center gap-2.5 opacity-55 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0">
             {b.logoUrl && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={b.logoUrl} alt="" className="h-7 w-7 object-contain" loading="lazy" />
+              <img src={upgradeBrandLogo(b.logoUrl)!} alt="" className="h-7 w-7 rounded-md bg-white object-contain p-0.5" loading="lazy" />
             )}
             <span className="whitespace-nowrap font-display text-lg font-bold text-navy/70">{b.name}</span>
           </div>
