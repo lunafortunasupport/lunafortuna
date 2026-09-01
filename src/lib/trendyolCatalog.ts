@@ -78,6 +78,7 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "استایلِ مجلسی",
     emoji: "✨",
     blurbFa: "برای مهمانی و مناسبت‌های خاص.",
+    cover: "/images/portrait.jpg",
     filter: { categoryIn: ["لباسِ مجلسی/فارغ‌التحصیلی", "بوستیه"] },
   },
   {
@@ -85,6 +86,7 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "بیسیکِ روزمره",
     emoji: "👕",
     blurbFa: "بلوز، تی‌شرت و شلوارِ همیشه‌کاربردی.",
+    cover: "/images/boutique.jpg",
     filter: { categoryIn: ["بلوز", "تی‌شرت", "شلوار", "شلوار جین"] },
   },
   {
@@ -100,6 +102,7 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "دنیای بچگانه",
     emoji: "🧸",
     blurbFa: "پوشاکِ بچگانه و نوزادی.",
+    cover: "/images/kids.jpg",
     filter: { audience: "kids" },
   },
   {
@@ -115,6 +118,7 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "لباسِ‌زیر و راحتی",
     emoji: "💗",
     blurbFa: "سوتین، لباسِ‌خواب و مایو — از برندهایی مثلِ پنتی.",
+    cover: "/images/loungewear.jpg",
     filter: { audience: "lingerie" },
   },
   {
@@ -122,6 +126,7 @@ export const COLLECTIONS: Collection[] = [
     nameFa: "حراجِ ویژه",
     emoji: "🏷️",
     blurbFa: "همین حالا تخفیف خورده‌اند.",
+    cover: "/images/hero-shopping.jpg",
     filter: { onSale: true },
   },
 ];

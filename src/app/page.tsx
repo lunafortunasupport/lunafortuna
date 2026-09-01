@@ -8,7 +8,8 @@ import Divider from "@/components/Divider";
 import BrandMarquee from "@/components/BrandMarquee";
 import PopularShowcase from "@/components/PopularShowcase";
 import HeroCarousel, { type HeroSlide } from "@/components/HeroCarousel";
-import { getPillarStats, priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
+import FeaturedBrandsBand from "@/components/FeaturedBrandsBand";
+import { getPillarStats, getFeaturedBrandStats, priceBreakdown, saleView, type MirrorProductWithVariants } from "@/lib/trendyolCatalog";
 
 // اسلایدهای پیش‌فرضِ هیرو — عکس‌های ادیتوریال/لایف‌استایلِ باکیفیتِ محلیِ خودِ سایت (همان‌هایی که
 // در بخشِ «دسته‌ها»، «چرا لونافورتونا» و «لحظهٔ ادیتوریال» هم استفاده می‌شوند)، نه عکسِ محصولِ
@@ -82,7 +83,7 @@ export default async function HomePage() {
   const s = await getSettings();
   const perLir = Math.round(s.exchangeRate * (1 + s.feeNormal));
 
-  const [brandCount, directory, sales, popular, featuredStats, heroBanners] = await Promise.all([
+  const [brandCount, directory, sales, popular, featuredStats, brandBandStats, heroBanners] = await Promise.all([
       prisma.brand.count({ where: { isActive: true } }),
       prisma.brand.findMany({
         where: { isActive: true },
@@ -106,6 +107,7 @@ export default async function HomePage() {
         include: { variants: true },
       }),
       getPillarStats(),
+      getFeaturedBrandStats(),
       // بنرهای دستیِ هیرو — عسل هر وقت عکسِ کمپین/مدلِ خودِ برند داشت، از /admin/banners اضافه می‌کند.
       prisma.banner.findMany({
         where: { isActive: true, placement: "hero" },
@@ -224,6 +226,9 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* ═══════════ برندهای محبوب (هوکِ ورود به ویترینِ برندها) ═══════════ */}
+      <FeaturedBrandsBand brands={brandBandStats} />
 
       {/* ═══════════ مانیفست ═══════════ */}
       <section className="bg-cream">
