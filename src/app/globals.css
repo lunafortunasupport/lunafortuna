@@ -29,6 +29,27 @@ body {
   color: var(--navy);
 }
 
+/* ── فوکوسِ کیبورد (دسترسی‌پذیری) ──
+   کرسرِ سفارشی cursor:none می‌گذارد و هیچ نشانه‌ای برای کاربرِ کیبورد نبود. این حلقه با
+   outline (که overflow-hidden کارت‌ها آن را نمی‌بُرد) روی هر دو زمینهٔ کرم و سرمه‌ای دیده
+   می‌شود؛ هالهٔ نیمه‌شفافِ شامپاینی کنتراست را بیشتر می‌کند. فقط برای فوکوسِ کیبورد (نه کلیک). */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(201, 169, 106, 0.35);
+}
+/* روی زمینه‌های تیره، حلقهٔ شامپاینیِ روشن‌تر واضح‌تر است. */
+.bg-navy :focus-visible,
+.bg-navy-ink :focus-visible,
+.text-cream :focus-visible {
+  outline-color: var(--champagne);
+}
+/* کاربرانی که با ماوس کلیک می‌کنند حلقه نبینند (مرورگرهای قدیمی که focus-visible ندارند). */
+:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
 /* اسکرول‌بار ظریف */
 ::-webkit-scrollbar {
   width: 8px;
