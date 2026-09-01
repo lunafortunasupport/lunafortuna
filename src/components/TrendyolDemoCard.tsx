@@ -12,17 +12,19 @@ export default function TrendyolDemoCard({
   product,
   perLirToman,
   cargoFeeEstimateTL,
+  cargoFeeEstimateMillaTL,
 }: {
   product: MirrorProductWithVariants;
   perLirToman: number;
   cargoFeeEstimateTL: number;
+  cargoFeeEstimateMillaTL?: number;
 }) {
   const cheapest = product.variants.reduce<MirrorProductWithVariants["variants"][number] | null>((best, v) => {
     if (v.priceTL == null) return best;
     if (!best || (best.priceTL ?? Infinity) > v.priceTL) return v;
     return best;
   }, null);
-  const breakdown = priceBreakdown(cheapest, perLirToman, cargoFeeEstimateTL, product.sourceSite);
+  const breakdown = priceBreakdown(cheapest, perLirToman, cargoFeeEstimateTL, product.sourceSite, cargoFeeEstimateMillaTL);
   const sale = saleView(product, perLirToman);
   const inStockCount = product.variants.filter((v) => v.inStock).length;
 

@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         if (!best || (best.priceTL ?? Infinity) > v.priceTL) return v;
         return best;
       }, null);
-      const breakdown = priceBreakdown(cheapest, perLirToman, s.cargoFeeEstimateTL, p.sourceSite);
+      const breakdown = priceBreakdown(cheapest, perLirToman, s.cargoFeeEstimateTL, p.sourceSite, s.cargoFeeEstimateMillaTL);
       const sale = saleView(p, perLirToman);
       return {
         id: p.id,

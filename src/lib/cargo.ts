@@ -23,18 +23,22 @@ export function sourceFromUrl(url: string | null | undefined): string | undefine
   return undefined;
 }
 
-/** کارگوی یک کالا به لیر. منابعِ دارای قانونِ ثابت (آمبار) از SOURCE_CARGO؛ ترندیول/میلا از
- *  freeCargoِ واقعیِ محصول و در غیرِ آن، برآوردِ عمومی. */
+/** کارگوی یک کالا به لیر. منابعِ دارای قانونِ ثابت (آمبار) از SOURCE_CARGO؛ ترندیولِ ملتی‌برند و
+ *  ترندیول‌میلا هرکدام برآوردِ خودشان را دارند (از تنظیماتِ ادمین) — چون سیاستِ کارگویشان جداست؛
+ *  در هر دو، freeCargoِ واقعیِ خودِ محصول (وقتی فروشنده کارگوی رایگان گذاشته) اولویت دارد. */
 export function cargoFeeTL(
   sourceSite: string | undefined,
   priceTL: number | null,
   freeCargo: boolean,
-  cargoFeeEstimateTL: number
+  cargoFeeEstimateTL: number,
+  cargoFeeEstimateMillaTL?: number
 ): number {
   const rule = sourceSite ? SOURCE_CARGO[sourceSite] : undefined;
   if (rule) {
     if (rule.freeThresholdTL != null && (priceTL ?? 0) >= rule.freeThresholdTL) return 0;
     return rule.feeTL;
   }
-  return freeCargo ? 0 : cargoFeeEstimateTL;
+  if (freeCargo) return 0;
+  if (sourceSite === "trendyol-milla") return cargoFeeEstimateMillaTL ?? cargoFeeEstimateTL;
+  return cargoFeeEstimateTL;
 }

@@ -126,6 +126,9 @@ export default function OrderForm({ perLirToman, card, telegramSupport }: Props)
             </a>
           </>
         )}
+        <p className="mt-4 rounded-lg bg-gold/8 px-3 py-2 text-center text-[11px] leading-5 text-navy/50">
+          هزینهٔ ارسالِ داخلِ ایران (باربری تا تهران + پیک یا پستِ درِ منزل) پس از رسیدنِ سفارش به ایران محاسبه و جداگانه به شما اعلام می‌شود.
+        </p>
       </div>
     );
   }

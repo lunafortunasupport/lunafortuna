@@ -72,6 +72,7 @@ export default async function TrendyolProductPage({ params }: { params: Promise<
         attributes={parseAttributes(product.attributes)}
         perLirToman={perLirToman}
         cargoFeeEstimateTL={s.cargoFeeEstimateTL}
+        cargoFeeEstimateMillaTL={s.cargoFeeEstimateMillaTL}
       />
     </div>
   );

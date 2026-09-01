@@ -484,13 +484,14 @@ export function priceBreakdown(
   variant: { priceTL: number | null; freeCargo: boolean } | null | undefined,
   perLirToman: number,
   cargoFeeEstimateTL: number,
-  sourceSite?: string
+  sourceSite?: string,
+  cargoFeeEstimateMillaTL?: number
 ): PriceBreakdown {
   if (!variant || variant.priceTL == null) {
     return { itemToman: null, cargoToman: 0, totalToman: null, freeCargo: true };
   }
   const itemToman = Math.round(variant.priceTL * perLirToman);
-  const feeTL = cargoFeeTL(sourceSite, variant.priceTL, variant.freeCargo, cargoFeeEstimateTL);
+  const feeTL = cargoFeeTL(sourceSite, variant.priceTL, variant.freeCargo, cargoFeeEstimateTL, cargoFeeEstimateMillaTL);
   const cargoToman = Math.round(feeTL * perLirToman);
   return { itemToman, cargoToman, totalToman: itemToman + cargoToman, freeCargo: feeTL === 0 };
 }

@@ -259,6 +259,9 @@ model Settings {
   instagram      String   @default("lunafortuna.shop")
   phone          String   @default("00905318662989")
   aboutContent   String   @default("{}") // JSON: متن و اعضای تیم
-  cargoFeeEstimateTL Float @default(150) // برآوردِ هزینهٔ کارگوی داخلِ ترکیه وقتی freeCargo نیست
+  // برآوردِ کارگو جدا برای هر ستونِ ترندیول (وقتی freeCargoِ خودِ محصول نیست): مولتی‌برند
+  // (فروشنده‌های متفاوت) و ترندیول‌میلا (برندِ اختصاصیِ خودِ ترندیول) سیاستِ کارگوی متفاوت دارند.
+  cargoFeeEstimateTL Float @default(50) // ترندیولِ ملتی‌برند — میانگینِ واقعیِ کارگوی خریدار ۴۵–۶۰ لیر
+  cargoFeeEstimateMillaTL Float @default(50) // ترندیول‌میلا — تا اصلاحِ عددِ واقعی توسط ادمین
   updatedAt      DateTime @updatedAt
 }

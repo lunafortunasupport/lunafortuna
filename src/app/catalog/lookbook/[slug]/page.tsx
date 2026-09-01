@@ -95,6 +95,7 @@ export default async function LookbookStoryPage({ params }: { params: Promise<{ 
                   product={p}
                   perLirToman={perLirToman}
                   cargoFeeEstimateTL={s.cargoFeeEstimateTL}
+                  cargoFeeEstimateMillaTL={s.cargoFeeEstimateMillaTL}
                 />
               ))}
             </div>

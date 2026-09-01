@@ -66,6 +66,7 @@ export default async function AccountFavorites({ userId }: { userId: string }) {
             product={p}
             perLirToman={perLirToman}
             cargoFeeEstimateTL={s.cargoFeeEstimateTL}
+            cargoFeeEstimateMillaTL={s.cargoFeeEstimateMillaTL}
           />
         ))}
       </div>

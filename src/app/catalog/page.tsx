@@ -160,7 +160,7 @@ export default async function TrendyolPreviewPage({
           <>
             <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
               {items.map((p) => (
-                <TrendyolDemoCard key={p.id} product={p} perLirToman={perLirToman} cargoFeeEstimateTL={s.cargoFeeEstimateTL} />
+                <TrendyolDemoCard key={p.id} product={p} perLirToman={perLirToman} cargoFeeEstimateTL={s.cargoFeeEstimateTL} cargoFeeEstimateMillaTL={s.cargoFeeEstimateMillaTL} />
               ))}
             </div>
 

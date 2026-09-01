@@ -55,7 +55,7 @@ export default async function TrendyolSalePage({
             <div className="mb-5 text-[11.5px] text-navy/40">{total.toLocaleString("fa-IR")} محصولِ تخفیف‌دار</div>
             <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
               {items.map((p) => (
-                <TrendyolDemoCard key={p.id} product={p} perLirToman={perLirToman} cargoFeeEstimateTL={s.cargoFeeEstimateTL} />
+                <TrendyolDemoCard key={p.id} product={p} perLirToman={perLirToman} cargoFeeEstimateTL={s.cargoFeeEstimateTL} cargoFeeEstimateMillaTL={s.cargoFeeEstimateMillaTL} />
               ))}
             </div>
 

@@ -9,12 +9,13 @@ import { cargoFeeTL, sourceFromUrl } from "@/lib/cargo";
 interface Props {
   perLirToman: number;
   cargoFeeEstimateTL: number;
+  cargoFeeEstimateMillaTL?: number;
   defaultName: string;
   card: { number: string; owner: string; bank: string };
   telegramSupport: string;
 }
 
-export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defaultName, card, telegramSupport }: Props) {
+export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, cargoFeeEstimateMillaTL, defaultName, card, telegramSupport }: Props) {
   const { items, remove, clear } = useCart();
   const [name, setName] = useState(defaultName);
   const [contact, setContact] = useState("");
@@ -47,14 +48,14 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
   }, [items.length]);
 
   function itemCargoToman(it: { sourceUrl: string; priceTL: number; freeCargo: boolean }) {
-    const feeTL = cargoFeeTL(sourceFromUrl(it.sourceUrl), it.priceTL, it.freeCargo, cargoFeeEstimateTL);
+    const feeTL = cargoFeeTL(sourceFromUrl(it.sourceUrl), it.priceTL, it.freeCargo, cargoFeeEstimateTL, cargoFeeEstimateMillaTL);
     return Math.round(feeTL * perLirToman);
   }
 
   const validItems = useMemo(() => items.filter((it) => !invalid.has(`${it.productId}:${it.size}`)), [items, invalid]);
   const totalToman = useMemo(
     () => validItems.reduce((sum, it) => sum + Math.round(it.priceTL * perLirToman) + itemCargoToman(it), 0),
-    [validItems, perLirToman, cargoFeeEstimateTL]
+    [validItems, perLirToman, cargoFeeEstimateTL, cargoFeeEstimateMillaTL]
   );
   const canSubmit = contact.trim().length > 2 && validItems.length > 0;
 
@@ -63,7 +64,7 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, defa
     setStatus("sending");
     try {
       for (const it of validItems) {
-        const cargoTL = cargoFeeTL(sourceFromUrl(it.sourceUrl), it.priceTL, it.freeCargo, cargoFeeEstimateTL);
+        const cargoTL = cargoFeeTL(sourceFromUrl(it.sourceUrl), it.priceTL, it.freeCargo, cargoFeeEstimateTL, cargoFeeEstimateMillaTL);
         const res = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

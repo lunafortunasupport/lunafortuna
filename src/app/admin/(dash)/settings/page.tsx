@@ -50,14 +50,24 @@ export default async function AdminSettings() {
           <p className="text-[11px] text-navy/40">مثلاً ۰٫۱۵ یعنی ۱۵٪. کارمزد در نرخ تومان پنهان می‌ماند.</p>
         </Section>
 
-        {/* کارگوی کاتالوگِ ترندیول */}
-        <Section title="هزینهٔ کارگو — کاتالوگِ ترندیول">
-          <Field label="برآوردِ هزینهٔ کارگوی داخلِ ترکیه (لیر)">
-            <input name="cargoFeeEstimateTL" defaultValue={s.cargoFeeEstimateTL} className="inp" dir="ltr" />
-          </Field>
+        {/* کارگوی هر ستون جداگانه — چون سیاستِ کارگوی هر سایت با بقیه فرق دارد */}
+        <Section title="هزینهٔ کارگو — به تفکیکِ سایت">
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="ترندیول (ملتی‌برند) — لیر">
+              <input name="cargoFeeEstimateTL" defaultValue={s.cargoFeeEstimateTL} className="inp" dir="ltr" />
+            </Field>
+            <Field label="ترندیول‌میلا — لیر">
+              <input name="cargoFeeEstimateMillaTL" defaultValue={s.cargoFeeEstimateMillaTL} className="inp" dir="ltr" />
+            </Field>
+          </div>
           <p className="text-[11px] text-navy/40">
-            وقتی محصولِ کاتالوگِ ترندیول کارگوی رایگان نداشته باشد، همین مبلغ (به لیر) به قیمتِ نهاییِ
-            نمایش‌داده‌شده به مشتری اضافه می‌شود — با برچسبِ «برآوردی».
+            وقتی خودِ محصول کارگوی رایگان نداشته باشد، همین مبلغ (به لیر) به قیمتِ نهاییِ نمایش‌داده‌شده به
+            مشتری اضافه می‌شود — با برچسبِ «برآوردی». اگر فروشنده در ترندیول کارگوی رایگان گذاشته باشد،
+            این عدد اصلاً اعمال نمی‌شود (صفر می‌شود). عددهای پیش‌فرض (۵۰ لیر) از میانگینِ واقعیِ کارگوی
+            خریدار در ترندیول برآورد شده — اگر عددِ دقیق‌تری از تجربهٔ خودت می‌دانی، همین‌جا اصلاحش کن.
+            <br />
+            آمبار (Ambar) کارگوی ثابتِ خودش را دارد (۶۹٫۹ لیر، بالای ۱۵۰۰ لیر رایگان) و در کد تنظیم شده،
+            چون قیمتِ رسمیِ تأییدشده از سایتِ خودش است — نیازی به تنظیم این‌جا ندارد.
           </p>
         </Section>
 
