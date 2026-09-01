@@ -47,6 +47,19 @@ export default function TrendyolFilters({ facets, total }: { facets: CatalogFace
     router.push(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
+  // سرچِ تازه باید در کلِ کاتالوگ (یا کلِ همان برند/ستون) بگردد، نه داخلِ فیلترهای اصلاحیِ قبلی.
+  // وگرنه اگر مثلاً دستهٔ «سوتین» فعال مانده باشد، سرچِ «mango» می‌شود «سوتینِ مانگو» = ۰ نتیجه.
+  // پس دسته/برند/سایز/قیمت/تخفیف پاک می‌شوند؛ فقط اسکوپ (source/fbrand) و مرتب‌سازی حفظ می‌شود.
+  function setSearch(value: string) {
+    const next = new URLSearchParams();
+    for (const k of ["source", "fbrand", "sort"]) {
+      const v = params.get(k);
+      if (v) next.set(k, v);
+    }
+    if (value) next.set("q", value);
+    router.push(next.toString() ? `${pathname}?${next.toString()}` : pathname, { scroll: false });
+  }
+
   function clearAll() {
     const next = new URLSearchParams();
     // فقط ستون/برندِ منتخب و سرچ حفظ می‌شوند؛ بقیهٔ فیلترها پاک.
@@ -62,7 +75,7 @@ export default function TrendyolFilters({ facets, total }: { facets: CatalogFace
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      if (q !== (params.get("q") || "")) setParam("q", q);
+      if (q !== (params.get("q") || "")) setSearch(q);
     }, 400);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
