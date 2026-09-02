@@ -22,6 +22,9 @@ import { PrismaClient } from "@prisma/client";
 import { translateAttributes, trLower, categoryLabelFa } from "./trendyol-fa-dict.mjs";
 
 const prisma = new PrismaClient();
+// شمارشِ محصولاتی که ادغامِ رنگ (سایزِ تکراری با قیمت‌های متفاوت) در آن‌ها تشخیص داده شد — فقط
+// برای دیدنِ گستردگیِ مشکل در لاگِ خروجی، تصمیم‌گیریِ کد را عوض نمی‌کند.
+let mergedColorDetections = 0;
 
 const LIMIT_CATEGORIES = Number(process.env.LIMIT_CATEGORIES) || Infinity;
 const LIMIT_PER_CATEGORY = Number(process.env.LIMIT_PER_CATEGORY) || 60;
@@ -332,14 +335,24 @@ async function fetchDetail(page, sourceUrl) {
     priceTL: typeof v.price?.value === "number" ? v.price.value : null,
     freeCargo: winnerFreeCargo,
   }));
-  // چند محصول (رنگ‌بندی‌های ادغام‌شده و…) یک سایزِ تکراری برمی‌گردانند که با @@unique([productId,size])
-  // تناقض دارد؛ اولین رخدادِ هر سایز نگه داشته می‌شود.
-  const seenSizes = new Set();
-  const variants = rawVariants.filter((v) => {
-    if (seenSizes.has(v.size)) return false;
-    seenSizes.add(v.size);
-    return true;
-  });
+  // باگِ واقعی که پیدا شد: وقتی چند رنگ‌بندی زیرِ یک لیستینگ ادغام شده باشند، p.variants همان
+  // سایز را چندبار برمی‌گرداند — یک‌بار به‌ازای هر رنگ، هرکدام با قیمتِ خودش (رنگ‌های خاص/محدود
+  // گاهی گران‌تر از رنگِ پایه‌اند). قبلاً «اولین رخداد» نگه داشته می‌شد که کاملاً به ترتیبِ
+  // برگشتیِ آرایه بستگی داشت — می‌توانست رنگِ گران‌تر را به‌جای رنگِ نمایش‌داده‌شده ذخیره کند
+  // (دقیقاً همین باعثِ گزارشِ «قیمتِ سایت با ترندیول فرق دارد» شد). حالا برای هر سایزِ تکراری
+  // **ارزان‌ترین قیمت** نگه داشته می‌شود — تضمین می‌کند هیچ‌وقت به مشتری بیشتر از کمترین قیمتِ
+  // واقعیِ آن سایز نشان داده نشود (اگر رنگِ گران‌تر بود، staff موقعِ تأیید با لینکِ اصل می‌بیند).
+  const bySize = new Map();
+  let sawMergedColors = false;
+  for (const v of rawVariants) {
+    const prev = bySize.get(v.size);
+    if (prev && v.priceTL != null && prev.priceTL != null && v.priceTL !== prev.priceTL) sawMergedColors = true;
+    if (!prev || (v.priceTL != null && (prev.priceTL == null || v.priceTL < prev.priceTL))) {
+      bySize.set(v.size, v);
+    }
+  }
+  if (sawMergedColors) mergedColorDetections++;
+  const variants = [...bySize.values()];
   const prices = variants.map((v) => v.priceTL).filter((n) => n != null);
 
   return {
@@ -510,7 +523,10 @@ async function main() {
     data: { isActive: false },
   });
 
-  console.log(`\n✓ تمام شد. موفق: ${ok}، ناموفق: ${failed}، غیرفعال‌شده (دیگر دیده نشد): ${stale.count}`);
+  console.log(
+    `\n✓ تمام شد. موفق: ${ok}، ناموفق: ${failed}، غیرفعال‌شده (دیگر دیده نشد): ${stale.count}، ` +
+      `ادغامِ رنگِ تشخیص‌داده‌شده (قیمتِ متفاوت برای همان سایز): ${mergedColorDetections}`
+  );
   await prisma.$disconnect();
 }
 
