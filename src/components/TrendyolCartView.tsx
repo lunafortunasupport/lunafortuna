@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatToman } from "@/lib/format";
 import { useCart } from "@/lib/trendyolCart";
 import { cargoFeeTL, sourceFromUrl } from "@/lib/cargo";
+import ReceiptUpload from "@/components/ReceiptUpload";
 
 interface Props {
   perLirToman: number;
@@ -22,6 +23,8 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [copied, setCopied] = useState(false);
   const [invalid, setInvalid] = useState<Set<string>>(new Set());
+  const [orderIds, setOrderIds] = useState<string[]>([]);
+  const [receiptDone, setReceiptDone] = useState(false);
 
   // بازبینیِ سبک: چون کاتالوگ هر ۱۲ ساعت عوض می‌شود، آیتم‌های سبدِ فریزشده را با وضعیتِ فعلی چک کن.
   useEffect(() => {
@@ -63,6 +66,7 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
     if (!canSubmit) return;
     setStatus("sending");
     try {
+      const ids: string[] = [];
       for (const it of validItems) {
         const cargoTL = cargoFeeTL(sourceFromUrl(it.sourceUrl), it.priceTL, it.freeCargo, cargoFeeEstimateTL, cargoFeeEstimateMillaTL);
         const res = await fetch("/api/orders", {
@@ -71,7 +75,10 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
           body: JSON.stringify({
             type: "link",
             link: it.sourceUrl,
-            lirPrice: it.priceTL + cargoTL,
+            // قیمتِ کالا و کارگو جدا فرستاده می‌شوند — قاطی‌کردنشان در یک عدد باعث می‌شد ادمین در
+            // تلگرام قیمتی بالاتر از قیمتِ واقعیِ لینکِ اصلی ببیند و گمان کند خطاست.
+            lirPrice: it.priceTL,
+            cargoLirPrice: cargoTL || null,
             customerName: name,
             contact,
             description: `کاتالوگِ ترندیول (پیش‌نمایش) — ${it.nameFa || it.name} — سایز: ${it.size} — کالا: ${it.priceTL} لیر${
@@ -80,7 +87,10 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
           }),
         });
         if (!res.ok) throw new Error("order failed");
+        const data = await res.json();
+        if (data.id) ids.push(data.id);
       }
+      setOrderIds(ids);
       clear();
       setStatus("done");
     } catch {
@@ -126,11 +136,24 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
         </div>
 
         <p className="mt-4 text-[13px] leading-6 text-navy/60">
-          پس از واریز، تصویر رسید را در تلگرام برای ما بفرست تا سفارش‌ها را تأیید کنیم.
+          پس از واریز، تصویرِ رسید را همین‌جا آپلود کن یا در تلگرام بفرست — هر کدام راحت‌تری. یک فیش
+          برای همهٔ سفارش‌های این سبد کافی است.
         </p>
-        <a href={`https://t.me/${telegramSupport}`} target="_blank" rel="noopener" className="btn-gold mt-4 w-full">
-          ارسال رسید در تلگرام
-        </a>
+        <div className="mt-4">
+          <ReceiptUpload orderId={orderIds} onDone={() => setReceiptDone(true)} />
+        </div>
+        {!receiptDone && (
+          <>
+            <div className="mt-3 flex items-center gap-3 text-[11px] text-navy/35">
+              <span className="h-px flex-1 bg-navy/10" />
+              یا
+              <span className="h-px flex-1 bg-navy/10" />
+            </div>
+            <a href={`https://t.me/${telegramSupport}`} target="_blank" rel="noopener" className="btn-outline mt-3 w-full">
+              ارسال رسید در تلگرام
+            </a>
+          </>
+        )}
         <Link href="/catalog" className="mt-3 block text-center text-[13px] text-navy/50 hover:text-gold">
           بازگشت به فروشگاه
         </Link>

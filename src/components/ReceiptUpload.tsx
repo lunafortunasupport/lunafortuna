@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 
-// ویجتِ آپلودِ فیشِ واریز — در فرمِ سفارش (بلافاصله بعدِ ثبت) و صفحهٔ «سفارش‌های من» (برای
-// سفارش‌های قدیمی‌تری که هنوز فیش نفرستاده‌اند) استفاده می‌شود.
+// ویجتِ آپلودِ فیشِ واریز — در فرمِ سفارش (بلافاصله بعدِ ثبت)، سبدِ کاتالوگ (چون هر آیتم یک
+// سفارشِ جدا می‌سازد، orderId می‌تواند آرایه باشد و همان یک فیش به همهٔ آن‌ها ضمیمه می‌شود)، و
+// صفحهٔ «سفارش‌های من» (برای سفارش‌های قدیمی‌تری که هنوز فیش نفرستاده‌اند) استفاده می‌شود.
 export default function ReceiptUpload({
   orderId,
   compact = false,
   onDone,
 }: {
-  orderId: string;
+  orderId: string | string[];
   compact?: boolean;
   onDone?: () => void;
 }) {
@@ -19,17 +20,22 @@ export default function ReceiptUpload({
   async function upload(file: File) {
     setState("uploading");
     setErrorMsg("");
+    const ids = Array.isArray(orderId) ? orderId : [orderId];
     try {
-      const fd = new FormData();
-      fd.set("file", file);
-      const res = await fetch(`/api/orders/${orderId}/receipt`, { method: "POST", body: fd });
-      const data = await res.json();
-      if (res.ok) {
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          const fd = new FormData();
+          fd.set("file", file);
+          const res = await fetch(`/api/orders/${id}/receipt`, { method: "POST", body: fd });
+          return res.ok;
+        })
+      );
+      if (results.every(Boolean)) {
         setState("done");
         onDone?.();
       } else {
         setState("error");
-        setErrorMsg(data.error || "خطا در آپلود");
+        setErrorMsg("آپلود برای برخی سفارش‌ها ناموفق بود");
       }
     } catch {
       setState("error");

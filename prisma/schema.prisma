@@ -227,7 +227,9 @@ model Order {
   // سفارش واسطه‌ای
   link         String?
   description  String?
-  lirPrice     Float?
+  lirPrice     Float? // قیمتِ خودِ کالا (لیر) — بدونِ کارگو؛ جدا نگه‌داشته می‌شود تا با قیمتِ واقعیِ
+  // لینکِ اصلی قابلِ‌مقایسه باشد، نه یک عددِ ترکیبیِ گمراه‌کننده.
+  cargoLirPrice Float? // برآوردِ کارگو (لیر) — فقط برای سفارش‌های سبدِ کاتالوگ؛ جدا از lirPrice.
   feeType      String   @default("normal")
   referralKind String?  // new = خرید اولِ دعوت‌شده | reward = پاداشِ دعوت‌کننده
   referralRewarded Boolean @default(false) // آیا این سفارش، پاداش دعوت‌کننده را آزاد کرده؟

@@ -60,8 +60,13 @@ export default async function MyOrders() {
                     </a>
                   </div>
                 )}
-                <div className="flex gap-4 pt-1 tabular-nums">
-                  {o.lirPrice ? <span>{formatLir(o.lirPrice)}</span> : null}
+                <div className="flex flex-wrap gap-4 pt-1 tabular-nums">
+                  {o.lirPrice ? (
+                    <span>
+                      {formatLir(o.lirPrice)}
+                      {o.cargoLirPrice ? <span className="text-navy/45"> + کارگو {formatLir(o.cargoLirPrice)}</span> : null}
+                    </span>
+                  ) : null}
                   {o.priceToman ? <span className="font-semibold text-navy">{formatToman(o.priceToman)}</span> : null}
                 </div>
                 <div className="text-[11px] text-navy/40">{new Date(o.createdAt).toLocaleString("fa-IR")}</div>

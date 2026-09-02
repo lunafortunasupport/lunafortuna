@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
 
     let priceToman: number | null = null;
     let lirPrice: number | null = null;
+    let cargoLirPrice: number | null = null;
     let link: string | null = null;
 
     if (type === "warehouse") {
@@ -46,11 +47,14 @@ export async function POST(req: NextRequest) {
     } else {
       link = String(body.link || "").slice(0, 500);
       lirPrice = Number(body.lirPrice) || null;
+      cargoLirPrice = Number(body.cargoLirPrice) || null;
       if (!link.startsWith("http")) {
         return NextResponse.json({ error: "لینک معتبر لازم است" }, { status: 400 });
       }
       if (lirPrice) {
-        priceToman = calcToman(lirPrice, s.exchangeRate, fee); // کارمزد پنهان در نرخ تومان
+        // کارمزد روی مجموعِ کالا+کارگو حساب می‌شود (رفتارِ قیمتیِ قبلی دست‌نخورده می‌ماند)؛
+        // فقط lirPrice/cargoLirPriceِ ذخیره‌شده از هم جدا می‌مانند تا نمایش گمراه‌کننده نباشد.
+        priceToman = calcToman(lirPrice + (cargoLirPrice || 0), s.exchangeRate, fee);
       }
     }
 
@@ -64,6 +68,7 @@ export async function POST(req: NextRequest) {
         link,
         description: description || null,
         lirPrice,
+        cargoLirPrice,
         priceToman,
         productId: type === "warehouse" ? String(body.productId) : null,
         feeType,
@@ -90,8 +95,8 @@ export async function POST(req: NextRequest) {
       `📱 ${escapeHtml(contact)}`,
       link ? `🔗 ${escapeHtml(link)}` : "",
       description ? `📝 ${escapeHtml(description)}` : "",
-      lirPrice ? `💱 ${formatLir(lirPrice)}` : "",
-      priceToman ? `💰 ${formatToman(priceToman)}` : "",
+      lirPrice ? `💱 قیمتِ کالا: ${formatLir(lirPrice)}${cargoLirPrice ? ` + کارگو: ${formatLir(cargoLirPrice)}` : ""}` : "",
+      priceToman ? `💰 مجموع: ${formatToman(priceToman)}` : "",
     ].filter(Boolean);
     await sendAdminMessage(lines.join("\n"));
 
