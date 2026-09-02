@@ -39,6 +39,11 @@ const BRAND_DOMAINS: Record<string, string> = {
   "jack-jones": "jackjones.com",
   colins: "colins.com.tr",
   "massimo-dutti": "massimodutti.com",
+  stradivarius: "stradivarius.com",
+  bershka: "bershka.com",
+  oysho: "oysho.com",
+  "pull-bear": "pullandbear.com",
+  guess: "guess.com",
 };
 export const brandLogo = (slug: string): string | null =>
   BRAND_DOMAINS[slug] ? brandIcon(BRAND_DOMAINS[slug]) : null;
@@ -334,6 +339,12 @@ export const FEATURED_BRANDS: FeaturedBrand[] = [
   { slug: "jack-jones", nameFa: "جک‌اند‌جونز", nameEn: "Jack & Jones", blurbFa: "برندِ دانمارکیِ پوشاکِ مردانه — کژوال تا رسمی." },
   { slug: "colins", nameFa: "کالینز", nameEn: "Colin's", blurbFa: "برندِ ترکیه‌ایِ جین و پوشاکِ روزمره." },
   { slug: "massimo-dutti", nameFa: "ماسیمودوتی", nameEn: "Massimo Dutti", blurbFa: "پوشاکِ اسپانیاییِ باکیفیت و شیک، زنانه و مردانه." },
+  // فازِ ۲ (دستهٔ دوم)
+  { slug: "stradivarius", nameFa: "استرادیواریوس", nameEn: "Stradivarius", blurbFa: "برندِ اسپانیاییِ مُدِ روزِ زنانه." },
+  { slug: "bershka", nameFa: "برشکا", nameEn: "Bershka", blurbFa: "برندِ اسپانیاییِ جوان‌پسند — استریت‌ویر و مُدِ روز." },
+  { slug: "oysho", nameFa: "اویشو", nameEn: "Oysho", blurbFa: "برندِ اسپانیاییِ لباسِ‌زیر، لباسِ‌خواب و لباسِ‌راحتیِ زنانه." },
+  { slug: "pull-bear", nameFa: "پول‌اند‌بیر", nameEn: "Pull & Bear", blurbFa: "برندِ اسپانیاییِ کژوال و استریت‌ویرِ جوان‌پسند." },
+  { slug: "guess", nameFa: "گس", nameEn: "GUESS", blurbFa: "برندِ آمریکاییِ محبوب — پوشاک، کیف و اکسسوریِ شیک." },
   { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان." },
 ];
 

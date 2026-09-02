@@ -172,6 +172,23 @@ const CATEGORIES = [
   // ماسیمودوتی
   { site: "trendyol", base: "https://www.trendyol.com", q: "massimo dutti kadın", label: "ماسیمودوتی زنانه", featuredBrand: "massimo-dutti", brandMatch: ["massimo dutti"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "massimo dutti erkek", label: "ماسیمودوتی مردانه", featuredBrand: "massimo-dutti", brandMatch: ["massimo dutti"] },
+  // ── فازِ ۲ (دستهٔ دوم) — گروهِ اینتکس (تأییدشده روی ترندیول توسط کاربر) + گس ──
+  // استرادیواریوس (عمدتاً زنانه)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "stradivarius kadın", label: "استرادیواریوس زنانه", featuredBrand: "stradivarius", brandMatch: ["stradivarius"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "stradivarius elbise", label: "استرادیواریوس لباس", featuredBrand: "stradivarius", brandMatch: ["stradivarius"] },
+  // برشکا
+  { site: "trendyol", base: "https://www.trendyol.com", q: "bershka kadın", label: "برشکا زنانه", featuredBrand: "bershka", brandMatch: ["bershka"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "bershka erkek", label: "برشکا مردانه", featuredBrand: "bershka", brandMatch: ["bershka"] },
+  // اویشو (زنانه — لباسِ‌زیر/راحتی)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "oysho", label: "اویشو", featuredBrand: "oysho", brandMatch: ["oysho"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "oysho iç giyim", label: "اویشو لباسِ‌زیر", featuredBrand: "oysho", brandMatch: ["oysho"] },
+  // پول‌اند‌بیر
+  { site: "trendyol", base: "https://www.trendyol.com", q: "pull bear kadın", label: "پول‌اندبیر زنانه", featuredBrand: "pull-bear", brandMatch: ["pull & bear", "pull and bear", "pull&bear", "pull bear"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "pull bear erkek", label: "پول‌اندبیر مردانه", featuredBrand: "pull-bear", brandMatch: ["pull & bear", "pull and bear", "pull&bear", "pull bear"] },
+  // گس
+  { site: "trendyol", base: "https://www.trendyol.com", q: "guess kadın", label: "گس زنانه", featuredBrand: "guess", brandMatch: ["guess"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "guess erkek", label: "گس مردانه", featuredBrand: "guess", brandMatch: ["guess"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "guess çanta", label: "گس کیف", featuredBrand: "guess", brandMatch: ["guess"] },
 ].slice(0, LIMIT_CATEGORIES);
 
 // همهٔ ورودی‌های ترندیول‌میلا برندِ منتخبِ trendyol-milla هستند.
