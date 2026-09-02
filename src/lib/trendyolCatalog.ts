@@ -34,6 +34,11 @@ const BRAND_DOMAINS: Record<string, string> = {
   happiness: "happinessistanbul.com",
   suwen: "suwen.com",
   dagi: "dagi.com.tr",
+  hm: "hm.com",
+  decathlon: "decathlon.com.tr",
+  "jack-jones": "jackjones.com",
+  colins: "colins.com.tr",
+  "massimo-dutti": "massimodutti.com",
 };
 export const brandLogo = (slug: string): string | null =>
   BRAND_DOMAINS[slug] ? brandIcon(BRAND_DOMAINS[slug]) : null;
@@ -323,6 +328,12 @@ export const FEATURED_BRANDS: FeaturedBrand[] = [
   { slug: "dagi", nameFa: "داغی", nameEn: "Dagi", blurbFa: "لباسِ‌راحتی و خانگیِ زنانه و مردانه." },
   { slug: "trendyol-kids", nameFa: "ترندیول کیدز", nameEn: "TRENDYOLKIDS", blurbFa: "پوشاکِ بچگانهٔ برندِ خودِ ترندیول." },
   { slug: "trendyol-shoes", nameFa: "ترندیول شوز", nameEn: "TRENDYOL SHOES", blurbFa: "کفشِ زنانهٔ برندِ خودِ ترندیول." },
+  // فازِ ۲ (دستهٔ اول)
+  { slug: "hm", nameFa: "اچ‌اند‌ام", nameEn: "H&M", blurbFa: "برندِ سوئدیِ پرطرفدار — مُدِ روز با قیمتِ مناسب، زنانه و مردانه." },
+  { slug: "decathlon", nameFa: "دکتلون", nameEn: "Decathlon", blurbFa: "لوازم و پوشاکِ ورزشیِ فرانسوی — تمامِ رشته‌ها، زنانه و مردانه." },
+  { slug: "jack-jones", nameFa: "جک‌اند‌جونز", nameEn: "Jack & Jones", blurbFa: "برندِ دانمارکیِ پوشاکِ مردانه — کژوال تا رسمی." },
+  { slug: "colins", nameFa: "کالینز", nameEn: "Colin's", blurbFa: "برندِ ترکیه‌ایِ جین و پوشاکِ روزمره." },
+  { slug: "massimo-dutti", nameFa: "ماسیمودوتی", nameEn: "Massimo Dutti", blurbFa: "پوشاکِ اسپانیاییِ باکیفیت و شیک، زنانه و مردانه." },
   { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان." },
 ];
 

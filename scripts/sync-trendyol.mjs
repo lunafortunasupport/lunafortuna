@@ -153,6 +153,25 @@ const CATEGORIES = [
   // لباسِ‌زیر/راحتی — سووِن و داغی
   { site: "trendyol", base: "https://www.trendyol.com", q: "suwen", label: "Suwen", featuredBrand: "suwen", brandMatch: ["suwen"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "dagi", label: "Dagi", featuredBrand: "dagi", brandMatch: ["dagi", "dağı"] },
+  // ── فازِ ۲ (دستهٔ اول) — گسترشِ برندهای منتخب طبقِ درخواستِ کاربر؛ اول تست می‌شود، بعد دسته‌های بعدی اضافه می‌شوند ──
+  // اچ‌اند‌ام
+  { site: "trendyol", base: "https://www.trendyol.com", q: "h&m kadın", label: "H&M زنانه", featuredBrand: "hm", brandMatch: ["h&m"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "h&m erkek", label: "H&M مردانه", featuredBrand: "hm", brandMatch: ["h&m"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "h&m elbise", label: "H&M لباس", featuredBrand: "hm", brandMatch: ["h&m"] },
+  // دکتلون
+  { site: "trendyol", base: "https://www.trendyol.com", q: "decathlon spor", label: "دکتلون ورزشی", featuredBrand: "decathlon", brandMatch: ["decathlon"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "decathlon kadın", label: "دکتلون زنانه", featuredBrand: "decathlon", brandMatch: ["decathlon"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "decathlon erkek", label: "دکتلون مردانه", featuredBrand: "decathlon", brandMatch: ["decathlon"] },
+  // جک‌اند‌جونز (فقط مردانه — برندِ اختصاصیِ مردانه)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "jack jones erkek", label: "جک‌اندجونز", featuredBrand: "jack-jones", brandMatch: ["jack & jones", "jack and jones", "jack-jones", "jack jones"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "jack jones tişört", label: "جک‌اندجونز تیشرت", featuredBrand: "jack-jones", brandMatch: ["jack & jones", "jack and jones", "jack-jones", "jack jones"] },
+  // کالینز
+  { site: "trendyol", base: "https://www.trendyol.com", q: "colin's kadın", label: "کالینز زنانه", featuredBrand: "colins", brandMatch: ["colin's", "colins"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "colin's erkek", label: "کالینز مردانه", featuredBrand: "colins", brandMatch: ["colin's", "colins"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "colin's jean", label: "کالینز جین", featuredBrand: "colins", brandMatch: ["colin's", "colins"] },
+  // ماسیمودوتی
+  { site: "trendyol", base: "https://www.trendyol.com", q: "massimo dutti kadın", label: "ماسیمودوتی زنانه", featuredBrand: "massimo-dutti", brandMatch: ["massimo dutti"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "massimo dutti erkek", label: "ماسیمودوتی مردانه", featuredBrand: "massimo-dutti", brandMatch: ["massimo dutti"] },
 ].slice(0, LIMIT_CATEGORIES);
 
 // همهٔ ورودی‌های ترندیول‌میلا برندِ منتخبِ trendyol-milla هستند.
