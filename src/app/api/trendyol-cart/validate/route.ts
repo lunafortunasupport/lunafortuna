@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// بازبینیِ سبک پیش از تسویه: چون کاتالوگ هر ۱۲ ساعت سینک می‌شود، آیتمِ توی سبدِ فریزشدهٔ
-// localStorage ممکن است دیگر فعال/موجود نباشد. این روت فقط می‌خواند، چیزی نمی‌نویسد.
+// بازبینیِ سبد پیش از تسویه: چون کاتالوگ هر ۱۲ ساعت سینک می‌شود، آیتمِ توی سبدِ فریزشدهٔ
+// localStorage ممکن است دیگر فعال/موجود نباشد — این را چک می‌کند. علاوه بر آن، **قیمتِ تازه‌ترِ
+// دیتابیس** را هم برمی‌گرداند تا کلاینت، قیمتِ کهنهٔ ذخیره‌شده در localStorage (که ممکن است از
+// چند سینکِ قبل باشد) را با آخرین قیمتِ واقعی جایگزین کند — وگرنه سفارش با قیمتِ قدیمی ثبت می‌شد.
+// این روت فقط می‌خواند، چیزی نمی‌نویسد.
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -20,7 +23,14 @@ export async function POST(req: NextRequest) {
       const p = byId.get(productId);
       const variant = p?.variants.find((v) => v.size === size);
       const valid = !!p && p.isActive && !!variant && variant.inStock;
-      return { productId, size, valid };
+      return {
+        productId,
+        size,
+        valid,
+        // فقط وقتی معتبر است قیمتِ تازه را می‌فرستیم — برای آیتمِ نامعتبر نیازی نیست.
+        priceTL: valid ? variant!.priceTL : null,
+        freeCargo: valid ? variant!.freeCargo : null,
+      };
     });
 
     return NextResponse.json({ results });

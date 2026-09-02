@@ -25,8 +25,13 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
   const [invalid, setInvalid] = useState<Set<string>>(new Set());
   const [orderIds, setOrderIds] = useState<string[]>([]);
   const [receiptDone, setReceiptDone] = useState(false);
+  // قیمتِ تازه از سرور برای هر آیتم — چون آیتمِ داخلِ سبد (localStorage) ممکن است از سینکِ قبلی
+  // مانده باشد و قیمتش عوض شده باشد؛ اینجا override می‌شود تا نه نمایش نه ثبتِ سفارش با قیمتِ
+  // کهنه انجام نشود. کلید: "productId:size".
+  const [freshPrices, setFreshPrices] = useState<Map<string, { priceTL: number; freeCargo: boolean }>>(new Map());
 
-  // بازبینیِ سبک: چون کاتالوگ هر ۱۲ ساعت عوض می‌شود، آیتم‌های سبدِ فریزشده را با وضعیتِ فعلی چک کن.
+  // بازبینیِ سبک: چون کاتالوگ هر ۱۲ ساعت عوض می‌شود، آیتم‌های سبدِ فریزشده را با وضعیتِ فعلی چک کن
+  // و قیمتِ تازه‌ترِ هرکدام را هم بگیر (localStorage قیمتِ لحظهٔ افزودن را نگه می‌دارد، نه الان).
   useEffect(() => {
     if (items.length === 0) return;
     let cancelled = false;
@@ -38,10 +43,15 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        const bad = new Set<string>(
-          (data.results || []).filter((r: { valid: boolean }) => !r.valid).map((r: { productId: string; size: string }) => `${r.productId}:${r.size}`)
-        );
+        const results: { productId: string; size: string; valid: boolean; priceTL: number | null; freeCargo: boolean | null }[] =
+          data.results || [];
+        const bad = new Set<string>(results.filter((r) => !r.valid).map((r) => `${r.productId}:${r.size}`));
         setInvalid(bad);
+        const fresh = new Map<string, { priceTL: number; freeCargo: boolean }>();
+        for (const r of results) {
+          if (r.valid && r.priceTL != null) fresh.set(`${r.productId}:${r.size}`, { priceTL: r.priceTL, freeCargo: !!r.freeCargo });
+        }
+        setFreshPrices(fresh);
       })
       .catch(() => {});
     return () => {
@@ -50,12 +60,21 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
+  // قیمت/کارگوی هر آیتم را با نسخهٔ تازهٔ سرور (اگر موجود بود) جایگزین می‌کند.
+  function resolveItem(it: (typeof items)[number]) {
+    const f = freshPrices.get(`${it.productId}:${it.size}`);
+    return f ? { ...it, priceTL: f.priceTL, freeCargo: f.freeCargo } : it;
+  }
+
   function itemCargoToman(it: { sourceUrl: string; priceTL: number; freeCargo: boolean }) {
     const feeTL = cargoFeeTL(sourceFromUrl(it.sourceUrl), it.priceTL, it.freeCargo, cargoFeeEstimateTL, cargoFeeEstimateMillaTL);
     return Math.round(feeTL * perLirToman);
   }
 
-  const validItems = useMemo(() => items.filter((it) => !invalid.has(`${it.productId}:${it.size}`)), [items, invalid]);
+  const validItems = useMemo(
+    () => items.filter((it) => !invalid.has(`${it.productId}:${it.size}`)).map(resolveItem),
+    [items, invalid, freshPrices]
+  );
   const totalToman = useMemo(
     () => validItems.reduce((sum, it) => sum + Math.round(it.priceTL * perLirToman) + itemCargoToman(it), 0),
     [validItems, perLirToman, cargoFeeEstimateTL, cargoFeeEstimateMillaTL]
@@ -178,7 +197,8 @@ export default function TrendyolCartView({ perLirToman, cargoFeeEstimateTL, carg
     <div className="grid gap-10 md:grid-cols-[1fr_380px]">
       {/* فهرستِ آیتم‌ها */}
       <div className="space-y-3">
-        {items.map((it) => {
+        {items.map((raw) => {
+          const it = resolveItem(raw);
           const key = `${it.productId}:${it.size}`;
           const isInvalid = invalid.has(key);
           const cargoToman = itemCargoToman(it);
