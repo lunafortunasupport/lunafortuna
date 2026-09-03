@@ -45,3 +45,4 @@ yarn-error.log*
 scripts/shots/
 scripts/sync-now.sh
 scripts/.sync-prod.env
+price-audit.tsv

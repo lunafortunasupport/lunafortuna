@@ -19,12 +19,16 @@
 // (page.evaluate(() => fetch(...)))‌ — چون آن fetch هم از داخلِ contextِ مرورگرِ واقعی اجرا می‌شود.
 import { chromium } from "playwright";
 import { PrismaClient } from "@prisma/client";
+import fs from "node:fs";
 import { translateAttributes, trLower, categoryLabelFa } from "./trendyol-fa-dict.mjs";
 
 const prisma = new PrismaClient();
 // شمارشِ محصولاتی که ادغامِ رنگ (سایزِ تکراری با قیمت‌های متفاوت) در آن‌ها تشخیص داده شد — فقط
 // برای دیدنِ گستردگیِ مشکل در لاگِ خروجی، تصمیم‌گیریِ کد را عوض نمی‌کند.
 let mergedColorDetections = 0;
+// ممیزیِ قیمت: هر محصولی که قیمتِ روشِ قدیمی (variant) با قیمتِ درستِ جدید (winner) فرق داشت.
+let priceCorrections = 0;
+const auditLines = ["source\tbrand\told_price_TL\tnew_price_TL\turl"];
 
 const LIMIT_CATEGORIES = Number(process.env.LIMIT_CATEGORIES) || Infinity;
 const LIMIT_PER_CATEGORY = Number(process.env.LIMIT_PER_CATEGORY) || 60;
@@ -344,8 +348,10 @@ async function fetchDetail(page, sourceUrl) {
     (typeof wv?.originalPrice?.value === "number" && wv.originalPrice.value) ||
     null;
 
+  const variantOnlyPrices = []; // قیمتِ خامِ p.variants (روشِ قدیمی) — فقط برای ممیزی
   const rawVariants = (p.variants || []).map((v) => {
     const variantPrice = typeof v.price?.value === "number" ? v.price.value : null;
+    if (variantPrice != null) variantOnlyPrices.push(variantPrice);
     let priceTL = variantPrice;
     if (winnerPrice != null) priceTL = variantPrice != null ? Math.min(winnerPrice, variantPrice) : winnerPrice;
     return {
@@ -384,6 +390,9 @@ async function fetchDetail(page, sourceUrl) {
     attributes: translateAttributes(p.attributes),
     variants,
     minPriceTL: prices.length ? Math.min(...prices) : null,
+    // برای ممیزی: قیمتِ روشِ قدیمی (فقط variant) در برابرِ روشِ جدید (winner) — اگر فرق داشت،
+    // یعنی این محصول با روشِ قدیمی قیمتِ اشتباه می‌گرفت و حالا اصلاح شده.
+    oldVariantMinTL: variantOnlyPrices.length ? Math.min(...variantOnlyPrices) : null,
   };
 }
 
@@ -522,6 +531,18 @@ async function main() {
             failed++;
             continue;
           }
+          // ممیزیِ سراسری: اگر قیمتِ روشِ قدیمی (variant) با قیمتِ درستِ جدید (winner) فرق داشت،
+          // یعنی این محصول تا الان قیمتِ اشتباه داشت و همین سینک اصلاحش کرد. همه را در فایل ثبت کن.
+          if (
+            detail.oldVariantMinTL != null &&
+            detail.minPriceTL != null &&
+            Math.abs(detail.oldVariantMinTL - detail.minPriceTL) > 0.01
+          ) {
+            priceCorrections++;
+            auditLines.push(
+              `${c.sourceSite}\t${c.featuredBrand || "-"}\t${detail.oldVariantMinTL}\t${detail.minPriceTL}\t${c.sourceUrl}`
+            );
+          }
           await upsertProduct(c, detail, now);
           ok++;
           if (ok % 25 === 0) console.log(`  پیشرفت: ${ok}/${candidates.length}`);
@@ -543,9 +564,19 @@ async function main() {
     data: { isActive: false },
   });
 
+  // نوشتنِ گزارشِ ممیزیِ قیمت — لیستِ کاملِ هر محصولی که قیمتش اصلاح شد (همهٔ ۵۴۰۰، نه نمونه).
+  try {
+    fs.writeFileSync("price-audit.tsv", auditLines.join("\n"), "utf8");
+  } catch (e) {
+    console.log("  (هشدار: نوشتنِ price-audit.tsv ناموفق:", String(e).slice(0, 80), ")");
+  }
+
   console.log(
-    `\n✓ تمام شد. موفق: ${ok}، ناموفق: ${failed}، غیرفعال‌شده (دیگر دیده نشد): ${stale.count}، ` +
-      `ادغامِ رنگِ تشخیص‌داده‌شده (قیمتِ متفاوت برای همان سایز): ${mergedColorDetections}`
+    `\n✓ تمام شد. موفق: ${ok}، ناموفق: ${failed}، غیرفعال‌شده (دیگر دیده نشد): ${stale.count}`
+  );
+  console.log(
+    `📊 ممیزیِ قیمت: از ${ok} محصولِ بررسی‌شده، ${priceCorrections} محصول قیمتِ اشتباه داشت که اصلاح شد ` +
+      `(جزئیاتِ کامل در price-audit.tsv). ادغامِ رنگ: ${mergedColorDetections}.`
   );
   await prisma.$disconnect();
 }
