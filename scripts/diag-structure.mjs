@@ -60,32 +60,24 @@ function extractWindowJson(html, key) {
   console.log("  سایزِ انتخاب‌شده:", w?.variantAttributes?.map((a) => `${a.attributeName}=${a.attributeValue}`).join(", "));
   console.log("  قیمت (discounted/selling/original):", w?.price?.discountedPrice?.value, "/", w?.price?.sellingPrice?.value, "/", w?.price?.originalPrice?.value);
 
-  console.log("\n### ۴) کلیدهای merchantListing (شاید لیستِ per-size برنده اینجا باشد) ###");
-  console.log("  ", p.merchantListing ? Object.keys(p.merchantListing).join(", ") : "(نبود)");
-  // اگر merchantListing آرایه‌ای از واریانت‌ها دارد، همه را چاپ کن
-  for (const k of Object.keys(p.merchantListing || {})) {
-    const val = p.merchantListing[k];
-    if (Array.isArray(val) && val.length && val[0]?.price) {
-      console.log(`  merchantListing.${k} (آرایهٔ ${val.length}تایی با قیمت):`);
-      for (const item of val.slice(0, 20)) {
-        const size = item.variantAttributes?.map((a) => a.attributeValue).join("/") || item.value || "?";
-        console.log(`     سایز=${size} | قیمت=${item.price?.discountedPrice?.value ?? item.price?.value}`);
-      }
+  console.log("\n### ۴) merchantListing.variants — قیمتِ هر سایز از فروشندهٔ برنده (کلید!) ###");
+  const mlv = p.merchantListing?.variants;
+  if (Array.isArray(mlv)) {
+    for (const item of mlv) {
+      const size = item.attributeValue || item.value || item.variantAttributes?.map((a) => a.attributeValue).join("/") || "?";
+      const pr = item.price || {};
+      console.log(`  سایز=${size} | discounted=${pr.discountedPrice?.value} selling=${pr.sellingPrice?.value} original=${pr.originalPrice?.value} | inStock=${item.inStock}`);
     }
+    console.log("\n  --- یک آیتمِ خامِ کامل (برای دیدنِ همهٔ فیلدها) ---");
+    console.log(JSON.stringify(mlv[0], null, 2));
+  } else {
+    console.log("  (آرایه نبود:", typeof mlv, ")");
   }
 
-  console.log("\n### ۵) گزینه‌های رنگ (هر رنگ معمولاً productId/URLِ جدا دارد) ###");
-  const colorFields = ["colorSwatchList", "otherColorOptions", "colorOptions", "colors", "allVariants", "variantModel"];
-  for (const f of colorFields) {
-    if (p[f]) {
-      console.log(`  p.${f}:`, Array.isArray(p[f]) ? `آرایهٔ ${p[f].length}تایی` : typeof p[f]);
-      if (Array.isArray(p[f])) for (const c of p[f].slice(0, 15)) {
-        console.log("     ", JSON.stringify({ name: c.name ?? c.color ?? c.text, price: c.price?.discountedPrice?.value ?? c.price?.value, url: c.url, id: c.id ?? c.productId }));
-      }
-    }
-  }
-  const otherKeys = Object.keys(p).filter((k) => /color|renk|variant/i.test(k));
-  console.log("  همهٔ کلیدهای مرتبط با رنگ/واریانت:", otherKeys.join(", ") || "(هیچ)");
+  console.log("\n### ۵) رنگ‌ها: slicingAttributes + productGroupId ###");
+  console.log("  productGroupId:", p.productGroupId);
+  console.log("  slicingAttributes (خام):");
+  console.log(JSON.stringify(p.slicingAttributes, null, 2));
 
   await browser.close();
 })();
