@@ -28,7 +28,8 @@ const prisma = new PrismaClient();
 let mergedColorDetections = 0;
 // ممیزیِ قیمت: هر محصولی که قیمتِ روشِ قدیمی (variant) با قیمتِ درستِ جدید (winner) فرق داشت.
 let priceCorrections = 0;
-const auditLines = ["source\tbrand\told_price_TL\tnew_price_TL\turl"];
+let perSizeVariationCount = 0; // چند محصول قیمتِ متفاوت بر اساسِ سایز دارند (داده، نه فرض)
+const auditLines = ["source\tbrand\told_price_TL\tnew_price_TL\tper_size_variation\turl"];
 
 const LIMIT_CATEGORIES = Number(process.env.LIMIT_CATEGORIES) || Infinity;
 const LIMIT_PER_CATEGORY = Number(process.env.LIMIT_PER_CATEGORY) || 60;
@@ -409,6 +410,9 @@ async function fetchDetail(page, sourceUrl) {
     // برای ممیزی: قیمتِ روشِ قدیمی (فقط variant) در برابرِ روشِ جدید (winner) — اگر فرق داشت،
     // یعنی این محصول با روشِ قدیمی قیمتِ اشتباه می‌گرفت و حالا اصلاح شده.
     oldVariantMinTL: variantOnlyPrices.length ? Math.min(...variantOnlyPrices) : null,
+    // آیا سایزهای این محصول قیمتِ متفاوت دارند؟ (اگر p.variants بیش از یک قیمتِ متمایز داشت.)
+    // این را می‌شماریم تا با داده — نه فرض — بفهمیم «قیمتِ متفاوت بر اساسِ سایز» چقدر رایج است.
+    hasPerSizeVariation: new Set(variantOnlyPrices).size > 1,
   };
 }
 
@@ -554,14 +558,16 @@ async function main() {
           }
           // ممیزیِ سراسری: اگر قیمتِ روشِ قدیمی (variant) با قیمتِ درستِ جدید (winner) فرق داشت،
           // یعنی این محصول تا الان قیمتِ اشتباه داشت و همین سینک اصلاحش کرد. همه را در فایل ثبت کن.
-          if (
+          if (detail.hasPerSizeVariation) perSizeVariationCount++;
+          const priceChanged =
             detail.oldVariantMinTL != null &&
             detail.minPriceTL != null &&
-            Math.abs(detail.oldVariantMinTL - detail.minPriceTL) > 0.01
-          ) {
-            priceCorrections++;
+            Math.abs(detail.oldVariantMinTL - detail.minPriceTL) > 0.01;
+          // در ممیزی هم محصولاتِ اصلاح‌شده و هم محصولاتِ دارای قیمتِ متفاوت بر اساسِ سایز ثبت شوند.
+          if (priceChanged || detail.hasPerSizeVariation) {
+            if (priceChanged) priceCorrections++;
             auditLines.push(
-              `${c.sourceSite}\t${c.featuredBrand || "-"}\t${detail.oldVariantMinTL}\t${detail.minPriceTL}\t${c.sourceUrl}`
+              `${c.sourceSite}\t${c.featuredBrand || "-"}\t${detail.oldVariantMinTL}\t${detail.minPriceTL}\t${detail.hasPerSizeVariation ? "YES" : "no"}\t${c.sourceUrl}`
             );
           }
           await upsertProduct(c, detail, now);
@@ -596,8 +602,9 @@ async function main() {
     `\n✓ تمام شد. موفق: ${ok}، ناموفق: ${failed}، غیرفعال‌شده (دیگر دیده نشد): ${stale.count}`
   );
   console.log(
-    `📊 ممیزیِ قیمت: از ${ok} محصولِ بررسی‌شده، ${priceCorrections} محصول قیمتِ اشتباه داشت که اصلاح شد ` +
-      `(جزئیاتِ کامل در price-audit.tsv). ادغامِ رنگ: ${mergedColorDetections}.`
+    `📊 ممیزیِ قیمت: از ${ok} محصولِ بررسی‌شده، ${priceCorrections} محصول قیمتِ اشتباه داشت که اصلاح شد. ` +
+      `${perSizeVariationCount} محصول قیمتِ متفاوت بر اساسِ سایز دارند (نیازمندِ بررسیِ دقیق‌ترِ per-size). ` +
+      `جزئیاتِ کاملِ هر دو در price-audit.tsv (ستونِ per_size_variation). ادغامِ رنگ: ${mergedColorDetections}.`
   );
   await prisma.$disconnect();
 }
