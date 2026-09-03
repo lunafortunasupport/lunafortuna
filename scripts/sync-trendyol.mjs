@@ -348,16 +348,32 @@ async function fetchDetail(page, sourceUrl) {
     (typeof wv?.originalPrice?.value === "number" && wv.originalPrice.value) ||
     null;
 
+  // قیمتِ هر سایز: winnerVariant فقط قیمتِ سایزِ انتخاب‌شده را دارد، نه همهٔ سایزها. ولی نسبتِ
+  // قیمتِ سایزها در p.variants درست است (فقط baseِ آن merchantِ اشتباه است). پس قیمتِ برندهٔ هر
+  // سایز = قیمتِ برندهٔ سایزِ انتخاب‌شده × (قیمتِ این سایز ÷ قیمتِ سایزِ انتخاب‌شده). برای سایزهای
+  // هم‌قیمت این نسبت ۱ است و همه قیمتِ برنده می‌گیرند؛ برای سایزهای گران‌ترِ واقعی، تفاوت حفظ می‌شود.
+  const selectedVariant = (p.variants || []).find((v) => v.isSelected) || (p.variants || [])[0];
+  const selectedVariantPrice =
+    typeof selectedVariant?.price?.value === "number" ? selectedVariant.price.value : null;
+
   const variantOnlyPrices = []; // قیمتِ خامِ p.variants (روشِ قدیمی) — فقط برای ممیزی
   const rawVariants = (p.variants || []).map((v) => {
     const variantPrice = typeof v.price?.value === "number" ? v.price.value : null;
     if (variantPrice != null) variantOnlyPrices.push(variantPrice);
     let priceTL = variantPrice;
-    if (winnerPrice != null) priceTL = variantPrice != null ? Math.min(winnerPrice, variantPrice) : winnerPrice;
+    if (winnerPrice != null) {
+      if (variantPrice != null && selectedVariantPrice != null && selectedVariantPrice > 0) {
+        const perSizeWinner = winnerPrice * (variantPrice / selectedVariantPrice);
+        // کمینه با قیمتِ خودِ واریانت: تضمینِ اینکه هیچ‌وقت بیشتر از قیمتِ واقعی گرفته نشود.
+        priceTL = Math.min(perSizeWinner, variantPrice);
+      } else {
+        priceTL = variantPrice != null ? Math.min(winnerPrice, variantPrice) : winnerPrice;
+      }
+    }
     return {
       size: v.beautifiedValue || v.value || "استاندارد",
       inStock: !!v.inStock,
-      priceTL,
+      priceTL: priceTL != null ? Math.round(priceTL * 100) / 100 : null,
       freeCargo: winnerFreeCargo,
     };
   });
