@@ -412,6 +412,11 @@ async function upsertProduct(c, detail, now) {
   // منطقاً معکوس). فقط وقتی واقعاً originalPriceTL > minPriceTL باشد تخفیف را ذخیره کن.
   const genuineDiscount =
     !!c.onSale && c.originalPriceTL != null && detail.minPriceTL != null && c.originalPriceTL > detail.minPriceTL;
+  // درصدِ تخفیف را از خودِ قیمت‌های ذخیره‌شده (قیمتِ اصلی و قیمتِ فعلیِ winner) حساب کن، نه از
+  // درصدِ مرحلهٔ لیستینگ — وگرنه با قیمتِ نمایشیِ جدید نمی‌خواند و تخفیفِ نادرست نشان می‌دهد.
+  const discountPct = genuineDiscount
+    ? Math.round(((c.originalPriceTL - detail.minPriceTL) / c.originalPriceTL) * 100)
+    : null;
 
   const data = {
     sourceUrl: c.sourceUrl,
@@ -430,7 +435,7 @@ async function upsertProduct(c, detail, now) {
     favoriteCount: c.favoriteCount,
     onSale: genuineDiscount,
     originalPriceTL: genuineDiscount ? c.originalPriceTL : null,
-    discountPct: genuineDiscount ? c.discountPct : null,
+    discountPct,
     promoLabel: genuineDiscount ? c.promoLabel : null,
     featuredBrand: c.featuredBrand ?? null,
     audience: c.audience ?? null,
