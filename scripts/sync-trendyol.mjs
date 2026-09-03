@@ -329,12 +329,32 @@ async function fetchDetail(page, sourceUrl) {
   // «سایزِ درحال‌انتخاب». چون آستانهٔ کارگوی رایگان به قیمتِ سبد بستگی دارد نه به تک‌تکِ سایزها،
   // همین یک مقدار را (به‌صورتِ محافظه‌کارانه) برای همهٔ سایزهای این محصول اعمال می‌کنیم.
   const winnerFreeCargo = !!p.merchantListing?.winnerVariant?.freeCargo;
-  const rawVariants = (p.variants || []).map((v) => ({
-    size: v.beautifiedValue || v.value || "استاندارد",
-    inStock: !!v.inStock,
-    priceTL: typeof v.price?.value === "number" ? v.price.value : null,
-    freeCargo: winnerFreeCargo,
-  }));
+
+  // ★ باگِ اصلیِ قیمت (تشخیصِ قطعی با diag-price.mjs): p.variants[].price قیمتِ یک فروشندهٔ
+  //   دیگر/مرجع است، نه قیمتی که ترندیول واقعاً نمایش می‌دهد. قیمتِ نمایشیِ ترندیول همیشه
+  //   merchantListing.winnerVariant.price (فروشندهٔ برنده) است. نمونه‌های واقعی:
+  //     رافِ حمام: p.variants=۱۹۹.۳۹ ولی winner=۱۶۴.۳۹ (=دقیقاً چیزی که مشتری می‌بیند)
+  //     پولوشرت:   p.variants=۷۹۹.۹۷ ولی winner=۳۹۸.۱۱
+  //   پس قیمتِ برنده را می‌خوانیم؛ و برای ایمنی کمینهٔ آن با قیمتِ واریانت گرفته می‌شود تا
+  //   هیچ‌وقت بیشتر از قیمتِ واقعیِ ترندیول به مشتری نشان/فروخته نشود.
+  const wv = p.merchantListing?.winnerVariant?.price;
+  const winnerPrice =
+    (typeof wv?.discountedPrice?.value === "number" && wv.discountedPrice.value) ||
+    (typeof wv?.sellingPrice?.value === "number" && wv.sellingPrice.value) ||
+    (typeof wv?.originalPrice?.value === "number" && wv.originalPrice.value) ||
+    null;
+
+  const rawVariants = (p.variants || []).map((v) => {
+    const variantPrice = typeof v.price?.value === "number" ? v.price.value : null;
+    let priceTL = variantPrice;
+    if (winnerPrice != null) priceTL = variantPrice != null ? Math.min(winnerPrice, variantPrice) : winnerPrice;
+    return {
+      size: v.beautifiedValue || v.value || "استاندارد",
+      inStock: !!v.inStock,
+      priceTL,
+      freeCargo: winnerFreeCargo,
+    };
+  });
   // باگِ واقعی که پیدا شد: وقتی چند رنگ‌بندی زیرِ یک لیستینگ ادغام شده باشند، p.variants همان
   // سایز را چندبار برمی‌گرداند — یک‌بار به‌ازای هر رنگ، هرکدام با قیمتِ خودش (رنگ‌های خاص/محدود
   // گاهی گران‌تر از رنگِ پایه‌اند). قبلاً «اولین رخداد» نگه داشته می‌شد که کاملاً به ترتیبِ

@@ -1,22 +1,18 @@
-// اسکریپتِ تشخیصیِ یک‌باره — دقیقاً همان الگویِ اثبات‌شدهٔ fetchDetail در sync-trendyol.mjs (که
-// امروز روی هزاران محصول کار کرد)، فقط به‌جایِ ذخیره در دیتابیس، همهٔ فیلدهای مربوط به قیمت را
-// خام چاپ می‌کند. هیچ‌چیزی در دیتابیس نمی‌نویسد.
+// تشخیصِ باگِ قیمت روی محصولاتِ خراب — دقیقاً همان مسیرِ fetchDetail سینک، ولی این‌بار همهٔ
+// ساختارهای قیمت را چاپ می‌کند و عددِ «واقعیِ» ترندیول را در دلِ JSON جست‌وجو می‌کند تا بفهمیم
+// کدام فیلد را باید بخوانیم. هیچ‌چیزی در دیتابیس نمی‌نویسد.
 //
-// اجرا:  npx tsx scripts/diag-price.mjs
+// اجرا:  npx tsx scripts/diag-price.mjs > diag-output.txt 2>&1
 import { chromium } from "playwright";
 
-const urls = [
-  // مانگو — کاربر گفت این برند درست به‌نظر می‌رسید، برای مقایسه
-  "https://www.trendyol.com/mango/lyocell-anvelop-tulum-p-1167828887?boutiqueId=61&merchantId=104723",
-  // محصولِ خانه/عمومی — کاربر گفت این دسته ایراد داشت
-  "https://www.trendyol.com/unichrome/el-aynasi-masa-aynasi-makyaj-aynasi-egim-ayarlanabilir-kare-makeup-mirror-18cm-menteseli-p-835793159?boutiqueId=61&merchantId=1232470",
+// محصولاتِ خرابِ گزارش‌شده + قیمتِ واقعی‌ای که کاربر روی خودِ ترندیول دید:
+const cases = [
+  { url: "https://www.trendyol.com/tudors/erkek-slim-fit-dar-kesim-pamuklu-yumusak-doku-kumas-kivrilmaz-yaka-siyah-polo-yaka-tisort-p-808468662?boutiqueId=61&merchantId=139435", stored: 799.97, real: 324.12 },
+  { url: "https://www.trendyol.com/ata-home/banyor-yapiskanli-banyo-rafi-2-li-banyo-duzenleyici-dus-rafi-organizer-sampuanlik-plastik-p-759990716?boutiqueId=61&merchantId=231141", stored: 199.39, real: 164.39 },
 ];
-// قیمتی که همین الان در دیتابیسِ ما ذخیره است — برای مقایسهٔ مستقیم با چیزی که همین اسکریپت
-// همین لحظه از خودِ ترندیول می‌گیرد.
-const storedPrices = { 0: 2999.99, 1: 199.9 };
 
-// عیناً کپی از fetchDetail در sync-trendyol.mjs — نسخهٔ اولیهٔ من (رجکسِ ساده) اشتباه بود؛
-// این نسخهٔ درست، پرانتزهای { } را دقیق می‌شمارد تا مرزِ واقعیِ JSON را پیدا کند.
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
 function extractWindowJson(html, key) {
   const marker = `window["${key}"]=`;
   const idx = html.indexOf(marker);
@@ -24,101 +20,68 @@ function extractWindowJson(html, key) {
   let i = idx + marker.length;
   if (html[i] !== "{") return null;
   const start = i;
-  let depth = 0,
-    inStr = false,
-    strCh = "",
-    esc = false;
+  let depth = 0, inStr = false, strCh = "", esc = false;
   for (; i < html.length; i++) {
     const c = html[i];
-    if (inStr) {
-      if (esc) esc = false;
-      else if (c === "\\") esc = true;
-      else if (c === strCh) inStr = false;
-      continue;
-    }
-    if (c === '"' || c === "'") {
-      inStr = true;
-      strCh = c;
-      continue;
-    }
+    if (inStr) { if (esc) esc = false; else if (c === "\\") esc = true; else if (c === strCh) inStr = false; continue; }
+    if (c === '"' || c === "'") { inStr = true; strCh = c; continue; }
     if (c === "{") depth++;
-    else if (c === "}") {
-      depth--;
-      if (depth === 0) {
-        i++;
-        break;
-      }
-    }
+    else if (c === "}") { depth--; if (depth === 0) { i++; break; } }
   }
-  try {
-    return JSON.parse(html.slice(start, i));
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(html.slice(start, i)); } catch { return null; }
 }
 
-function findPriceFields(obj, path = "", out = [], depth = 0) {
-  if (depth > 6 || obj == null || typeof obj !== "object") return out;
-  for (const [k, v] of Object.entries(obj)) {
-    const p = path ? `${path}.${k}` : k;
-    if (/price|fiyat|indirim|discount/i.test(k)) {
-      if (typeof v === "number" || typeof v === "string") out.push([p, v]);
-      else if (v && typeof v === "object" && "value" in v) out.push([p + ".value", v.value]);
-    }
-    if (v && typeof v === "object" && !Array.isArray(v)) findPriceFields(v, p, out, depth + 1);
-  }
+// جست‌وجوی بازگشتی: هر مسیری که مقدارِ عددی‌اش «نزدیکِ» targetه را پیدا کن (برای یافتنِ فیلدِ درست).
+function findValueNear(obj, target, path = "", out = [], depth = 0) {
+  if (depth > 9 || obj == null) return out;
+  if (typeof obj === "number" && Math.abs(obj - target) < 0.5) out.push([path, obj]);
+  if (typeof obj === "object") for (const [k, v] of Object.entries(obj)) findValueNear(v, target, path ? `${path}.${k}` : k, out, depth + 1);
   return out;
 }
 
-const UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
-
 (async () => {
-  // دقیقاً همان تنظیماتِ استتارِ سینکِ اصلی — اسکریپتِ تشخیصیِ قبلی این را نداشت و برای همین
-  // ۴۰۳ می‌خورد حتی روی لینکِ کاملاً تازه (تشخیصِ ربات با fingerprintِ پیش‌فرضِ Playwright).
   const browser = await chromium.launch({ args: ["--disable-blink-features=AutomationControlled"] });
   const ctx = await browser.newContext({ locale: "tr-TR", viewport: { width: 1366, height: 768 }, userAgent: UA });
   const page = await ctx.newPage();
-  // دقیقاً مثلِ collectCandidates در سینکِ اصلی: قبل از رفتن به صفحهٔ محصول، یک‌بار خودِ سایت را
-  // باز می‌کنیم تا کوکی/کانتکستِ لازم گرفته شود — بدونِ این، درخواستِ مستقیم به صفحهٔ عمیق ۴۰۳
-  // می‌خورَد.
-  console.log("گرفتنِ کوکی از trendyol.com …");
-  await page.goto("https://www.trendyol.com", { waitUntil: "domcontentloaded", timeout: 30000 }).catch((e) => {
-    console.log("  (هشدار در بازدیدِ اول:", String(e).slice(0, 100), ")");
-  });
-  for (const [i, url] of urls.entries()) {
-    console.log("\n==============================");
+  console.log("گرفتنِ کوکی …");
+  await page.goto("https://www.trendyol.com", { waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => {});
+  for (const { url, stored, real } of cases) {
+    console.log("\n============================================================");
     console.log("URL:", url);
-    console.log("قیمتِ ذخیره‌شده در دیتابیسِ ما:", storedPrices[i], "لیر");
+    console.log("قیمتِ ذخیره‌شدهٔ ما (اشتباه):", stored, " | قیمتِ واقعیِ ترندیول:", real);
     try {
-      // دقیقاً همان الگوی fetchDetail: domcontentloaded، ۳۰ ثانیه، چک‌کردنِ status.
       const resp = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
-      const status = resp ? resp.status() : 0;
-      console.log("  HTTP status:", status);
-      if (status === 403 || status === 429 || status === 503) {
-        console.log("  ❌ بلاک شد (status " + status + ")");
-        continue;
-      }
+      console.log("HTTP:", resp?.status());
+      if (resp?.status() === 403) { console.log("بلاک شد — کمی بعد دوباره امتحان کن"); continue; }
       const html = await page.content();
-      console.log("  اندازهٔ HTML:", html.length, "کاراکتر");
-      const shared = extractWindowJson(html, "__envoy__SHARED_PROPS");
-      const p = shared?.product;
-      if (!p) {
-        console.log("  ❌ product JSON پیدا نشد.");
-        const bodyMatch = html.match(/<body[^>]*>([\s\S]{0,300})/);
-        console.log("  ۳۰۰ کاراکترِ اولِ body:", bodyMatch ? bodyMatch[1].replace(/\s+/g, " ") : "(نبود)");
-        continue;
-      }
-      console.log("  ✅ نام:", p.name);
-      console.log("  brand:", p.brand?.name);
-      console.log("\n  --- همهٔ فیلدهای شبیهِ قیمت ---");
-      for (const [path, val] of findPriceFields(p)) console.log(`  ${path} = ${val}`);
-      console.log("\n  --- variants[0] خام ---");
-      console.log(JSON.stringify(p.variants?.[0] || null, null, 2));
-      console.log("\n  --- merchantListing.winnerVariant خام ---");
-      console.log(JSON.stringify(p.merchantListing?.winnerVariant || null, null, 2));
+      const p = extractWindowJson(html, "__envoy__SHARED_PROPS")?.product;
+      if (!p) { console.log("product JSON پیدا نشد. اندازهٔ HTML:", html.length); continue; }
+      console.log("نام:", p.name, "| برند:", p.brand?.name);
+
+      console.log("\n--- قیمتِ هر واریانتِ p.variants (همان چیزی که سینک الان می‌خواند) ---");
+      for (const v of p.variants || []) console.log(`  ${v.value} → v.price.value = ${v.price?.value}`);
+
+      console.log("\n--- merchantListing.winnerVariant.price (قیمتِ فروشندهٔ برنده = چیزی که ترندیول نشان می‌دهد) ---");
+      const wp = p.merchantListing?.winnerVariant?.price;
+      console.log("  discountedPrice:", wp?.discountedPrice?.value);
+      console.log("  sellingPrice:", wp?.sellingPrice?.value);
+      console.log("  originalPrice:", wp?.originalPrice?.value);
+
+      console.log(`\n--- کجای JSON عددِ واقعی (${real}) پیدا می‌شود؟ ---`);
+      const hits = findValueNear(p, real);
+      if (hits.length === 0) console.log("  ⚠️ عددِ واقعی هیچ‌جای دادهٔ محصول نبود! (یعنی این merchant قیمتِ دیگری دارد)");
+      else for (const [path, val] of hits.slice(0, 30)) console.log(`  ${path} = ${val}`);
+
+      console.log(`\n--- کجای JSON عددِ اشتباهِ ما (${stored}) پیدا می‌شود؟ ---`);
+      for (const [path, val] of findValueNear(p, stored).slice(0, 30)) console.log(`  ${path} = ${val}`);
+
+      // آیا چند فروشنده (merchant) دارد؟
+      console.log("\n--- otherMerchants / سایر فروشنده‌ها ---");
+      const om = p.otherMerchants || p.merchantListing?.otherMerchants || p.merchants;
+      console.log("  تعداد:", Array.isArray(om) ? om.length : "(فیلد پیدا نشد)");
+      if (Array.isArray(om)) for (const m of om.slice(0, 5)) console.log("   -", m.merchant?.name || m.name, "→", JSON.stringify(m.price?.discountedPrice?.value ?? m.price?.value ?? m.price));
     } catch (e) {
-      console.log("  ❌ خطا:", String(e).slice(0, 200));
+      console.log("خطا:", String(e).slice(0, 200));
     }
   }
   await browser.close();
