@@ -83,11 +83,13 @@ export default function Nav({
             <Link href="/" className={linkCls("/")}>خانه</Link>
             {/* «موجودی» (/shop) موقتاً مخفی است تا انبار پر شود — تصمیمِ کاربر. */}
             <Dropdown label="برندها" href="/catalog/brands" active={isActive("/catalog/brands")} dark={overHero}>
-              <div className="grid w-56 gap-0.5 p-2">
+              <div className="w-[440px] max-w-[calc(100vw-2rem)] p-2">
                 <DropItem href="/catalog/brands" label="همهٔ برندها" icon="✦" />
-                {catalogFeatured.slice(0, 8).map((b) => (
-                  <DropItem key={b.slug} href={`/catalog?fbrand=${b.slug}`} label={b.nameFa} badge={b.count} />
-                ))}
+                <div className="mt-0.5 grid grid-cols-2 gap-0.5">
+                  {catalogFeatured.map((b) => (
+                    <DropItem key={b.slug} href={`/catalog?fbrand=${b.slug}`} label={b.nameFa} badge={b.count} />
+                  ))}
+                </div>
               </div>
             </Dropdown>
             {catalogBrands.length > 0 && (
@@ -106,7 +108,7 @@ export default function Nav({
                       <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
                         برندهای محبوب
                       </div>
-                      {catalogFeatured.slice(0, 8).map((b) => (
+                      {catalogFeatured.slice(0, 12).map((b) => (
                         <DropItem key={b.slug} href={`/catalog?fbrand=${b.slug}`} label={b.nameFa} badge={b.count} />
                       ))}
                     </div>

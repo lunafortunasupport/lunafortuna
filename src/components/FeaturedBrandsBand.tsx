@@ -22,7 +22,11 @@ export default function FeaturedBrandsBand({
   pillars: PillarLite[];
 }) {
   const worlds = pillars.filter((p) => p.count > 0);
-  const shown = brands.filter((b) => b.count > 0 && !PILLAR_FEATURED.has(b.slug)).slice(0, 8);
+  // مرتب بر اساسِ تعدادِ محصول (بیشترین اول) تا برندهای جدید هم دیده شوند، نه فقط ۸ تای اولِ رجیستری.
+  const shown = brands
+    .filter((b) => b.count > 0 && !PILLAR_FEATURED.has(b.slug))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
   if (worlds.length === 0 && shown.length < 3) return null;
 
   return (

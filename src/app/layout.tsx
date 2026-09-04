@@ -94,7 +94,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const PILLAR_FEATURED = new Set(["trendyol-milla", "ambar"]);
   const catalogFeatured = brandStats
     .filter((b) => b.count > 0 && !PILLAR_FEATURED.has(b.slug))
-    .map((b) => ({ slug: b.slug, nameFa: b.nameFa, count: b.count }));
+    .map((b) => ({ slug: b.slug, nameFa: b.nameFa, count: b.count }))
+    // بر اساسِ تعدادِ محصول (بیشترین اول) — وگرنه برندهای جدید که آخرِ رجیستری‌اند در منو دیده نمی‌شدند.
+    .sort((a, b) => b.count - a.count);
 
   const jsonLd = {
     "@context": "https://schema.org",
