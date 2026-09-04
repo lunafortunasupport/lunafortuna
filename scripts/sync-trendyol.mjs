@@ -197,6 +197,37 @@ const CATEGORIES = [
   { site: "trendyol", base: "https://www.trendyol.com", q: "guess kadın", label: "گس زنانه", featuredBrand: "guess", brandMatch: ["guess"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "guess erkek", label: "گس مردانه", featuredBrand: "guess", brandMatch: ["guess"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "guess çanta", label: "گس کیف", featuredBrand: "guess", brandMatch: ["guess"] },
+  // ── فازِ ۲ (دستهٔ سوم) — خانه/آشپزخانه، کفش و پوشاک ──
+  // مادام‌کوکو (خانه)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "madame coco nevresim", label: "مادام‌کوکو سرویسِ خواب", featuredBrand: "madame-coco", brandMatch: ["madame coco", "madamecoco"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "madame coco havlu", label: "مادام‌کوکو حوله", featuredBrand: "madame-coco", brandMatch: ["madame coco", "madamecoco"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "madame coco ev", label: "مادام‌کوکو خانه", featuredBrand: "madame-coco", brandMatch: ["madame coco", "madamecoco"] },
+  // انگلیش‌هوم (خانه)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "english home nevresim", label: "انگلیش‌هوم سرویسِ خواب", featuredBrand: "english-home", brandMatch: ["english home", "englishhome"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "english home havlu", label: "انگلیش‌هوم حوله", featuredBrand: "english-home", brandMatch: ["english home", "englishhome"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "english home mutfak", label: "انگلیش‌هوم آشپزخانه", featuredBrand: "english-home", brandMatch: ["english home", "englishhome"] },
+  // اولالوک (پوشاکِ زنانه)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "olalook kadın", label: "اولالوک زنانه", featuredBrand: "olalook", brandMatch: ["olalook"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "olalook elbise", label: "اولالوک لباس", featuredBrand: "olalook", brandMatch: ["olalook"] },
+  // کاراجا (آشپزخانه)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "karaca mutfak", label: "کاراجا آشپزخانه", featuredBrand: "karaca", brandMatch: ["karaca"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "karaca yemek takımı", label: "کاراجا سرویسِ غذاخوری", featuredBrand: "karaca", brandMatch: ["karaca"] },
+  // کورکماز (آشپزخانه)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "korkmaz tencere", label: "کورکماز قابلمه", featuredBrand: "korkmaz", brandMatch: ["korkmaz"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "korkmaz mutfak", label: "کورکماز آشپزخانه", featuredBrand: "korkmaz", brandMatch: ["korkmaz"] },
+  // سوپراستپ (کفش)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "superstep sneaker", label: "سوپراستپ اسنیکر", featuredBrand: "superstep", brandMatch: ["superstep"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "superstep ayakkabı", label: "سوپراستپ کفش", featuredBrand: "superstep", brandMatch: ["superstep"] },
+  // گریدر (کفش)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "greyder kadın ayakkabı", label: "گریدر کفشِ زنانه", featuredBrand: "greyder", brandMatch: ["greyder"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "greyder erkek ayakkabı", label: "گریدر کفشِ مردانه", featuredBrand: "greyder", brandMatch: ["greyder"] },
+  // اسپورتیو (ورزشی)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "sportive erkek", label: "اسپورتیو مردانه", featuredBrand: "sportive", brandMatch: ["sportive"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "sportive kadın", label: "اسپورتیو زنانه", featuredBrand: "sportive", brandMatch: ["sportive"] },
+  // لیوایز (جین)
+  { site: "trendyol", base: "https://www.trendyol.com", q: "levis erkek", label: "لیوایز مردانه", featuredBrand: "levis", brandMatch: ["levi's", "levis", "levi strauss"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "levis kadın", label: "لیوایز زنانه", featuredBrand: "levis", brandMatch: ["levi's", "levis", "levi strauss"] },
+  { site: "trendyol", base: "https://www.trendyol.com", q: "levis jean", label: "لیوایز جین", featuredBrand: "levis", brandMatch: ["levi's", "levis", "levi strauss"] },
 ].slice(0, LIMIT_CATEGORIES);
 
 // همهٔ ورودی‌های ترندیول‌میلا برندِ منتخبِ trendyol-milla هستند.

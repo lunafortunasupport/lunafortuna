@@ -44,6 +44,15 @@ const BRAND_DOMAINS: Record<string, string> = {
   oysho: "oysho.com",
   "pull-bear": "pullandbear.com",
   guess: "guess.com",
+  "madame-coco": "madamecoco.com",
+  "english-home": "englishhome.com",
+  olalook: "olalook.com",
+  karaca: "karaca.com",
+  korkmaz: "korkmaz.com.tr",
+  superstep: "superstep.com.tr",
+  greyder: "greyder.com",
+  sportive: "sportive.com.tr",
+  levis: "levi.com.tr",
 };
 export const brandLogo = (slug: string): string | null =>
   BRAND_DOMAINS[slug] ? brandIcon(BRAND_DOMAINS[slug]) : null;
@@ -345,6 +354,16 @@ export const FEATURED_BRANDS: FeaturedBrand[] = [
   { slug: "oysho", nameFa: "اویشو", nameEn: "Oysho", blurbFa: "برندِ اسپانیاییِ لباسِ‌زیر، لباسِ‌خواب و لباسِ‌راحتیِ زنانه." },
   { slug: "pull-bear", nameFa: "پول‌اند‌بیر", nameEn: "Pull & Bear", blurbFa: "برندِ اسپانیاییِ کژوال و استریت‌ویرِ جوان‌پسند." },
   { slug: "guess", nameFa: "گس", nameEn: "GUESS", blurbFa: "برندِ آمریکاییِ محبوب — پوشاک، کیف و اکسسوریِ شیک." },
+  // فازِ ۲ (دستهٔ سوم) — خانه/آشپزخانه، کفش و پوشاک
+  { slug: "madame-coco", nameFa: "مادام‌کوکو", nameEn: "Madame Coco", blurbFa: "برندِ محبوبِ خانه و دکوراسیون — سرویسِ خواب، حوله و لوازمِ خانه." },
+  { slug: "english-home", nameFa: "انگلیش‌هوم", nameEn: "English Home", blurbFa: "خانه و آشپزخانه — سرویسِ خواب، حوله، سرویسِ غذاخوری و دکور." },
+  { slug: "olalook", nameFa: "اولالوک", nameEn: "Olalook", blurbFa: "برندِ پوشاکِ زنانهٔ ترکیه — شیک و مُدِ روز." },
+  { slug: "karaca", nameFa: "کاراجا", nameEn: "Karaca", blurbFa: "برندِ مشهورِ آشپزخانه و سرویسِ غذاخوریِ ترکیه." },
+  { slug: "korkmaz", nameFa: "کورکماز", nameEn: "Korkmaz", blurbFa: "لوازمِ آشپزخانه و پخت‌وپزِ باکیفیتِ ترکیه." },
+  { slug: "superstep", nameFa: "سوپراستپ", nameEn: "Superstep", blurbFa: "فروشگاهِ کفشِ اسنیکر و اسپرتِ برندهای مطرح." },
+  { slug: "greyder", nameFa: "گریدر", nameEn: "Greyder", blurbFa: "برندِ کفشِ چرمِ باکیفیتِ ترکیه، زنانه و مردانه." },
+  { slug: "sportive", nameFa: "اسپورتیو", nameEn: "Sportive", blurbFa: "پوشاک و لوازمِ ورزشیِ ترکیه." },
+  { slug: "levis", nameFa: "لیوایز", nameEn: "Levi's", blurbFa: "برندِ افسانه‌ایِ جین و دنیمِ آمریکایی." },
   { slug: "ambar", nameFa: "آمبار", nameEn: "Ambar", blurbFa: "برندِ ترکِ پوشاکِ زنانه (Ambar Giyim) — از سایتِ رسمیِ خودشان." },
 ];
 
