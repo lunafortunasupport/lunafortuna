@@ -13,11 +13,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const name = product.nameFa || product.nameTr;
   const imgs = parseImages(product.images);
   const desc = product.descriptionFa || `${name} از ${product.brand} — خرید از ترکیه با قیمتِ شفاف به تومان.`;
+  const inStock = product.variants.some((v) => v.inStock);
   return {
     title: name,
     description: desc,
     alternates: { canonical: `/catalog/${id}` },
-    openGraph: { type: "website", title: name, description: desc, images: imgs.length ? [imgs[0]] : undefined },
+    // og:type را از openGraph نمی‌دهیم؛ چون Next 14 روی type=product استثنا می‌اندازد و
+    // React 18 هم متایِ داخلِ بدنه را به <head> منتقل نمی‌کند. پس در <head> با `other` می‌آید.
+    openGraph: { title: name, description: desc, images: imgs.length ? [imgs[0]] : undefined },
+    other: {
+      "og:type": "product",
+      "product:availability": inStock ? "in stock" : "out of stock",
+    },
   };
 }
 

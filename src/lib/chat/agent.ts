@@ -77,25 +77,13 @@ export const chatAgent = new ToolLoopAgent({
         query: z.string().describe("کلیدواژهٔ جست‌وجو، مثلاً «مانتو» یا «کتونی»"),
       }),
       execute: async ({ query }) => {
-        const products = await prisma.product.findMany({
-          where: { isActive: true, title: { contains: query } },
-          take: 8,
-          orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-          select: { id: true, title: true, brandName: true, priceToman: true, stock: true, description: true },
-        });
-        if (products.length === 0) {
-          return { found: false, message: "چیزی در انبارِ تهران با این مشخصات پیدا نشد؛ می‌توانی از برندهای ترکیه سفارش بدهی." };
-        }
+        // بخشِ «موجودیِ انبارِ تهران» (/shop) موقتاً آفلاین است تا انبار پر شود — تصمیمِ کاربر.
+        // پس فعلاً کاربر را به سفارش از برندهای ترکیه هدایت می‌کنیم (نه لینکِ ۴۰۴ به /shop).
+        // برای بازگردانی: کوئریِ prisma.product زیر را برگردان و url را به /shop/product/${p.id} بده.
+        void query;
         return {
-          found: true,
-          products: products.map((p) => ({
-            title: p.title,
-            brand: p.brandName,
-            price: formatToman(p.priceToman),
-            inStock: p.stock > 0,
-            url: `/shop/product/${p.id}`,
-            description: p.description || undefined,
-          })),
+          found: false,
+          message: "فعلاً انبارِ تهران فعال نیست؛ اما می‌توانی از کاتالوگِ برندهای ترکیه با قیمتِ شفاف سفارش بدهی.",
         };
       },
     }),

@@ -135,9 +135,10 @@ export default async function Footer() {
             دسترسی سریع
           </h4>
           <ul className="space-y-3 text-[13.5px] text-cream/65">
-            <li><Link href="/shop" className="transition-colors hover:text-champagne">موجودی انبار</Link></li>
+            <li><Link href="/catalog" className="transition-colors hover:text-champagne">فروشگاهِ ترکیه</Link></li>
             <li><Link href="/brands" className="transition-colors hover:text-champagne">برندها</Link></li>
             <li><Link href="/order" className="transition-colors hover:text-champagne">ثبت سفارش</Link></li>
+            <li><Link href="/blog" className="transition-colors hover:text-champagne">مجله</Link></li>
             <li><Link href="/guide" className="transition-colors hover:text-champagne">راهنمای خرید</Link></li>
             <li><Link href="/about" className="transition-colors hover:text-champagne">دربارهٔ ما</Link></li>
           </ul>

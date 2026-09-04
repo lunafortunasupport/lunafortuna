@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { getFeaturedBrandStats, getCollectionStats } from "@/lib/trendyolCatalog";
+import { BLOG_POSTS } from "@/lib/blogData";
 
 const SITE_URL = "https://lunafortuna.store";
 const HIDDEN_CATEGORY_PREFIX = "Tesettür"; // محصولاتِ پوشیدهٔ حجاب از کاتالوگ حذف‌اند → از sitemap هم بیرون.
@@ -17,6 +18,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/catalog/sale`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
     { url: `${SITE_URL}/catalog/lookbook`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE_URL}/brands`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    ...BLOG_POSTS.map((p) => ({
+      url: `${SITE_URL}/blog/${p.slug}`,
+      lastModified: new Date(p.updated || p.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
     { url: `${SITE_URL}/order`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/quality`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE_URL}/guide`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },

@@ -134,6 +134,7 @@ export default function Nav({
             <Link href="/order" className={linkCls("/order")}>ثبت سفارش</Link>
             <Link href="/quality" className={linkCls("/quality")}>بررسی کیفیت</Link>
             <Link href="/guide" className={linkCls("/guide")}>راهنمای خرید</Link>
+            <Link href="/blog" className={linkCls("/blog")}>مجله</Link>
             <Link href="/about" className={linkCls("/about")}>دربارهٔ ما</Link>
           </div>
 
@@ -204,7 +205,7 @@ export default function Nav({
         {[
           ["/", "خانه"], ["/catalog", "فروشگاهِ ترکیه"], ["/catalog/brands", "برندها"],
           ["/catalog/lookbook", "لوک‌بوک"], ["/catalog/wishlist", "علاقه‌مندی‌ها"],
-          ["/order", "ثبت سفارش"], ["/quality", "بررسی کیفیت"], ["/guide", "راهنمای خرید"], ["/about", "دربارهٔ ما"], ["/account", "حساب من"],
+          ["/order", "ثبت سفارش"], ["/quality", "بررسی کیفیت"], ["/guide", "راهنمای خرید"], ["/blog", "مجله"], ["/about", "دربارهٔ ما"], ["/account", "حساب من"],
         ].map(([href, label]) => (
           <Link
             key={href}

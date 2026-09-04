@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Vazirmatn } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -67,6 +67,14 @@ export const metadata: Metadata = {
   },
 };
 
+// جدا از metadata در Next 14 — رنگِ نوارِ مرورگر روی موبایل و تنظیمِ viewport.
+export const viewport: Viewport = {
+  themeColor: "#152349", // navy — نوارِ بالای مرورگرِ موبایل و PWA
+  colorScheme: "light",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [cats, groupRows, featuredStats, collectionStats, brandStats] = await Promise.all([
     prisma.category.findMany({
@@ -128,6 +136,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="fa" dir="rtl" className={`${vazir.variable} ${estedad.variable}`}>
       <body className="font-sans">
+        {/* اگر جاوااسکریپت خاموش بود، انیمیشن‌های reveal محتوا را پنهان نگه می‌دارند —
+            این fallback همه را بی‌درنگ نمایان می‌کند تا محتوا و SEO آسیب نبیند. */}
+        <noscript>
+          <style>{`.reveal,.rise-up,.img-wipe{opacity:1!important;transform:none!important;clip-path:none!important}`}</style>
+        </noscript>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
