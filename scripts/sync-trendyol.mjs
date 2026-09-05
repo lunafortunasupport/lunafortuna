@@ -215,9 +215,7 @@ const CATEGORIES = [
   // کورکماز (آشپزخانه)
   { site: "trendyol", base: "https://www.trendyol.com", q: "korkmaz tencere", label: "کورکماز قابلمه", featuredBrand: "korkmaz", brandMatch: ["korkmaz"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "korkmaz mutfak", label: "کورکماز آشپزخانه", featuredBrand: "korkmaz", brandMatch: ["korkmaz"] },
-  // سوپراستپ (کفش)
-  { site: "trendyol", base: "https://www.trendyol.com", q: "superstep sneaker", label: "سوپراستپ اسنیکر", featuredBrand: "superstep", brandMatch: ["superstep"] },
-  { site: "trendyol", base: "https://www.trendyol.com", q: "superstep ayakkabı", label: "سوپراستپ کفش", featuredBrand: "superstep", brandMatch: ["superstep"] },
+  // (سوپراستپ حذف شد — فروشگاهِ چندبرنده بود؛ محصولاتش برندِ Nike/Adidas داشتند و به برندِ superstep نمی‌خوردند.)
   // گریدر (کفش)
   { site: "trendyol", base: "https://www.trendyol.com", q: "greyder kadın ayakkabı", label: "گریدر کفشِ زنانه", featuredBrand: "greyder", brandMatch: ["greyder"] },
   { site: "trendyol", base: "https://www.trendyol.com", q: "greyder erkek ayakkabı", label: "گریدر کفشِ مردانه", featuredBrand: "greyder", brandMatch: ["greyder"] },
